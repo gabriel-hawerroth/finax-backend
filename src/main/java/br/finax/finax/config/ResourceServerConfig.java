@@ -16,6 +16,10 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .antMatchers("/user/get-by-email").permitAll()
                 .antMatchers("/user/{id}").permitAll()
                 .antMatchers("/user/change-password").permitAll()
+                .antMatchers("/accounts/save-sequence").permitAll()
+                .antMatchers("/user-configs/save").permitAll()
                 .anyRequest().authenticated();
+
+//        http.requiresChannel().anyRequest().requiresSecure();
     }
 }

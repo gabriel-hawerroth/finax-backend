@@ -42,7 +42,7 @@ public class UserConfigsController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/save")
     private ResponseEntity<UserConfigs> save(@RequestBody UserConfigs userConfigs) {
         try {
             return ResponseEntity.ok().body(userConfigsRepository.save(userConfigs));

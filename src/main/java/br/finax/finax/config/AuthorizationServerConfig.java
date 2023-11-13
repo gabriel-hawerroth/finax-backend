@@ -19,9 +19,8 @@ import java.util.Arrays;
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
-    // the first number is the quantity of hours
-    public static final int ACESS_TOKEN_VALIDITY_IN_SECONDS = (int) 0.9 * 3600;
-    public static final int REFRESH_TOKEN_VALIDITY_IN_SECONDS = 1 * 3600;
+    public static final int ACESS_TOKEN_VALIDITY_IN_SECONDS = 3600;
+    public static final int REFRESH_TOKEN_VALIDITY_IN_SECONDS = 3600;
 
     @Autowired
     private AuthenticationManager authenticationManager;

@@ -1,4 +1,4 @@
-package br.spin.crud;
+package br.finax.finax;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

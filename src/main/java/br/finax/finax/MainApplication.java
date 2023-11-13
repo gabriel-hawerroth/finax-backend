@@ -7,8 +7,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.core.SpringVersion;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
 @EnableScheduling
+@SpringBootApplication
 public class MainApplication extends SpringBootServletInitializer {
 
 	@Override

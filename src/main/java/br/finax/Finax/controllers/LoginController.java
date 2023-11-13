@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/login")
 public class LoginController {
@@ -79,7 +80,7 @@ public class LoginController {
             userRepository.save(user);
         }
 
-        String url = "http://localhost:4200/ativacao-da-conta";
+        String url = "https://hawetec.com.br/finax/ativacao-da-conta";
 
         UriComponentsBuilder redirectUriBuilder = UriComponentsBuilder
                 .fromUriString(url);
@@ -119,7 +120,7 @@ public class LoginController {
             userRepository.save(user);
         }
 
-        String url = "http://localhost:4200/recuperacao-da-senha/" + user.getId();
+        String url = "https://hawetec.com.br/finax/recuperacao-da-senha/" + user.getId();
 
         UriComponentsBuilder redirectUriBuilder = UriComponentsBuilder
                 .fromUriString(url);
@@ -229,7 +230,7 @@ public class LoginController {
                                  Clique
                                  <a
                     """
-                        + "href='http://localhost:8080/login/activate-account/" + user.getId() + "/" + token + "'" +
+                    + "href='https://api.hawetec.com.br/finax/login/activate-account/" + user.getId() + "/" + token.getToken() + "'" +
                     """
                                     target="_blank"
                                     >aqui</a
@@ -240,7 +241,7 @@ public class LoginController {
                                 <p class="line">
                                   Para entrar em contato com nosso suporte, envie uma mensagem nesse
                                   mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
-                                  dúvidas ou bugs encontrados!
+                                  dúvidas ou qualquer problema que você encontrar no sistema!
                                 </p>
                         
                                 <div class="card">
@@ -345,7 +346,7 @@ public class LoginController {
                                  Clique
                                  <a
                     """
-                        + "href='http://localhost:8080/login/permit-change-password/" + user.getId() + "/" + token + "'" +
+                        + "href='https://api.hawetec.com.br/finax/login/permit-change-password/" + user.getId() + "/" + token + "'" +
                     """
                                     target="_blank"
                                     >aqui</a
@@ -356,7 +357,7 @@ public class LoginController {
                                 <p class="line">
                                   Para entrar em contato com nosso suporte, envie uma mensagem nesse
                                   mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
-                                  dúvidas  ou bugs encontrados!
+                                  dúvidas ou qualquer problema que você encontrar no sistema!
                                 </p>
                         
                                 <div class="card">

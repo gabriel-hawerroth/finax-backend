@@ -39,9 +39,8 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
 
         ((AbstractAuthenticationToken) authentication).setDetails(authentication.getDetails());
 
-        if (!username.equals("gabrielhawerroth04@gmail.com")) {
-            User user = userRepository.findByEmail(username);
-            AccessLog log = new AccessLog(user.getId(), user.getEmail(), LocalDateTime.now());
+        if (!username.equals("gabrielhawerroth04@gmail.com") && !username.equals("dhawerroth@gmail.com")) {
+            AccessLog log = new AccessLog(username, LocalDateTime.now());
             accessLogRepository.save(log);
         }
 
