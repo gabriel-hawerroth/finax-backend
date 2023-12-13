@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/accounts")
 public class AccountsController {
@@ -19,7 +20,7 @@ public class AccountsController {
 
     @GetMapping("/get-by-user/{userId}")
     private List<Account> getByUser(@PathVariable Long userId) {
-        return accountsRepository.findAllByUserIdOrderByPresentationSequenceAsc(userId);
+        return accountsRepository.findAllByUserIdOrderByIdAsc(userId);
     }
 
     @GetMapping("/{id}")
@@ -32,28 +33,9 @@ public class AccountsController {
     @PostMapping
     private ResponseEntity<Account> save(@RequestBody Account account) {
         try {
-            if (account.getId() == null) {
-                account.setPresentationSequence(
-                        accountsRepository.findAllByUserIdOrderByPresentationSequenceAsc(account.getUserId()).size()
-                );
-            }
-
             return ResponseEntity.ok().body(accountsRepository.save(account));
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao salvar a conta");
-        }
-    }
-
-    @PutMapping("save-sequence")
-    private ResponseEntity<List<Account>> saveSequence(@RequestBody List<Account> accountsList) {
-        try {
-            for (int i = 0; i < accountsList.size(); i++) {
-                accountsList.get(i).setPresentationSequence(i);
-            }
-
-            return ResponseEntity.ok().body(accountsRepository.saveAll(accountsList));
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao salvar a sequência de apresentação");
         }
     }
 

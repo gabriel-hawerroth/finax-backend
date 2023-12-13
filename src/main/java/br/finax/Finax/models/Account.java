@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name = "accounts")
+@Table(name = "bank_accounts")
 public class Account {
 
     @Id
@@ -16,8 +16,7 @@ public class Account {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "account_name")
-    private String accountName;
+    private String name;
 
     private Double balance;
 
@@ -30,6 +29,14 @@ public class Account {
 
     private boolean archived;
 
-    @Column(name = "presentation_sequence")
-    private Integer presentationSequence;
+    private String image;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
+    private Integer agency;
+
+    private Integer code;
+
+    private String type;
 }

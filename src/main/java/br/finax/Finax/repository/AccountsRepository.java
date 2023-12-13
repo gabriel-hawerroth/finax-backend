@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface AccountsRepository extends JpaRepository<Account, Long> {
 
-    List<Account> findAllByUserIdOrderByPresentationSequenceAsc(Long userId);
+    List<Account> findAllByUserIdOrderByIdAsc(Long userId);
 }
