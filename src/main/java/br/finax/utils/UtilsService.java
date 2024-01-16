@@ -1,11 +1,15 @@
 package br.finax.utils;
 
+import br.finax.enums.ImgFormat;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
@@ -13,27 +17,33 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 @Service
 public class UtilsService {
-
-    public byte[] compressImage(byte[] data, long size, boolean isAttachment) throws IOException {
+    public byte[] compressImage(byte[] data, boolean isAttachment, ImgFormat imgFormat) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
         int imageSize = getImageSize(data, isAttachment);
 
-        // Redimensionar e comprimir a imagem
+        // Resize and compress the image
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Thumbnails.of(inputStream)
-                .size(imageSize, imageSize)  // Tamanho desejado em px
-                .outputFormat("jpg")  // Formato de saída
-                .outputQuality(0.5)  // Qualidade da compressão (0.0 (ruim) a 1.0 (boa))
+                .size(imageSize, imageSize)  // Desired size in px
+                .outputFormat(imgFormat.getFormat())
+                .outputQuality(0.5)
                 .toOutputStream(outputStream);
 
         byte[] response = outputStream.toByteArray();
 
-        System.out.println("Tamanho original: " + data.length + " bytes");
-        System.out.println("Tamanho comprimido: " + response.length + " bytes");
+        System.out.println("Original size: " + data.length + " bytes");
+        System.out.println("Compressed size: " + response.length + " bytes");
 
         return response;
     }
@@ -60,12 +70,11 @@ public class UtilsService {
 
     public byte[] compressPdf(byte[] pdfData) throws IOException {
         try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfData))) {
-            // Remover recursos não utilizados e otimizar
+            // Remove unused resources and optimize
             document.setAllSecurityToBeRemoved(true);
             document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
             removeUnusedObjects(document);
 
-            // Salvar o documento otimizado em um novo array de bytes
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 document.getDocument().setIsXRefStream(true);
                 document.getDocumentCatalog().setStructureTreeRoot(null);
@@ -73,15 +82,15 @@ public class UtilsService {
 
                 byte[] response = outputStream.toByteArray();
 
-                System.out.println("PDF - Tamanho original: " + pdfData.length + " bytes");
-                System.out.println("PDF - Tamanho comprimido: " + response.length + " bytes");
+                System.out.println("PDF - Original size: " + pdfData.length + " bytes");
+                System.out.println("PDF - Compressed size: " + response.length + " bytes");
 
                 return outputStream.toByteArray();
             }
         }
     }
 
-    // Método para remover objetos não utilizados
+    // Removes unused objects from pdf
     private void removeUnusedObjects(PDDocument document) throws IOException {
         PDPageTree pages = document.getPages();
         for (PDPage page : pages) {

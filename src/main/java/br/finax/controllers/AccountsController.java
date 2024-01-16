@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class AccountsController {
             release.setType(newBalance > account.getBalance() ? "R" : "E");
             release.setDone(true);
             release.setCategoryId(21L);
-            release.setDate(new Date());
+            release.setDate(LocalDate.now());
 
             cashFlowRepository.saveAndFlush(release);
 
@@ -69,19 +70,4 @@ public class AccountsController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
-
-//    @PutMapping("/{id}")
-//    private ResponseEntity<Account> archiveOrUnarchive(@PathVariable Long id) {
-//        try {
-//            Account account = accountsRepository.findById(id).orElseThrow(
-//                    () -> new RuntimeException("Conta não localizada")
-//            );
-//
-//            account.setArchived(!account.isArchived());
-//
-//            return ResponseEntity.ok().body(accountsRepository.save(account));
-//        } catch (RuntimeException e) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-//        }
-//    }
 }

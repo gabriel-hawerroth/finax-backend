@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.enums.ImgFormat;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.utils.UtilsService;
@@ -18,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -95,8 +97,7 @@ public class UserController {
     }
 
     @PutMapping("/change-profile-image/{userId}")
-    private ResponseEntity<User> changeUserImage(@PathVariable Long userId,
-                                                 @RequestParam("file") MultipartFile profileImage) throws IOException {
+    private ResponseEntity<User> changeUserImage(@PathVariable Long userId, @RequestParam("file") MultipartFile profileImage) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
@@ -104,10 +105,15 @@ public class UserController {
 
         byte[] originalImage = profileImage.getBytes();
 
+        String imgExtension = Objects.requireNonNull(profileImage.getOriginalFilename()).split("\\.")[1];
+
         try {
-            // Redimensionar e comprimir a imagem antes de salvar
-            byte[] compressedImage = utilsService.compressImage(originalImage, profileImage.getSize(), false);
-            user.setProfileImage(compressedImage);
+            // Resize and compress the image before saving
+            if (imgExtension.equals("png") || imgExtension.equals("webp")) {
+                user.setProfileImage(originalImage);
+            } else {
+                user.setProfileImage(utilsService.compressImage(originalImage, false, ImgFormat.JPG));
+            }
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }

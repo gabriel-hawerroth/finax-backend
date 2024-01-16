@@ -1,14 +1,12 @@
 package br.finax.models;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Date;
-import java.util.List;
 
 public class InterfacesSQL {
 
-    public interface MonthlyCashFlow {
+    public interface MonthlyReleases {
         Long getId();
+        Long getUserId();
         String getDescription();
         Long getAccountId();
         String getAccountName();
@@ -26,10 +24,15 @@ public class InterfacesSQL {
         String getObservation();
         byte[] getAttachment();
         String getAttachmentName();
+        Long getDuplicatedReleaseId();
+        Boolean getIsDuplicatedRelease();
     }
 
-    public interface MonthlyValues {
+    public interface MonthlyBalance {
         Double getRevenues();
         Double getExpenses();
+        Double getBalance();
+        Double getGeneralBalance();
+        Double getExpectedBalance();
     }
 }

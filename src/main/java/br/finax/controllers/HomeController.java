@@ -28,7 +28,7 @@ public class HomeController {
         HomeValues response = new HomeValues();
 
         response.setGeneralBalance(accountsRepository.getCurrentBalance(userId).get(0));
-        response.setMonthlyFlow(cashFlowRepository.getMonthlyFlow(userId).get(0));
+        response.setMonthlyFlow(cashFlowRepository.getMonthlyBalance(userId).get(0));
         response.setAccountsList(accountsRepository.getHomeAccountsList(userId));
         response.setUpcomingReleasesExpected(cashFlowRepository.getUpcomingReleasesExpected(userId));
 
@@ -38,8 +38,8 @@ public class HomeController {
     @Data
     public static class HomeValues {
         Double generalBalance;
-        InterfacesSQL.MonthlyValues monthlyFlow;
+        InterfacesSQL.MonthlyBalance monthlyFlow;
         List<Account> accountsList;
-        List<InterfacesSQL.MonthlyCashFlow> upcomingReleasesExpected;
+        List<InterfacesSQL.MonthlyReleases> upcomingReleasesExpected;
     }
 }

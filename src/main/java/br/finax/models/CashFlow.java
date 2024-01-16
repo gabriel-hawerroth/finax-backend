@@ -3,8 +3,7 @@ package br.finax.models;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.sql.Time;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -14,6 +13,9 @@ public class CashFlow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "user_id")
+    private Long userId;
 
     private String description;
 
@@ -32,7 +34,7 @@ public class CashFlow {
     @Column(name = "category_id")
     private Long categoryId;
 
-    private Date date;
+    private LocalDate date;
 
     private String time;
 
@@ -42,4 +44,7 @@ public class CashFlow {
 
     @Column(name = "attachment_name")
     private String attachmentName;
+
+    @Column(name = "duplicated_release_id")
+    private Long duplicatedReleaseId;
 }
