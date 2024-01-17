@@ -122,6 +122,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             WHERE
                 cf.duplicated_release_id = :duplicatedReleaseId
                 AND cf.date > :date
+            ORDER BY cf.id
             """, nativeQuery = true
     )
     List<CashFlow> getNextDuplicatedReleases(Long duplicatedReleaseId, LocalDate date);
@@ -136,6 +137,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                     WHERE
                         cf.duplicated_release_id = :duplicatedReleaseId
                         or cf.id = :duplicatedReleaseId
+                    ORDER BY cf.id
                     """, nativeQuery = true
     )
     List<CashFlow> getAllDuplicatedReleases(Long duplicatedReleaseId);

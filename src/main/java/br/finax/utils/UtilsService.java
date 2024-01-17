@@ -4,12 +4,9 @@ import br.finax.enums.ImgFormat;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
@@ -17,13 +14,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 
 @Service
 public class UtilsService {
@@ -36,7 +26,7 @@ public class UtilsService {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Thumbnails.of(inputStream)
                 .size(imageSize, imageSize)  // Desired size in px
-                .outputFormat(imgFormat.getFormat())
+                .outputFormat(imgFormat.getImgFormat())
                 .outputQuality(0.5)
                 .toOutputStream(outputStream);
 
@@ -91,7 +81,7 @@ public class UtilsService {
     }
 
     // Removes unused objects from pdf
-    private void removeUnusedObjects(PDDocument document) throws IOException {
+    private void removeUnusedObjects(PDDocument document) {
         PDPageTree pages = document.getPages();
         for (PDPage page : pages) {
             PDResources resources = page.getResources();

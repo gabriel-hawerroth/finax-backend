@@ -1,5 +1,8 @@
 package br.finax.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ImgFormat {
     JPG("jpg");
 
@@ -7,9 +10,5 @@ public enum ImgFormat {
 
     ImgFormat(String imgFormat) {
         this.imgFormat = imgFormat;
-    }
-
-    public String getFormat() {
-        return imgFormat;
     }
 }

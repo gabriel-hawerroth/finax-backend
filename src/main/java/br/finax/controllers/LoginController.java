@@ -60,7 +60,7 @@ public class LoginController {
 
         Token token = new Token();
         token.setUserId(savedUser.getId());
-        token.setToken(calculateHash(savedUser.getEmail(), "SHA-256"));
+        token.setToken(calculateHash(savedUser.getEmail()));
         tokenRepository.save(token);
 
         sendActivateAccountEmail(token);
@@ -93,7 +93,7 @@ public class LoginController {
     }
 
     @PostMapping("/send-change-password-email")
-    private void requestPermissionToChangePassword(@RequestParam Long userId) throws MessagingException {
+    private void requestPermissionToChangePassword(@RequestParam Long userId) {
         Token tok = tokenRepository.findByUserId(userId);
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)
@@ -102,7 +102,7 @@ public class LoginController {
         Token token = new Token();
         if (tok != null) token.setId(tok.getId());
         token.setUserId(user.getId());
-        token.setToken(calculateHash(user.getEmail(), "SHA-256"));
+        token.setToken(calculateHash(user.getEmail()));
         tokenRepository.save(token);
 
         sendChangePasswordEmail(user, token.getToken());
@@ -132,9 +132,9 @@ public class LoginController {
                 .build();
     }
 
-    private static String calculateHash(String input, String algorithm) {
+    private static String calculateHash(String input) {
         try {
-            MessageDigest digest = MessageDigest.getInstance(algorithm);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
 
             // Converter bytes em representação hexadecimal

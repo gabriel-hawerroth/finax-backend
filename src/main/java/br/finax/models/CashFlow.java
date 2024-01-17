@@ -47,4 +47,9 @@ public class CashFlow {
 
     @Column(name = "duplicated_release_id")
     private Long duplicatedReleaseId;
+
+    private String repeat;
+
+    @Column(name = "fixed_by")
+    private String fixedBy;
 }

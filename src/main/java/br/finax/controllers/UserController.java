@@ -4,7 +4,7 @@ import br.finax.enums.ImgFormat;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.utils.UtilsService;
-import net.coobird.thumbnailator.Thumbnails;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
@@ -12,12 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.List;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.io.IOException;
 import java.util.Objects;
 
