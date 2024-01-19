@@ -19,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,29 +34,26 @@ public class CashFlowController {
 
     @GetMapping("/{id}")
     private CashFlow getById(@PathVariable Long id) {
-        return cashFlowRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lançamento não encontrado")
-        );
+        return cashFlowRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Release not found"));
     }
 
     @GetMapping
-    private MonthlyFlow getMonthlyFlow(
-            @RequestParam Long userId, @RequestParam Integer year, @RequestParam Integer month
-    ) {
+    private MonthlyFlow getMonthlyFlow(@RequestParam Long userId, @RequestParam LocalDate date) {
         return new MonthlyFlow(
-            cashFlowRepository.getCashFlow(userId, year, month),
-            cashFlowRepository.getMonthlyBalance(userId).get(0)
+            cashFlowRepository.getCashFlow(userId, date),
+            cashFlowRepository.getMonthlyBalance(userId, date).get(0)
         );
     }
 
     @PostMapping
-    private ResponseEntity<CashFlow> addRelease(@RequestBody CashFlow release, @RequestParam int installmentsBy) {
+    private ResponseEntity<CashFlow> addRelease(@RequestBody CashFlow release, @RequestParam int repeatFor) {
         try {
             if (release.getRepeat().isBlank()) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
             }
 
-            Double installmentsAmount = release.getAmount() / installmentsBy;
+            Double installmentsAmount = release.getAmount() / repeatFor;
             if (release.getRepeat().equals("installments")) {
                 release.setAmount(installmentsAmount);
             }
@@ -72,7 +68,7 @@ public class CashFlowController {
             List<CashFlow> releases = new ArrayList<>();
             LocalDate dt = savedRelease.getDate();
 
-            int loopQuantity = isFixedRepeat ? getLoopQuantity(release.getFixedBy()) : installmentsBy - 1;
+            int loopQuantity = repeatFor - 1;
 
             for (var i = 0; i < loopQuantity; i++) {
                 CashFlow duplicatedRelease = createDuplicatedRelease(
@@ -108,6 +104,8 @@ public class CashFlowController {
             release.setAttachment(existingRelease.getAttachment());
             release.setAttachmentName(existingRelease.getAttachmentName());
             release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
+            release.setRepeat(existingRelease.getRepeat());
+            release.setFixedBy(existingRelease.getFixedBy());
 
             boolean updatingAll = duplicatedReleaseAction.equals("all");
 
@@ -121,7 +119,7 @@ public class CashFlowController {
                 if (duplicatedReleaseAction.equals("nexts")) {
                     duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
                             release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId(),
-                            release.getDate()
+                            existingRelease.getDate()
                     );
                 } else {
                     duplicatedReleases = cashFlowRepository.getAllDuplicatedReleases(
@@ -139,7 +137,7 @@ public class CashFlowController {
                     item.setAmount(release.getAmount());
                     item.setTargetAccountId(release.getTargetAccountId());
                     item.setCategoryId(release.getCategoryId());
-                    item.setDate(release.getRepeat().equals("fixed") ? getNewDate(dt, release.getFixedBy()) :
+                    item.setDate(existingRelease.getRepeat().equals("fixed") ? getNewDate(updatingAll ? item.getDate() : dt, existingRelease.getFixedBy()) :
                             (firstLoop && updatingAll ? dt : dt.plusMonths(1)));
                     item.setTime(release.getTime());
                     item.setObservation(release.getObservation());
@@ -248,19 +246,6 @@ public class CashFlowController {
                 .amount(newAmount)
                 .date(newDate)
                 .build();
-    }
-
-    int getLoopQuantity(String fixedBy) {
-        return switch (fixedBy) {
-            case "daily" -> 365; // 1 year
-            case "weekly" -> 52; // 1 year
-            case "monthly" -> 18; // 1,5 year
-            case "bimonthly" -> 12; // 2 years
-            case "quarterly" -> 8; // 2 years
-            case "biannual" -> 6; // 5 years
-            case "annual" -> 10; // 10 years
-            default -> 0;
-        };
     }
 
     LocalDate getNewDate(LocalDate dt, String fixedBy) {

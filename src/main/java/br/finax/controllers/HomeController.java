@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,9 +27,10 @@ public class HomeController {
     @GetMapping("/get-home-values/{userId}")
     private HomeValues getHomeAccounts(@PathVariable Long userId) {
         HomeValues response = new HomeValues();
+        LocalDate dt = LocalDate.now().withDayOfMonth(15);
 
         response.setGeneralBalance(accountsRepository.getCurrentBalance(userId).get(0));
-        response.setMonthlyFlow(cashFlowRepository.getMonthlyBalance(userId).get(0));
+        response.setMonthlyFlow(cashFlowRepository.getMonthlyBalance(userId, dt).get(0));
         response.setAccountsList(accountsRepository.getHomeAccountsList(userId));
         response.setUpcomingReleasesExpected(cashFlowRepository.getUpcomingReleasesExpected(userId));
 
