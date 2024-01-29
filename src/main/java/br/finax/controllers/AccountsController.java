@@ -52,6 +52,7 @@ public class AccountsController {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             CashFlow release = new CashFlow();
+            release.setUserId(account.getUserId());
             release.setDescription("");
             release.setAccountId(account.getId());
             release.setAmount(newBalance > account.getBalance() ? newBalance - account.getBalance() : account.getBalance() - newBalance);

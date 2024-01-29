@@ -119,10 +119,11 @@ public class UserController {
 
     @Cacheable
     @GetMapping("/get-user-image/{userId}")
-    private ResponseEntity<byte[]> getUserImage(@PathVariable Long userId) throws IOException {
+    private ResponseEntity<byte[]> getUserImage(@PathVariable Long userId) {
         if (userId == null) return null;
 
-        byte[] compressedImage = userRepository.findById(userId).get().getProfileImage();
+        byte[] compressedImage = userRepository.findById(userId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getProfileImage();
 
         return ResponseEntity.ok().body(compressedImage);
     }
