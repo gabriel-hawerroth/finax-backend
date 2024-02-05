@@ -1,7 +1,9 @@
 package br.finax.controllers;
 
 import br.finax.models.Category;
+import br.finax.models.User;
 import br.finax.repository.CategoryRepository;
+import br.finax.utils.UtilsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ public class CategoryController {
 
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private UtilsService utilsService;
 
     @GetMapping("/{id}")
     private Category getById(@PathVariable Long id) {
@@ -23,9 +27,10 @@ public class CategoryController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 
-    @GetMapping("/get-by-user/{userId}")
-    private List<Category> getByUser(@PathVariable Long userId) {
-        return categoryRepository.findByUser(userId);
+    @GetMapping("/get-by-user")
+    private List<Category> getByUser() {
+        User user = utilsService.getAuthUser();
+        return categoryRepository.findByUser(user.getId());
     }
 
     @PostMapping

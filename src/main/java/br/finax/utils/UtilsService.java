@@ -1,7 +1,10 @@
 package br.finax.utils;
 
 import br.finax.enums.ImgFormat;
+import br.finax.models.User;
 import net.coobird.thumbnailator.Thumbnails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -17,6 +20,15 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalA
 
 @Service
 public class UtilsService {
+    public User getAuthUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            return (User) authentication.getPrincipal();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public byte[] compressImage(byte[] data, boolean isAttachment, ImgFormat imgFormat) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 

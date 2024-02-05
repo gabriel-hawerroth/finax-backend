@@ -1,6 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.Account;
+import br.finax.models.InterfacesSQL.GenericIdDs;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -41,4 +42,21 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             """, nativeQuery = true
     )
     List<Account> getHomeAccountsList(Long user_id);
+
+    @Query(
+        value =
+            """
+            SELECT
+                ba.id,
+                ba.name AS ds
+            FROM
+                bank_accounts ba
+            WHERE
+                ba.user_id = :user_id
+                AND ba.active = true
+            ORDER BY
+                ba.id
+            """, nativeQuery = true
+    )
+    List<GenericIdDs> getBasicList(Long user_id);
 }

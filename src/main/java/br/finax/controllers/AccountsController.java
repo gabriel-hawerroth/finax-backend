@@ -2,8 +2,10 @@ package br.finax.controllers;
 
 import br.finax.models.Account;
 import br.finax.models.CashFlow;
+import br.finax.models.InterfacesSQL.GenericIdDs;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
+import br.finax.utils.UtilsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,29 +22,25 @@ public class AccountsController {
 
     @Autowired
     private AccountsRepository accountsRepository;
-
     @Autowired
     private CashFlowRepository cashFlowRepository;
+    @Autowired
+    private UtilsService utilsService;
 
-    @GetMapping("/get-by-user/{userId}")
-    private List<Account> getByUser(@PathVariable Long userId) {
-        return accountsRepository.findAllByUserIdOrderByIdAsc(userId);
+    @GetMapping("/get-by-user")
+    private List<Account> getByUser() {
+        return accountsRepository.findAllByUserIdOrderByIdAsc(utilsService.getAuthUser().getId());
     }
 
     @GetMapping("/{id}")
     private Account getById(@PathVariable Long id) {
         return accountsRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Conta não localizada")
-        );
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account not found"));
     }
 
     @PostMapping
     private ResponseEntity<Account> save(@RequestBody Account account) {
-        try {
-            return ResponseEntity.ok().body(accountsRepository.save(account));
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao salvar a conta");
-        }
+        return ResponseEntity.ok().body(accountsRepository.save(account));
     }
 
     @GetMapping("/adjust-balance/{id}")
@@ -69,5 +67,10 @@ public class AccountsController {
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/basic-list")
+    private List<GenericIdDs> getBasicList() {
+        return accountsRepository.getBasicList(utilsService.getAuthUser().getId());
     }
 }

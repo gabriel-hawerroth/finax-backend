@@ -4,6 +4,7 @@ import br.finax.enums.ImgFormat;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.models.InterfacesSQL;
+import br.finax.models.User;
 import br.finax.repository.CashFlowRepository;
 import br.finax.utils.UtilsService;
 
@@ -19,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,10 +40,12 @@ public class CashFlowController {
     }
 
     @GetMapping
-    private MonthlyFlow getMonthlyFlow(@RequestParam Long userId, @RequestParam LocalDate date) {
+    private MonthlyFlow getMonthlyFlow(@RequestParam LocalDate date) {
+        User user = utilsService.getAuthUser();
+
         return new MonthlyFlow(
-            cashFlowRepository.getCashFlow(userId, date),
-            cashFlowRepository.getMonthlyBalance(userId, date).get(0)
+            cashFlowRepository.getCashFlow(user.getId(), date),
+            cashFlowRepository.getMonthlyBalance(user.getId(), date).get(0)
         );
     }
 
@@ -53,33 +56,30 @@ public class CashFlowController {
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
             }
 
-            Double installmentsAmount = release.getAmount() / repeatFor;
-            if (release.getRepeat().equals("installments")) {
-                release.setAmount(installmentsAmount);
-            }
-
             boolean isFixedRepeat = release.getRepeat().equals("fixed");
+            Double installmentsAmount = release.getAmount() / repeatFor;
 
-            if (!isFixedRepeat)
+            if (!isFixedRepeat) {
+                release.setAmount(installmentsAmount);
                 release.setFixedBy("");
+            }
 
             CashFlow savedRelease = cashFlowRepository.save(release);
 
-            List<CashFlow> releases = new ArrayList<>();
+            List<CashFlow> releases = new LinkedList<>();
             LocalDate dt = savedRelease.getDate();
 
             int loopQuantity = repeatFor - 1;
 
             for (var i = 0; i < loopQuantity; i++) {
-                CashFlow duplicatedRelease = createDuplicatedRelease(
-                        savedRelease,
-                        isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
-                        isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
+                releases.add(
+                        createDuplicatedRelease(
+                                savedRelease,
+                                isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
+                                isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
+                        )
                 );
-
-                releases.add(duplicatedRelease);
-
-                dt = duplicatedRelease.getDate();
+                dt = releases.get(i).getDate();
             }
 
             cashFlowRepository.saveAll(releases);
@@ -109,8 +109,8 @@ public class CashFlowController {
 
             boolean updatingAll = duplicatedReleaseAction.equals("all");
 
-            if (!duplicatedReleaseAction.equals("all")) {
-                CashFlow savedRelease = cashFlowRepository.save(release);
+            if (!updatingAll) {
+                cashFlowRepository.save(release);
             }
 
             if (duplicatedReleaseAction.equals("nexts") || updatingAll) {
@@ -127,28 +127,16 @@ public class CashFlowController {
                     );
                 }
 
-                LocalDate dt = release.getDate();
-
-                boolean firstLoop = true;
-
                 for (CashFlow item: duplicatedReleases) {
                     item.setDescription(release.getDescription());
                     item.setAccountId(release.getAccountId());
                     item.setAmount(release.getAmount());
                     item.setTargetAccountId(release.getTargetAccountId());
                     item.setCategoryId(release.getCategoryId());
-                    item.setDate(existingRelease.getRepeat().equals("fixed") ? getNewDate(updatingAll ? item.getDate() : dt, existingRelease.getFixedBy()) :
-                            (firstLoop && updatingAll ? dt : dt.plusMonths(1)));
+                    item.setDate(item.getDate());
                     item.setTime(release.getTime());
                     item.setObservation(release.getObservation());
-
-                    if (firstLoop && updatingAll) {
-                        item.setDone(release.isDone());
-                    }
-
-                    dt = item.getDate();
-
-                    firstLoop = false;
+                    item.setDone(release.isDone());
                 }
 
                 cashFlowRepository.saveAll(duplicatedReleases);

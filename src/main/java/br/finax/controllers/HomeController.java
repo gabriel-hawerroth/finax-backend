@@ -2,8 +2,10 @@ package br.finax.controllers;
 
 import br.finax.models.Account;
 import br.finax.models.InterfacesSQL;
+import br.finax.models.User;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
+import br.finax.utils.UtilsService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,19 +22,21 @@ public class HomeController {
 
     @Autowired
     private AccountsRepository accountsRepository;
-
     @Autowired
     private CashFlowRepository cashFlowRepository;
+    @Autowired
+    private UtilsService utilsService;
 
-    @GetMapping("/get-home-values/{userId}")
-    private HomeValues getHomeAccounts(@PathVariable Long userId) {
+    @GetMapping("/get-home-values")
+    private HomeValues getHomeAccounts() {
+        User user = utilsService.getAuthUser();
         HomeValues response = new HomeValues();
         LocalDate dt = LocalDate.now().withDayOfMonth(15);
 
-        response.setGeneralBalance(accountsRepository.getCurrentBalance(userId).get(0));
-        response.setMonthlyFlow(cashFlowRepository.getMonthlyBalance(userId, dt).get(0));
-        response.setAccountsList(accountsRepository.getHomeAccountsList(userId));
-        response.setUpcomingReleasesExpected(cashFlowRepository.getUpcomingReleasesExpected(userId));
+        response.setGeneralBalance(accountsRepository.getCurrentBalance(user.getId()).get(0));
+        response.setMonthlyFlow(cashFlowRepository.getMonthlyBalance(user.getId(), dt).get(0));
+        response.setAccountsList(accountsRepository.getHomeAccountsList(user.getId()));
+        response.setUpcomingReleasesExpected(cashFlowRepository.getUpcomingReleasesExpected(user.getId()));
 
         return response;
     }

@@ -4,6 +4,11 @@ import java.util.Date;
 
 public class InterfacesSQL {
 
+    public interface GenericIdDs {
+        Long getId();
+        String getDs();
+    }
+
     public interface MonthlyReleases {
         Long getId();
         Long getUserId();

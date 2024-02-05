@@ -93,11 +93,11 @@ public class LoginController {
     }
 
     @PostMapping("/send-change-password-email")
-    private void requestPermissionToChangePassword(@RequestParam Long userId) {
-        Token tok = tokenRepository.findByUserId(userId);
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)
-        );
+    private void requestPermissionToChangePassword(@RequestParam String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not exists");
+
+        Token tok = tokenRepository.findByUserId(user.getId());
 
         Token token = new Token();
         if (tok != null) token.setId(tok.getId());

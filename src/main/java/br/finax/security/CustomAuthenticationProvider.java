@@ -33,23 +33,17 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
         String username = sendedCredentials.getPrincipal().toString();
         String password = sendedCredentials.getCredentials().toString();
 
-        Authentication authentication = this.fazerLogin(username, password);
-        if (authentication == null) {
-            throw new BadCredentialsException("Bad credentials");
-        }
+        Authentication authentication = this.doLogin(username, password);
 
         ((AbstractAuthenticationToken) authentication).setDetails(authentication.getDetails());
 
         return authentication;
     }
 
-    private Authentication fazerLogin(String username, String password) {
+    private Authentication doLogin(String username, String password) {
         User existentLogin = userRepository.findByEmail(username);
-        if (existentLogin == null) {
-            return null;
-        }
-        if (!encoder.matches(password, existentLogin.getPassword())){
-            return null;
+        if (existentLogin == null || !encoder.matches(password, existentLogin.getPassword())) {
+            throw new BadCredentialsException("Bad credentials");
         }
 
         if (!existentLogin.isActivate()) {

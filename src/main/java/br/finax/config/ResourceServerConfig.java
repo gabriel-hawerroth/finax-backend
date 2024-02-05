@@ -13,10 +13,9 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
     public void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers("/login/**").permitAll()
+                .antMatchers("/user/change-forgeted-password").permitAll()
                 .antMatchers("/user/get-by-email").permitAll()
                 .antMatchers("/user/{id}").permitAll()
-                .antMatchers("/user/change-password").permitAll()
-                .antMatchers("/accounts/save-sequence").permitAll()
                 .antMatchers("/user-configs/save").permitAll()
                 .anyRequest().authenticated();
 

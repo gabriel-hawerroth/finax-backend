@@ -36,7 +36,7 @@ public class UserController {
     @GetMapping("/{id}")
     private User getById(@PathVariable Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
     }
 
     @GetMapping("/get-by-email")
@@ -44,7 +44,7 @@ public class UserController {
         try {
             return userRepository.findByEmail(email);
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
     }
 
@@ -53,9 +53,8 @@ public class UserController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
-        if (!user.getCanChangePassword()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sem permissão para alterar a senha");
-        }
+        if (!user.getCanChangePassword())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Without permission to change the password");
 
         user.setPassword(bCrypt.encode(newPassword));
         user.setCanChangePassword(false);
@@ -65,15 +64,13 @@ public class UserController {
 
     @PutMapping("/change-password")
     private ResponseEntity<User> changePassword(
-            @RequestParam Long userId,
             @RequestParam String newPassword,
             @RequestParam String currentPassword
     ) {
-       User user = userRepository.findById(userId)
-               .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+       User user = utilsService.getAuthUser();
 
        if (!bCrypt.matches(currentPassword, user.getPassword())) {
-           throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+           throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "The current password is incorrect");
        }
 
        user.setPassword(bCrypt.encode(newPassword));
@@ -92,10 +89,10 @@ public class UserController {
         return ResponseEntity.ok().body(userRepository.save(existentUser));
     }
 
-    @PutMapping("/change-profile-image/{userId}")
-    private ResponseEntity<User> changeUserImage(@PathVariable Long userId, @RequestParam("file") MultipartFile profileImage) throws IOException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+    @PutMapping("/change-profile-image")
+    private ResponseEntity<User> changeUserImage(@RequestParam("file") MultipartFile profileImage) throws IOException {
+        User user = userRepository.findById(utilsService.getAuthUser().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (profileImage.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 
@@ -118,11 +115,9 @@ public class UserController {
     }
 
     @Cacheable
-    @GetMapping("/get-user-image/{userId}")
-    private ResponseEntity<byte[]> getUserImage(@PathVariable Long userId) {
-        if (userId == null) return null;
-
-        byte[] compressedImage = userRepository.findById(userId).orElseThrow(
+    @GetMapping("/get-user-image")
+    private ResponseEntity<byte[]> getUserImage() {
+        byte[] compressedImage = userRepository.findById(utilsService.getAuthUser().getId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getProfileImage();
 
         return ResponseEntity.ok().body(compressedImage);
