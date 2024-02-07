@@ -27,7 +27,6 @@ public class InterfacesSQL {
         Date getDate();
         String getTime();
         String getObservation();
-        byte[] getAttachment();
         String getAttachmentName();
         Long getDuplicatedReleaseId();
         Boolean getIsDuplicatedRelease();
