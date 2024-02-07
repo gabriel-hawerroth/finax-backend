@@ -1,6 +1,7 @@
 package br.finax.controllers;
 
 import br.finax.models.CreditCard;
+import br.finax.models.InterfacesSQL;
 import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class CreditCardController {
     private CreditCardRepository creditCardRepository;
 
     @GetMapping("/get-by-user")
-    private List<CreditCard> getByUser() {
+    private List<InterfacesSQL.UserCreditCards> getByUser() {
         return creditCardRepository.getAllByUser(utilsService.getAuthUser().getId());
     }
 

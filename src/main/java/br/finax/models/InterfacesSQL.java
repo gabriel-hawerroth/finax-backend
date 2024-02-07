@@ -40,4 +40,18 @@ public class InterfacesSQL {
         Double getGeneralBalance();
         Double getExpectedBalance();
     }
+
+    public interface UserCreditCards {
+        Long getId();
+        Long getUser_id();
+        String getName();
+        Double getCard_limit();
+        int getClose_day();
+        int getExpires_day();
+        String getImage();
+        Long getStandard_payment_account_id();
+        boolean getActive();
+        String getAccount_name();
+        String getAccount_image();
+    }
 }
