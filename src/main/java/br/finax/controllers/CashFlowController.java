@@ -1,6 +1,7 @@
 package br.finax.controllers;
 
 import br.finax.enums.ImgFormat;
+import br.finax.enums.ReleasedOn;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.models.InterfacesSQL;
@@ -50,7 +51,7 @@ public class CashFlowController {
     }
 
     @PostMapping
-    private ResponseEntity<CashFlow> addRelease(@RequestBody CashFlow release, @RequestParam int repeatFor) {
+    private ResponseEntity<CashFlow> addRelease(@RequestBody CashFlow release, @RequestParam String releasedOn, @RequestParam int repeatFor) {
         try {
             if (release.getRepeat().isBlank()) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));

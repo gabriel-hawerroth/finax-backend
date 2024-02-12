@@ -1,7 +1,6 @@
 package br.finax.models;
 
 import lombok.Data;
-
 import javax.persistence.*;
 
 @Data
