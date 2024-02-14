@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.CashFlow;
-import br.finax.models.InterfacesSQL;
+import br.finax.utils.InterfacesSQL;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

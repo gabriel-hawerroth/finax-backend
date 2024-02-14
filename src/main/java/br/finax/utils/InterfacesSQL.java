@@ -1,7 +1,8 @@
-package br.finax.models;
+package br.finax.utils;
 
 import java.util.Date;
 
+@SuppressWarnings("unused")
 public class InterfacesSQL {
 
     public interface GenericIdDs {

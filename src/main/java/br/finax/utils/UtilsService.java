@@ -1,22 +1,26 @@
 package br.finax.utils;
 
-import br.finax.enums.ImgFormat;
 import br.finax.models.User;
+
 import net.coobird.thumbnailator.Thumbnails;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 public class UtilsService {
@@ -29,7 +33,7 @@ public class UtilsService {
         }
     }
 
-    public byte[] compressImage(byte[] data, boolean isAttachment, ImgFormat imgFormat) throws IOException {
+    public byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
         int imageSize = getImageSize(data, isAttachment);
@@ -38,7 +42,7 @@ public class UtilsService {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Thumbnails.of(inputStream)
                 .size(imageSize, imageSize)  // Desired size in px
-                .outputFormat(imgFormat.getImgFormat())
+                .outputFormat("jpg")
                 .outputQuality(0.5)
                 .toOutputStream(outputStream);
 
@@ -106,5 +110,22 @@ public class UtilsService {
         PDDocumentCatalog catalog = document.getDocumentCatalog();
         catalog.getCOSObject().setDirect(false);
         catalog.getCOSObject().setNeedToBeUpdated(true);
+    }
+
+    public String generateHash(String text) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+
+            // Converter bytes em representação hexadecimal
+            StringBuilder hexStringBuilder = new StringBuilder();
+            for (byte b : hashBytes) {
+                hexStringBuilder.append(String.format("%02x", b));
+            }
+
+            return hexStringBuilder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.Account;
-import br.finax.models.InterfacesSQL.GenericIdDs;
+import br.finax.utils.InterfacesSQL.GenericIdDs;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

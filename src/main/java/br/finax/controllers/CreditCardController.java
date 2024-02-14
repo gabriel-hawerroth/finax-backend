@@ -1,39 +1,34 @@
 package br.finax.controllers;
 
 import br.finax.models.CreditCard;
-import br.finax.models.InterfacesSQL;
-import br.finax.repository.CreditCardRepository;
-import br.finax.utils.UtilsService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.finax.services.CreditCardService;
+import br.finax.utils.InterfacesSQL;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/credit-card")
 public class CreditCardController {
 
-    @Autowired
-    private UtilsService utilsService;
-    @Autowired
-    private CreditCardRepository creditCardRepository;
+    private final CreditCardService creditCardService;
 
     @GetMapping("/get-by-user")
     private List<InterfacesSQL.UserCreditCards> getByUser() {
-        return creditCardRepository.getAllByUser(utilsService.getAuthUser().getId());
+        return creditCardService.getByUser();
     }
 
     @GetMapping("/{id}")
     private CreditCard getById(@PathVariable Long id) {
-        return creditCardRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit card not found"));
+        return creditCardService.getById(id);
     }
 
     @PostMapping
     private ResponseEntity<CreditCard> save(@RequestBody CreditCard card) {
-        return ResponseEntity.ok().body(creditCardRepository.save(card));
+        return creditCardService.save(card);
     }
 }

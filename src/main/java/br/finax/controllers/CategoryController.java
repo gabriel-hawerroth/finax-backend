@@ -1,60 +1,38 @@
 package br.finax.controllers;
 
 import br.finax.models.Category;
-import br.finax.models.User;
-import br.finax.repository.CategoryRepository;
-import br.finax.utils.UtilsService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import br.finax.services.CategoryService;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/category")
 public class CategoryController {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-    @Autowired
-    private UtilsService utilsService;
+    private final CategoryService categoryService;
 
     @GetMapping("/{id}")
     private Category getById(@PathVariable Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+        return categoryService.getById(id);
     }
 
     @GetMapping("/get-by-user")
     private List<Category> getByUser() {
-        User user = utilsService.getAuthUser();
-        return categoryRepository.findByUser(user.getId());
+        return categoryService.getByUser();
     }
 
     @PostMapping
     private Category save(@RequestBody Category category) {
-        try {
-            return categoryRepository.save(category);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        return categoryService.save(category);
     }
 
     @DeleteMapping("/{id}")
     private ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        try {
-            categoryRepository.deleteById(id);
-        } catch (RuntimeException e) {
-            Category category = categoryRepository.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
-
-            category.setActive(false);
-
-            categoryRepository.save(category);
-        }
-
-        return ResponseEntity.ok().build();
+        return categoryService.deleteById(id);
     }
 }

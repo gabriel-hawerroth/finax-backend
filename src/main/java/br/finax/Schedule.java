@@ -21,10 +21,10 @@ public class Schedule {
     @PersistenceContext
     EntityManager entityManager;
 
-    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM
-    public void calculateYields() {
-        // logic to analyze all investments and calculate returns based on liquidity and profitability
-    }
+//    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM
+//    public void calculateYields() {
+//         logic to analyze all investments and calculate returns based on liquidity and profitability
+//    }
 
     @Scheduled(cron = "0 * * * * *") //every minute
     public void stayActive() {
