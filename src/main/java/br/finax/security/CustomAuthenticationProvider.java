@@ -4,6 +4,7 @@ import br.finax.models.AccessLog;
 import br.finax.models.User;
 import br.finax.repository.AccessLogRepository;
 import br.finax.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -41,20 +42,20 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
     }
 
     private Authentication doLogin(String username, String password) {
-        User existentLogin = userRepository.findByEmail(username);
-        if (existentLogin == null || !encoder.matches(password, existentLogin.getPassword())) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+
+        if (!encoder.matches(password, user.getPassword()))
             throw new BadCredentialsException("Bad credentials");
-        }
 
-        if (!existentLogin.isActivate()) {
+        if (!user.isActivate())
             throw new BadCredentialsException("Inactive user");
-        }
 
-        if (existentLogin.getId() != 1) {
-            AccessLog log = new AccessLog(existentLogin.getId(), LocalDateTime.now());
+        if (user.getId() != 1 && user.getId() != 2) {
+            AccessLog log = new AccessLog(user.getId(), LocalDateTime.now());
             accessLogRepository.save(log);
         }
 
-        return new UsernamePasswordAuthenticationToken(existentLogin, null, null);
+        return new UsernamePasswordAuthenticationToken(user, null, null);
     }
 }

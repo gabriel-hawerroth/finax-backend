@@ -20,13 +20,13 @@ public class LoginController {
     }
 
     @GetMapping("/activate-account/{userId}/{token}")
-    private ResponseEntity<Void> activaUser(@PathVariable Long userId, @PathVariable String token) {
-        return loginService.activaUser(userId, token);
+    private ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable String token) {
+        return loginService.activateUser(userId, token);
     }
 
     @PostMapping("/send-change-password-email")
-    private void requestPermissionToChangePassword(@RequestParam String email) {
-        loginService.requestPermissionToChangePassword(email);
+    private void sendChangePasswordMail(@RequestParam String email) {
+        loginService.sendChangePasswordMail(email);
     }
 
     @GetMapping("/permit-change-password/{userId}/{token}")

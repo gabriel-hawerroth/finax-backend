@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +23,21 @@ public class HomeService {
 
     public HomeValues getHomeValues() {
         User user = utilsService.getAuthUser();
-        LocalDate dt = LocalDate.now().withDayOfMonth(15);
+
+        LocalDate currentDt = LocalDate.now();
+        ZoneId systemZone = ZoneId.systemDefault();
+
+        Date firstDate = Date.from(
+                currentDt.atStartOfDay().atZone(systemZone).toInstant()
+        );
+
+        Date lastDate = Date.from(
+                currentDt.atTime(23, 59).atZone(ZoneId.systemDefault()).toInstant()
+        );
 
         return new HomeValues(
-                accountsRepository.getCurrentBalance(user.getId()).get(0),
-                cashFlowRepository.getMonthlyBalance(user.getId(), dt).get(0),
+                accountsRepository.getCurrentBalance(user.getId()),
+                cashFlowRepository.getMonthlyBalance(user.getId(), firstDate, lastDate),
                 accountsRepository.getHomeAccountsList(user.getId()),
                 cashFlowRepository.getUpcomingReleasesExpected(user.getId())
         );

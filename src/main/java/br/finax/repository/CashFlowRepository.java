@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
@@ -47,12 +48,12 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
                 ba.user_id = :userId
-                AND TO_CHAR(cf.date, 'MM/yyyy') = TO_CHAR(CAST(:date AS DATE), 'MM/yyyy')
+                AND cf.date between :firstDt and :lastDt
             ORDER BY
-                CAST(cf.date || ' ' || CASE WHEN cf.time <> '' THEN cf.time ELSE '23:59' END as timestamp), cf.id ASC
+                cf.date, cf.time, cf.id ASC
             """, nativeQuery = true
     )
-    List<InterfacesSQL.MonthlyReleases> getCashFlow(Long userId, LocalDate date);
+    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(Long userId, Date firstDt, Date lastDt);
 
     @Query(
         value =
@@ -81,17 +82,18 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                    WHERE
                        cf.user_id = :userId
                        AND cf.done = false
-                       AND (cf.date between DATE_TRUNC('MONTH', current_date) AND (DATE_TRUNC('MONTH', CAST(:date AS DATE)) + INTERVAL '1 month - 1 day'))
+                       AND (cf.date between DATE_TRUNC('MONTH', current_date) AND :lastDt)
                 ) AS expectedBalance
             FROM
                 cash_flow cf
             WHERE
                 cf.user_id = :userId
                 AND cf.done = true
-                AND TO_CHAR(cf.date, 'MM/yyyy') = TO_CHAR(CAST(:date AS DATE), 'MM/yyyy')
+                AND cf.date between :firstDt and :lastDt
+            LIMIT 1
             """, nativeQuery = true
     )
-    List<InterfacesSQL.MonthlyBalance> getMonthlyBalance(Long userId, LocalDate date);
+    InterfacesSQL.MonthlyBalance getMonthlyBalance(Long userId, Date firstDt, Date lastDt);
 
     @Query(
         value =
@@ -123,7 +125,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.date between current_date AND (current_date + interval '1 month')
                 AND cf.done = false
             ORDER BY
-                CAST(cf.date || ' ' || CASE WHEN cf.time <> '' THEN cf.time ELSE '23:59' END as timestamp), cf.id ASC
+                cf.date, cf.time, cf.id ASC
             """, nativeQuery = true
     )
     List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(Long userId);

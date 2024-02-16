@@ -3,7 +3,7 @@ package br.finax;
 import br.finax.models.Category;
 
 import br.finax.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +13,13 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class Schedule {
 
-    @Autowired
-    CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     @PersistenceContext
-    EntityManager entityManager;
+    private final EntityManager entityManager;
 
 //    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM
 //    public void calculateYields() {
@@ -38,7 +38,15 @@ public class Schedule {
 
     @Scheduled(cron = "0 30 3 28 * *") //28th of every month
     @Transactional
-    public void executeVacuum() {
-        entityManager.createNativeQuery("vacuum full").executeUpdate();
+    public void optimizeDatabase() {
+        entityManager.createNativeQuery("vacuum full analyze").executeUpdate();
+        entityManager.createNativeQuery("reindex database finax_db").executeUpdate();
+    }
+
+    @Scheduled(cron = "0 30 21 15 * *")
+    @Transactional
+    public void optimizeDatabaseTest() {
+        entityManager.createNativeQuery("vacuum full analyze").executeUpdate();
+        entityManager.createNativeQuery("reindex database finax_db").executeUpdate();
     }
 }

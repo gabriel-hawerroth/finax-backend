@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 @RequiredArgsConstructor
 @RestController
@@ -25,8 +25,8 @@ public class CashFlowController {
     }
 
     @GetMapping
-    private MontlhyCashFlow getMonthlyFlow(@RequestParam LocalDate date) {
-        return cashFlowService.getMonthlyFlow(date);
+    private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt, @RequestParam Date lastDt) {
+        return cashFlowService.getMonthlyFlow(firstDt, lastDt);
     }
 
     @PostMapping

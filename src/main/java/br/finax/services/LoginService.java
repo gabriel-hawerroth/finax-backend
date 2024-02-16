@@ -1,8 +1,10 @@
 package br.finax.services;
 
+import br.finax.enums.EmailType;
 import br.finax.models.Token;
 import br.finax.models.User;
 import br.finax.records.EmailRecord;
+import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
 import br.finax.utils.UtilsService;
@@ -17,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import java.net.URI;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,41 +30,43 @@ public class LoginService {
     private final BCryptPasswordEncoder bCrypt;
     private final EmailService emailService;
     private final UtilsService utilsService;
+    private final CategoryRepository categoryRepository;
 
     public ResponseEntity<User> newUser(User user) {
-        if (userRepository.findByEmail(user.getEmail()) != null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Esse usuário já existe");
-        }
+        if (userRepository.findByEmail(user.getEmail()).isPresent())
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User already exists");
 
         user.setPassword(bCrypt.encode(user.getPassword()));
         user.setActivate(false);
         user.setAccess("premium");
         user.setCanChangePassword(false);
         user.setSignature("month");
+
         userRepository.save(user);
 
-        User savedUser = userRepository.findByEmail(user.getEmail());
-
         Token token = new Token();
-        token.setUserId(savedUser.getId());
-        token.setToken(utilsService.generateHash(savedUser.getEmail()));
+        token.setUserId(user.getId());
+        token.setToken(utilsService.generateHash(user.getEmail()));
         tokenRepository.save(token);
 
-        sendActivateAccountEmail(token);
+        sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());
 
         return ResponseEntity.ok().body(user);
     }
 
-    public ResponseEntity<Void> activaUser(Long userId, String token) {
-        String savedToken = tokenRepository.findByUserId(userId).getToken();
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Conta inexistente")
-        );
+    public ResponseEntity<Void> activateUser(Long userId, String token) {
+        String savedToken = tokenRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getToken();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (savedToken.equals(token)) {
             user.setActivate(true);
             userRepository.save(user);
         }
+
+        categoryRepository.insertNewUserCategories(userId);
 
         String url = "https://hawetec.com.br/finax/ativacao-da-conta";
 
@@ -75,26 +80,27 @@ public class LoginService {
                 .build();
     }
 
-    public void requestPermissionToChangePassword(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not exists");
+    public void sendChangePasswordMail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        Token tok = tokenRepository.findByUserId(user.getId());
+        Optional<Token> tok = tokenRepository.findByUserId(user.getId());
 
         Token token = new Token();
-        if (tok != null) token.setId(tok.getId());
+        tok.ifPresent(value -> token.setId(value.getId()));
         token.setUserId(user.getId());
         token.setToken(utilsService.generateHash(user.getEmail()));
         tokenRepository.save(token);
 
-        sendChangePasswordEmail(user, token.getToken());
+        sendChangePasswordEmail(user.getEmail(), user.getId(), token.getToken());
     }
 
     public ResponseEntity<Void> permitChangePassword(Long userId, String token) {
-        String savedToken = tokenRepository.findByUserId(userId).getToken();
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "user not found")
-        );
+        String savedToken = tokenRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not found")).getToken();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (savedToken.equals(token)) {
             user.setCanChangePassword(true);
@@ -113,117 +119,12 @@ public class LoginService {
                 .build();
     }
 
-    private void sendActivateAccountEmail(Token token) {
+    private void sendActivateAccountEmail(String userMail, Long userId, String token) {
         try {
-            User user = userRepository.findById(token.getUserId()).orElseThrow(
-                    () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)
-            );
-
-            String emailContent =
-                    """
-                    <!DOCTYPE html>
-                    <html lang="pt-br">
-                      <head>
-                        <meta charset="UTF-8" />
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                        <title>Document</title>
-                        <style>
-                             html,
-                             body {
-                               width: 100%;
-                               height: 100%;
-                             }
-                       
-                             .email {
-                               width: 100%;
-                               height: 100%;
-                             }
-                       
-                             .box {
-                               width: 100%;
-                               max-width: 42rem;
-                               height: 100%;
-                               margin: 0 auto;
-                               padding: 0.014px 1.4rem 3rem 1.4rem;
-                               font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                                 Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-                                 sans-serif;
-                               background-color: #eff3f8;
-                             }
-                       
-                             h1 {
-                               width: 100%;
-                               text-align: center;
-                               font-size: 3.6rem;
-                               color: #009465;
-                               margin-bottom: 2.5rem;
-                             }
-                       
-                             a {
-                               color: #000;
-                             }
-                       
-                             .line {
-                               margin-bottom: 2rem;
-                             }
-                       
-                             .card {
-                               width: 95%;
-                               max-width: 29rem;
-                               border: 1px solid #00000053;
-                               padding: 1rem;
-                               margin: 4rem auto;
-                               border-radius: 10px;
-                             }
-                       
-                             h2 {
-                               color: #2b2b2b;
-                             }
-                        </style>
-                      </head>
-                      <body>
-                        <div class="email">
-                            <div class="box">
-                                <h1>Finax</h1>
-                                                                                                               
-                               <p class="line">
-                                 Clique
-                                 <a
-                    """
-                            + "href='https://api.hawetec.com.br/finax/login/activate-account/" + user.getId() + "/" + token.getToken() + "'" +
-                            """
-                                            target="_blank"
-                                            >aqui</a
-                                          >
-                                          para ativar sua conta.
-                                        </p>
-                                
-                                        <p class="line">
-                                          Para entrar em contato com nosso suporte, envie uma mensagem nesse
-                                          mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
-                                          dúvidas ou qualquer problema que você encontrar no sistema!
-                                        </p>
-                                
-                                        <div class="card">
-                                          <h2>Sistema em desenvolvimento</h2>
-                                          <span
-                                            >Informamos que nosso sistema ainda está em fase de desenvolvimento
-                                            e o acesso está liberado à todos os módulos para fins de teste e
-                                            divulgação.<br />
-                                            <br />Após o lançamento oficial todos os usuários terão seu acesso
-                                            restrito ao nível gratuito!
-                                          </span>
-                                        </div>
-                                  </div>
-                                </div>
-                              </body>
-                            </html>
-                            """;
-
             EmailRecord email = new EmailRecord(
-                    user.getEmail(),
+                    userMail,
                     "Ativação da conta Finax",
-                    emailContent
+                    emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
             );
 
             emailService.enviarEmail(email);
@@ -232,113 +133,12 @@ public class LoginService {
         }
     }
 
-    private void sendChangePasswordEmail(User user, String token) {
+    private void sendChangePasswordEmail(String userMail, Long userId, String token) {
         try {
-            String emailContent =
-                    """
-                    <!DOCTYPE html>
-                    <html lang="pt-br">
-                      <head>
-                        <meta charset="UTF-8" />
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                        <title>Document</title>
-                        <style>
-                             html,
-                             body {
-                               width: 100%;
-                               height: 100%;
-                             }
-                       
-                             .email {
-                               width: 100%;
-                               height: 100%;
-                             }
-                       
-                             .box {
-                               width: 100%;
-                               max-width: 42rem;
-                               height: 100%;
-                               margin: 0 auto;
-                               padding: 0.014px 1.4rem 3rem 1.4rem;
-                               font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                                 Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
-                                 sans-serif;
-                               background-color: #eff3f8;
-                             }
-                       
-                             h1 {
-                               width: 100%;
-                               text-align: center;
-                               font-size: 3.6rem;
-                               color: #009465;
-                               margin-bottom: 2.5rem;
-                             }
-                       
-                             a {
-                               color: #000;
-                             }
-                       
-                             .line {
-                               margin-bottom: 2rem;
-                             }
-                       
-                             .card {
-                               width: 95%;
-                               max-width: 29rem;
-                               border: 1px solid #00000053;
-                               padding: 1rem;
-                               margin: 4rem auto;
-                               border-radius: 10px;
-                             }
-                       
-                             h2 {
-                               color: #2b2b2b;
-                             }
-                        </style>
-                      </head>
-                      <body>
-                        <div class="email">
-                            <div class="box">
-                                <h1>Finax</h1>
-                                                                                                               
-                               <p class="line">
-                                 Clique
-                                 <a
-                    """
-                            + "href='https://api.hawetec.com.br/finax/login/permit-change-password/" + user.getId() + "/" + token + "'" +
-                            """
-                                            target="_blank"
-                                            >aqui</a
-                                          >
-                                          para redefinir sua senha.
-                                        </p>
-                                
-                                        <p class="line">
-                                          Para entrar em contato com nosso suporte, envie uma mensagem nesse
-                                          mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
-                                          dúvidas ou qualquer problema que você encontrar no sistema!
-                                        </p>
-                                
-                                        <div class="card">
-                                          <h2>Sistema em desenvolvimento</h2>
-                                          <span
-                                            >Informamos que nosso sistema ainda está em fase de desenvolvimento
-                                            e o acesso está liberado à todos os módulos para fins de teste e
-                                            divulgação.<br />
-                                            <br />Após o lançamento oficial todos os usuários terão seu acesso
-                                            restrito ao nível gratuito!
-                                          </span>
-                                        </div>
-                                  </div>
-                                </div>
-                              </body>
-                            </html>
-                            """;
-
             EmailRecord email = new EmailRecord(
-                    user.getEmail(),
+                    userMail,
                     "Alteração da senha Finax",
-                    emailContent
+                    emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, userId, token)
             );
 
             emailService.enviarEmail(email);

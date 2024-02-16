@@ -34,11 +34,8 @@ public class UserService {
     }
 
     public User getByEmail(String email) {
-        try {
-            return userRepository.findByEmail(email);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
-        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
     }
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
@@ -76,33 +73,34 @@ public class UserService {
         return ResponseEntity.ok().body(userRepository.save(existentUser));
     }
 
-    public ResponseEntity<User> changeUserImage(MultipartFile profileImage) throws IOException {
+    public ResponseEntity<User> changeUserImage(MultipartFile file) throws IOException {
         User user = userRepository.findById(utilsService.getAuthUser().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        if (profileImage.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (file.isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 
-        byte[] originalImage = profileImage.getBytes();
+        byte[] image = file.getBytes();
 
-        String imgExtension = Objects.requireNonNull(profileImage.getOriginalFilename()).split("\\.")[1];
+        String imgExtension = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[1];
 
-        try {
-            // Resize and compress the image before saving
-            if (imgExtension.equals("png") || imgExtension.equals("webp")) {
-                user.setProfileImage(originalImage);
-            } else {
-                user.setProfileImage(utilsService.compressImage(originalImage, false));
+
+        if (!imgExtension.equals("png") && !imgExtension.equals("webp")) {
+            try {
+                image = utilsService.compressImage(image, false);
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        user.setProfileImage(image);
 
         return ResponseEntity.ok().body(userRepository.save(user));
     }
 
     public ResponseEntity<byte[]> getUserImage() {
-        byte[] compressedImage = userRepository.findById(utilsService.getAuthUser().getId()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getProfileImage();
+        byte[] compressedImage = userRepository.findById(utilsService.getAuthUser().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getProfileImage();
 
         return ResponseEntity.ok().body(compressedImage);
     }

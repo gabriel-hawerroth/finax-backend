@@ -24,7 +24,7 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
                 AND ba.add_overall_balance = true
             """, nativeQuery = true
     )
-    List<Double> getCurrentBalance(Long user_id);
+    Double getCurrentBalance(Long user_id);
 
     @Query(
         value =

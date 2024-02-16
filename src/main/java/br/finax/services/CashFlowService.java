@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -32,12 +33,12 @@ public class CashFlowService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Release not found"));
     }
 
-    public MontlhyCashFlow getMonthlyFlow(LocalDate date) {
+    public MontlhyCashFlow getMonthlyFlow(Date firstDt, Date lastDt) {
         User user = utilsService.getAuthUser();
 
         return new MontlhyCashFlow(
-                cashFlowRepository.getCashFlow(user.getId(), date),
-                cashFlowRepository.getMonthlyBalance(user.getId(), date).get(0)
+                cashFlowRepository.getMonthlyReleases(user.getId(), firstDt, lastDt),
+                cashFlowRepository.getMonthlyBalance(user.getId(), firstDt, lastDt)
         );
     }
 
