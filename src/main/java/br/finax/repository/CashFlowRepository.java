@@ -99,6 +99,33 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
         value =
             """
             SELECT
+                (
+                    SELECT
+                        SUM(ba.balance)
+                    FROM
+                        bank_accounts ba
+                    WHERE
+                        ba.user_id = :userId
+                        AND ba.active = true
+                        AND ba.add_overall_balance = true
+                ) AS generalBalance,
+                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
+                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses
+            FROM
+                cash_flow cf
+            WHERE
+                cf.user_id = :userId
+                AND cf.done = true
+                AND cf.date between :firstDt and :lastDt
+            LIMIT 1
+            """, nativeQuery = true
+    )
+    InterfacesSQL.HomeBalances getHomeBalances(Long userId, Date firstDt, Date lastDt);
+
+    @Query(
+        value =
+            """
+            SELECT
                 cf.id,
                 cf.description,
                 cf.account_id as accountId,

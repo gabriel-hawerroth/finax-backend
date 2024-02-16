@@ -28,16 +28,15 @@ public class HomeService {
         ZoneId systemZone = ZoneId.systemDefault();
 
         Date firstDate = Date.from(
-                currentDt.atStartOfDay().atZone(systemZone).toInstant()
+                currentDt.withDayOfMonth(1).atStartOfDay().atZone(systemZone).toInstant()
         );
 
         Date lastDate = Date.from(
-                currentDt.atTime(23, 59).atZone(ZoneId.systemDefault()).toInstant()
+                currentDt.withDayOfMonth(currentDt.lengthOfMonth()).atTime(23, 59).atZone(ZoneId.systemDefault()).toInstant()
         );
 
         return new HomeValues(
-                accountsRepository.getCurrentBalance(user.getId()),
-                cashFlowRepository.getMonthlyBalance(user.getId(), firstDate, lastDate),
+                cashFlowRepository.getHomeBalances(user.getId(), firstDate, lastDate),
                 accountsRepository.getHomeAccountsList(user.getId()),
                 cashFlowRepository.getUpcomingReleasesExpected(user.getId())
         );

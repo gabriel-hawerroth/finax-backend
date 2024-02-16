@@ -41,6 +41,12 @@ public class InterfacesSQL {
         Double getExpectedBalance();
     }
 
+    public interface HomeBalances {
+        Double getGeneralBalance();
+        Double getRevenues();
+        Double getExpenses();
+    }
+
     public interface UserCreditCards {
         Long getId();
         Long getUser_id();
