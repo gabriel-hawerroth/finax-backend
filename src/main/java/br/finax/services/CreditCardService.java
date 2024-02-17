@@ -32,4 +32,8 @@ public class CreditCardService {
     public ResponseEntity<CreditCard> save(CreditCard card) {
         return ResponseEntity.ok().body(creditCardRepository.save(card));
     }
+
+    public List<InterfacesSQL.CardBasicList> getBasicList() {
+        return creditCardRepository.getBasicList(utilsService.getAuthUser().getId());
+    }
 }

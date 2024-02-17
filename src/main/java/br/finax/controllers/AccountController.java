@@ -2,7 +2,7 @@ package br.finax.controllers;
 
 import br.finax.models.Account;
 import br.finax.services.AccountService;
-import br.finax.utils.InterfacesSQL.GenericIdDs;
+import br.finax.utils.InterfacesSQL.AccountBasicList;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +38,7 @@ public class AccountController {
     }
 
     @GetMapping("/basic-list")
-    private List<GenericIdDs> getBasicList() {
+    private List<AccountBasicList> getBasicList() {
         return accountService.getBasicList();
     }
 }

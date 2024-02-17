@@ -42,7 +42,6 @@ public class InterfacesSQL {
     }
 
     public interface HomeBalances {
-        Double getGeneralBalance();
         Double getRevenues();
         Double getExpenses();
     }
@@ -59,5 +58,17 @@ public class InterfacesSQL {
         boolean getActive();
         String getAccount_name();
         String getAccount_image();
+    }
+
+    public interface AccountBasicList {
+        Long getId();
+        String getName();
+        String getImage();
+    }
+
+    public interface CardBasicList {
+        Long getId();
+        String getName();
+        String getImage();
     }
 }

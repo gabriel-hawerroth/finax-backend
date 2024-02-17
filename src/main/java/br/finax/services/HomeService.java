@@ -9,8 +9,6 @@ import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 
 @Service
@@ -21,22 +19,11 @@ public class HomeService {
     private final CashFlowRepository cashFlowRepository;
     private final UtilsService utilsService;
 
-    public HomeValues getHomeValues() {
+    public HomeValues getHomeValues(Date firstDt, Date lastDt) {
         User user = utilsService.getAuthUser();
 
-        LocalDate currentDt = LocalDate.now();
-        ZoneId systemZone = ZoneId.systemDefault();
-
-        Date firstDate = Date.from(
-                currentDt.withDayOfMonth(1).atStartOfDay().atZone(systemZone).toInstant()
-        );
-
-        Date lastDate = Date.from(
-                currentDt.withDayOfMonth(currentDt.lengthOfMonth()).atTime(23, 59).atZone(ZoneId.systemDefault()).toInstant()
-        );
-
         return new HomeValues(
-                cashFlowRepository.getHomeBalances(user.getId(), firstDate, lastDate),
+                cashFlowRepository.getHomeBalances(user.getId(), firstDt, lastDt),
                 accountsRepository.getHomeAccountsList(user.getId()),
                 cashFlowRepository.getUpcomingReleasesExpected(user.getId())
         );

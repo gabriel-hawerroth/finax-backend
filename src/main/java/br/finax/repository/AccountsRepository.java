@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.Account;
-import br.finax.utils.InterfacesSQL.GenericIdDs;
+import br.finax.utils.InterfacesSQL.AccountBasicList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,21 +10,6 @@ import java.util.List;
 public interface AccountsRepository extends JpaRepository<Account, Long> {
 
     List<Account> findAllByUserIdOrderByIdAsc(Long userId);
-
-    @Query(
-        value =
-            """
-            SELECT
-                SUM(ba.balance)
-            FROM
-                bank_accounts ba
-            WHERE
-                ba.user_id = :user_id
-                AND ba.active = true
-                AND ba.add_overall_balance = true
-            """, nativeQuery = true
-    )
-    Double getCurrentBalance(Long user_id);
 
     @Query(
         value =
@@ -48,7 +33,8 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             """
             SELECT
                 ba.id,
-                ba.name AS ds
+                ba.name,
+                ba.image
             FROM
                 bank_accounts ba
             WHERE
@@ -58,5 +44,5 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
                 ba.id
             """, nativeQuery = true
     )
-    List<GenericIdDs> getBasicList(Long user_id);
+    List<AccountBasicList> getBasicList(Long user_id);
 }

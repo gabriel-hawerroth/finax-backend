@@ -25,8 +25,8 @@ public class CashFlowController {
     }
 
     @GetMapping
-    private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt, @RequestParam Date lastDt) {
-        return cashFlowService.getMonthlyFlow(firstDt, lastDt);
+    private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt, @RequestParam Date lastDt, @RequestParam Date firstDtCurrentMonth) {
+        return cashFlowService.getMonthlyFlow(firstDt, lastDt, firstDtCurrentMonth);
     }
 
     @PostMapping

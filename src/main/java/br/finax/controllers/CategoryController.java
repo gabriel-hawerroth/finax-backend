@@ -16,14 +16,14 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @GetMapping("/{id}")
-    private Category getById(@PathVariable Long id) {
-        return categoryService.getById(id);
-    }
-
     @GetMapping("/get-by-user")
     private List<Category> getByUser() {
         return categoryService.getByUser();
+    }
+
+    @GetMapping("/{id}")
+    private Category getById(@PathVariable Long id) {
+        return categoryService.getById(id);
     }
 
     @PostMapping

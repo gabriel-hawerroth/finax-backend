@@ -4,7 +4,7 @@ import br.finax.models.Account;
 import br.finax.models.CashFlow;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
-import br.finax.utils.InterfacesSQL;
+import br.finax.utils.InterfacesSQL.AccountBasicList;
 import br.finax.utils.UtilsService;
 
 import lombok.RequiredArgsConstructor;
@@ -62,7 +62,7 @@ public class AccountService {
         }
     }
 
-    public List<InterfacesSQL.GenericIdDs> getBasicList() {
+    public List<AccountBasicList> getBasicList() {
         return accountRepository.getBasicList(utilsService.getAuthUser().getId());
     }
 }

@@ -31,4 +31,9 @@ public class CreditCardController {
     private ResponseEntity<CreditCard> save(@RequestBody CreditCard card) {
         return creditCardService.save(card);
     }
+
+    @GetMapping("/basic-list")
+    private List<InterfacesSQL.CardBasicList> getBasicList() {
+        return creditCardService.getBasicList();
+    }
 }

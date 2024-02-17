@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.CreditCard;
-import br.finax.utils.InterfacesSQL;
+import br.finax.utils.InterfacesSQL.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -25,5 +25,23 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 cc.id
             """, nativeQuery = true
     )
-    List<InterfacesSQL.UserCreditCards> getAllByUser(Long userId);
+    List<UserCreditCards> getAllByUser(Long userId);
+
+    @Query(
+        value =
+            """
+            SELECT
+                cc.id,
+                cc.name,
+                cc.image
+            FROM
+                credit_card cc
+            WHERE
+                cc.user_id = :user_id
+                AND cc.active = true
+            ORDER BY
+                cc.id
+            """, nativeQuery = true
+    )
+    List<CardBasicList> getBasicList(Long user_id);
 }

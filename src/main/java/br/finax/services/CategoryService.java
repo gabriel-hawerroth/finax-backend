@@ -20,14 +20,14 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UtilsService utilsService;
 
-    public Category getById(Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
-    }
-
     public List<Category> getByUser() {
         User user = utilsService.getAuthUser();
         return categoryRepository.findByUser(user.getId());
+    }
+
+    public Category getById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 
     public Category save(Category category) {

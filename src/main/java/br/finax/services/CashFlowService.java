@@ -33,12 +33,12 @@ public class CashFlowService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Release not found"));
     }
 
-    public MontlhyCashFlow getMonthlyFlow(Date firstDt, Date lastDt) {
+    public MontlhyCashFlow getMonthlyFlow(Date firstDt, Date lastDt, Date firstDtCurrentMonth) {
         User user = utilsService.getAuthUser();
 
         return new MontlhyCashFlow(
                 cashFlowRepository.getMonthlyReleases(user.getId(), firstDt, lastDt),
-                cashFlowRepository.getMonthlyBalance(user.getId(), firstDt, lastDt)
+                cashFlowRepository.getMonthlyBalance(user.getId(), firstDt, lastDt, firstDtCurrentMonth)
         );
     }
 

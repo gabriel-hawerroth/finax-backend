@@ -65,7 +65,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                     - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS balance,
                 (
                     SELECT
-                        SUM(ba.balance)
+                        COALESCE(SUM(ba.balance), 0)
                     FROM
                         bank_accounts ba
                     WHERE
@@ -75,40 +75,32 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 ) AS generalBalance,
                 (
                    SELECT
-                       ((SELECT SUM(ba.balance) FROM bank_accounts ba WHERE ba.user_id = :userId AND ba.active = true AND ba.add_overall_balance = true) +
-                       COALESCE(SUM(CASE WHEN cf.type = 'R' THEN COALESCE(cf.amount, 0) ELSE 0 END), 0)) - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN COALESCE(cf.amount, 0) ELSE 0 END), 0) AS expectedBalance
+                        COALESCE(
+                           (SELECT SUM(ba.balance) FROM bank_accounts ba WHERE ba.user_id = :userId AND ba.active = true AND ba.add_overall_balance = true)
+                           + COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0)
+                           - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0)
+                        , 0)
                    FROM
                        cash_flow cf
                    WHERE
                        cf.user_id = :userId
                        AND cf.done = false
-                       AND (cf.date between DATE_TRUNC('MONTH', current_date) AND :lastDt)
-                ) AS expectedBalance
+                       AND cf.date between :firstDtCurrentMonth AND :lastDt
+                    ) AS expectedBalance
             FROM
                 cash_flow cf
             WHERE
                 cf.user_id = :userId
                 AND cf.done = true
                 AND cf.date between :firstDt and :lastDt
-            LIMIT 1
             """, nativeQuery = true
     )
-    InterfacesSQL.MonthlyBalance getMonthlyBalance(Long userId, Date firstDt, Date lastDt);
+    InterfacesSQL.MonthlyBalance getMonthlyBalance(Long userId, Date firstDt, Date lastDt, Date firstDtCurrentMonth);
 
     @Query(
         value =
             """
             SELECT
-                (
-                    SELECT
-                        SUM(ba.balance)
-                    FROM
-                        bank_accounts ba
-                    WHERE
-                        ba.user_id = :userId
-                        AND ba.active = true
-                        AND ba.add_overall_balance = true
-                ) AS generalBalance,
                 COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
                 COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses
             FROM
