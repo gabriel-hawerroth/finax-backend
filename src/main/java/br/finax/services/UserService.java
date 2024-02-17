@@ -33,9 +33,8 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
     }
 
-    public User getByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+    public User getAuthUser() {
+        return utilsService.getAuthUser();
     }
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
@@ -99,9 +98,6 @@ public class UserService {
     }
 
     public ResponseEntity<byte[]> getUserImage() {
-        byte[] compressedImage = userRepository.findById(utilsService.getAuthUser().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getProfileImage();
-
-        return ResponseEntity.ok().body(compressedImage);
+        return ResponseEntity.ok().body(utilsService.getAuthUser().getProfileImage());
     }
 }

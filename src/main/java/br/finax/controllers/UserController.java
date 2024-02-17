@@ -29,9 +29,9 @@ public class UserController {
         return userService.getById(id);
     }
 
-    @GetMapping("/get-by-email")
-    private User getByEmail(@RequestParam String email) {
-        return userService.getByEmail(email);
+    @GetMapping("/get-auth-user")
+    private User getAuthUser() {
+        return userService.getAuthUser();
     }
 
     @PutMapping("/change-forgeted-password")

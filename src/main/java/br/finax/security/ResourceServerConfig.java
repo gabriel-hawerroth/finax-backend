@@ -14,7 +14,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/login/**").permitAll()
                 .antMatchers("/user/change-forgeted-password").permitAll()
-                .antMatchers("/user/get-by-email").permitAll()
                 .antMatchers("/user/{id}").permitAll()
                 .antMatchers("/user-configs/save").permitAll()
                 .anyRequest().authenticated();
