@@ -15,7 +15,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     private String email;
 
@@ -29,10 +29,10 @@ public class User implements UserDetails {
 
     private String access;
 
-    private boolean activate;
+    private boolean active;
 
     @Column(name = "can_change_password")
-    private Boolean canChangePassword;
+    private boolean canChangePassword;
 
     private String signature;
 
@@ -74,6 +74,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activate;
+        return active;
     }
 }

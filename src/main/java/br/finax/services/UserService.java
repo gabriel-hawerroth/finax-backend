@@ -41,7 +41,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
-        if (!user.getCanChangePassword())
+        if (!user.isCanChangePassword())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Without permission to change the password");
 
         user.setPassword(bCrypt.encode(newPassword));

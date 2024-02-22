@@ -11,15 +11,15 @@ public class UserConfigs {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     private String theme;
 
     @Column(name = "adding_material_goods_to_patrimony")
-    private Boolean addingMaterialGoodsToPatrimony;
+    private boolean addingMaterialGoodsToPatrimony;
 
     private String language;
 

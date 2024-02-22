@@ -48,7 +48,7 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
         if (!encoder.matches(password, user.getPassword()))
             throw new BadCredentialsException("Bad credentials");
 
-        if (!user.isActivate())
+        if (!user.isActive())
             throw new BadCredentialsException("Inactive user");
 
         if (user.getId() != 1 && user.getId() != 2) {

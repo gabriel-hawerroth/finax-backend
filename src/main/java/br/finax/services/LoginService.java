@@ -37,7 +37,7 @@ public class LoginService {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User already exists");
 
         user.setPassword(bCrypt.encode(user.getPassword()));
-        user.setActivate(false);
+        user.setActive(false);
         user.setAccess("premium");
         user.setCanChangePassword(false);
         user.setSignature("month");
@@ -62,7 +62,7 @@ public class LoginService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (savedToken.equals(token)) {
-            user.setActivate(true);
+            user.setActive(true);
             userRepository.save(user);
         }
 

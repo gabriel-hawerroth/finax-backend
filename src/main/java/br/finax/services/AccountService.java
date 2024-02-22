@@ -39,7 +39,7 @@ public class AccountService {
 
     public ResponseEntity<Account> adjustBalance(Long accountId, Double newBalance) {
         try {
-            Account account = accountRepository.findById(accountId)
+            final Account account = accountRepository.findById(accountId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             CashFlow release = new CashFlow();

@@ -12,15 +12,15 @@ public class AccessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     @Column(name = "login_dt")
     private LocalDateTime loginDt;
 
-    public AccessLog(Long userId, LocalDateTime loginDt) {
+    public AccessLog(long userId, LocalDateTime loginDt) {
         this.userId = userId;
         this.loginDt = loginDt;
     }

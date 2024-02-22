@@ -12,17 +12,17 @@ public class CashFlow {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     private String description;
 
     @Column(name = "account_id")
     private Long accountId;
 
-    private Double amount;
+    private double amount;
 
     private String type;
 
@@ -32,7 +32,7 @@ public class CashFlow {
     private Long targetAccountId;
 
     @Column(name = "category_id")
-    private Long categoryId;
+    private long categoryId;
 
     private LocalDate date;
 

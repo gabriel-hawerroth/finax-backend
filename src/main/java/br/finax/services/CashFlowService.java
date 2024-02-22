@@ -49,7 +49,7 @@ public class CashFlowService {
             }
 
             boolean isFixedRepeat = release.getRepeat().equals("fixed");
-            Double installmentsAmount = release.getAmount() / repeatFor;
+            double installmentsAmount = release.getAmount() / repeatFor;
 
             if (!isFixedRepeat) {
                 release.setAmount(installmentsAmount);

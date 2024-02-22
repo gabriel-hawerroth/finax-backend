@@ -5,6 +5,7 @@ import br.finax.services.CreditCardService;
 import br.finax.utils.InterfacesSQL;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class CreditCardController {
 
     private final CreditCardService creditCardService;
 
+    @Cacheable
     @GetMapping("/get-by-user")
     private List<InterfacesSQL.UserCreditCards> getByUser() {
         return creditCardService.getByUser();

@@ -11,14 +11,14 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     private String name;
 
-    private Double balance;
+    private double balance;
 
     private boolean investments;
 

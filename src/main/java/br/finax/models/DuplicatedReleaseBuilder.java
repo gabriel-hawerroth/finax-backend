@@ -11,7 +11,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setUserId(original.getUserId());
         duplicatedRelease.setDescription(original.getDescription());
         duplicatedRelease.setAccountId(original.getAccountId());
-        duplicatedRelease.setAmount(null);
+        duplicatedRelease.setAmount(0.0);
         duplicatedRelease.setType(original.getType());
         duplicatedRelease.setDone(false);
         duplicatedRelease.setTargetAccountId(original.getTargetAccountId());

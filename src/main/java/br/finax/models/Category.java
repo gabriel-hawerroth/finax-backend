@@ -10,10 +10,10 @@ public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     private String name;
 
@@ -23,5 +23,7 @@ public class Category {
 
     private String type;
 
-    private Boolean active;
+    private boolean active;
+
+    private boolean essential;
 }

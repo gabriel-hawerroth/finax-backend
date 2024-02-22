@@ -24,6 +24,7 @@ public class CashFlowController {
         return cashFlowService.getById(id);
     }
 
+    @Cacheable
     @GetMapping
     private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt, @RequestParam Date lastDt, @RequestParam Date firstDtCurrentMonth) {
         return cashFlowService.getMonthlyFlow(firstDt, lastDt, firstDtCurrentMonth);

@@ -11,13 +11,13 @@ public class CreditCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    private Long user_id;
+    private long user_id;
 
     private String name;
 
-    private Double card_limit;
+    private double card_limit;
 
     private int close_day;
 
@@ -25,7 +25,7 @@ public class CreditCard {
 
     private String image;
 
-    private Long standard_payment_account_id;
+    private long standard_payment_account_id;
 
     private boolean active;
 }

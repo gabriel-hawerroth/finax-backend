@@ -5,6 +5,7 @@ import br.finax.services.AccountService;
 import br.finax.utils.InterfacesSQL.AccountBasicList;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class AccountController {
 
     private final AccountService accountService;
 
+    @Cacheable
     @GetMapping("/get-by-user")
     private List<Account> getByUser() {
         return accountService.getByUser();
