@@ -1,6 +1,5 @@
 package br.finax.services;
 
-import br.finax.models.User;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
 import br.finax.utils.UtilsService;
@@ -20,11 +19,8 @@ public class UserConfigsService {
 
     public UserConfigs getByUser() {
         try {
-            User user = utilsService.getAuthUser();
-            UserConfigs config = userConfigsRepository.findByUserId(user.getId());
-
-            if (config == null) throw new RuntimeException();
-            return config;
+            return userConfigsRepository.findByUserId(utilsService.getAuthUser().getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Configurações do usuário não encontrada");
         }

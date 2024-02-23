@@ -31,10 +31,10 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
 
     @Override
     public Authentication authenticate(Authentication sendedCredentials) throws AuthenticationException {
-        String username = sendedCredentials.getPrincipal().toString();
-        String password = sendedCredentials.getCredentials().toString();
-
-        Authentication authentication = this.doLogin(username, password);
+        final Authentication authentication = this.doLogin(
+                sendedCredentials.getPrincipal().toString(),
+                sendedCredentials.getCredentials().toString()
+        );
 
         ((AbstractAuthenticationToken) authentication).setDetails(authentication.getDetails());
 
@@ -42,7 +42,7 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
     }
 
     private Authentication doLogin(String username, String password) {
-        User user = userRepository.findByEmail(username)
+        final User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         if (!encoder.matches(password, user.getPassword()))

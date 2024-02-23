@@ -38,7 +38,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
-        User user = userRepository.findById(userId)
+       final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         if (!user.isCanChangePassword())
@@ -51,7 +51,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changePassword(String newPassword, String currentPassword) {
-        User user = utilsService.getAuthUser();
+        final User user = utilsService.getAuthUser();
 
         if (!bCrypt.matches(currentPassword, user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "The current password is incorrect");
@@ -63,7 +63,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> editUser(User user) {
-        User existentUser = userRepository.findById(user.getId())
+        final User existentUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         existentUser.setFirstName(user.getFirstName());
@@ -73,7 +73,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changeUserImage(MultipartFile file) throws IOException {
-        User user = userRepository.findById(utilsService.getAuthUser().getId())
+        final User user = userRepository.findById(utilsService.getAuthUser().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (file.isEmpty())
@@ -81,8 +81,7 @@ public class UserService {
 
         byte[] image = file.getBytes();
 
-        String imgExtension = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[1];
-
+        final String imgExtension = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[1];
 
         if (!imgExtension.equals("png") && !imgExtension.equals("webp")) {
             try {

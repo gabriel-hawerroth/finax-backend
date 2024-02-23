@@ -1,11 +1,11 @@
 package br.finax.services;
 
 import br.finax.models.Category;
-import br.finax.models.User;
 import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,9 @@ public class CategoryService {
     private final UtilsService utilsService;
 
     public List<Category> getByUser() {
-        User user = utilsService.getAuthUser();
-        return categoryRepository.findByUser(user.getId());
+        return categoryRepository.findByUser(
+                utilsService.getAuthUser().getId()
+        );
     }
 
     public Category getById(Long id) {
@@ -41,13 +42,15 @@ public class CategoryService {
     public ResponseEntity<Void> deleteById(Long id) {
         try {
             categoryRepository.deleteById(id);
-        } catch (RuntimeException e) {
+        } catch (DataIntegrityViolationException e) {
             Category category = categoryRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             category.setActive(false);
 
             categoryRepository.save(category);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         return ResponseEntity.ok().build();

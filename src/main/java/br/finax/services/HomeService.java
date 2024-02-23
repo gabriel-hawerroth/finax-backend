@@ -20,7 +20,7 @@ public class HomeService {
     private final UtilsService utilsService;
 
     public HomeValues getHomeValues(Date firstDt, Date lastDt) {
-        User user = utilsService.getAuthUser();
+        final User user = utilsService.getAuthUser();
 
         return new HomeValues(
                 cashFlowRepository.getHomeBalances(user.getId(), firstDt, lastDt),

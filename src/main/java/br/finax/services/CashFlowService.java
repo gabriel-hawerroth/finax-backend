@@ -34,7 +34,7 @@ public class CashFlowService {
     }
 
     public MontlhyCashFlow getMonthlyFlow(Date firstDt, Date lastDt, Date firstDtCurrentMonth) {
-        User user = utilsService.getAuthUser();
+        final User user = utilsService.getAuthUser();
 
         return new MontlhyCashFlow(
                 cashFlowRepository.getMonthlyReleases(user.getId(), firstDt, lastDt),
@@ -48,22 +48,20 @@ public class CashFlowService {
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
             }
 
-            boolean isFixedRepeat = release.getRepeat().equals("fixed");
-            double installmentsAmount = release.getAmount() / repeatFor;
+            final boolean isFixedRepeat = release.getRepeat().equals("fixed");
+            final double installmentsAmount = release.getAmount() / repeatFor;
 
             if (!isFixedRepeat) {
                 release.setAmount(installmentsAmount);
                 release.setFixedBy("");
             }
 
-            CashFlow savedRelease = cashFlowRepository.save(release);
+            final CashFlow savedRelease = cashFlowRepository.save(release);
 
-            List<CashFlow> releases = new LinkedList<>();
+            final List<CashFlow> releases = new LinkedList<>();
             LocalDate dt = savedRelease.getDate();
 
-            int loopQuantity = repeatFor - 1;
-
-            for (var i = 0; i < loopQuantity; i++) {
+            for (var i = 0; i < repeatFor - 1; i++) {
                 releases.add(
                         createDuplicatedRelease(
                                 savedRelease,
@@ -87,7 +85,7 @@ public class CashFlowService {
 
     public ResponseEntity<CashFlow> editRelease(CashFlow release, String duplicatedReleaseAction) {
         try {
-            CashFlow existingRelease = cashFlowRepository.findById(release.getId())
+            final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             release.setUserId(existingRelease.getUserId());
@@ -98,14 +96,14 @@ public class CashFlowService {
             release.setRepeat(existingRelease.getRepeat());
             release.setFixedBy(existingRelease.getFixedBy());
 
-            boolean updatingAll = duplicatedReleaseAction.equals("all");
+            final boolean updatingAll = duplicatedReleaseAction.equals("all");
 
             if (!updatingAll) {
                 cashFlowRepository.save(release);
             }
 
             if (duplicatedReleaseAction.equals("nexts") || updatingAll) {
-                List<CashFlow> duplicatedReleases;
+                final List<CashFlow> duplicatedReleases;
 
                 if (duplicatedReleaseAction.equals("nexts")) {
                     duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
@@ -143,12 +141,12 @@ public class CashFlowService {
     }
 
     public ResponseEntity<CashFlow> addAttachment(Long id, MultipartFile attachment) {
-        CashFlow release = cashFlowRepository.findById(id)
+        final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         if (attachment.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 
-        String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
+        final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
 
         try {
             switch (fileExtension) {
@@ -171,7 +169,7 @@ public class CashFlowService {
     }
 
     public ResponseEntity<CashFlow> removeAttachment(Long id) {
-        CashFlow release = cashFlowRepository.findById(id)
+        final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         release.setAttachment(null);
@@ -181,28 +179,31 @@ public class CashFlowService {
     }
 
     public ResponseEntity<byte[]> getAttachment(Long id) {
-        CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
-
-        return ResponseEntity.ok().body(release.getAttachment());
+        return ResponseEntity.ok().body(
+                cashFlowRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST))
+                        .getAttachment()
+        );
     }
 
     public ResponseEntity<?> delete(Long id, String duplicatedReleasesAction) {
         try {
-            CashFlow release = cashFlowRepository.findById(id)
+            final CashFlow release = cashFlowRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             if (duplicatedReleasesAction.equals("nexts")) {
-                List<CashFlow> nextDuplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
-                        release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
-                        release.getDate()
+                cashFlowRepository.deleteAll(
+                        cashFlowRepository.getNextDuplicatedReleases(
+                                release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
+                                release.getDate()
+                        )
                 );
-                cashFlowRepository.deleteAll(nextDuplicatedReleases);
             } else if (duplicatedReleasesAction.equals("all")) {
-                List<CashFlow> allDuplicatedReleases = cashFlowRepository.getAllDuplicatedReleases(
-                        release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
+                cashFlowRepository.deleteAll(
+                        cashFlowRepository.getAllDuplicatedReleases(
+                                release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
+                        )
                 );
-                cashFlowRepository.deleteAll(allDuplicatedReleases);
             }
 
             if (!duplicatedReleasesAction.equals("all"))

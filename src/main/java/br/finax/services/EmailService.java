@@ -20,8 +20,8 @@ public class EmailService {
     }
 
     public void enviarEmail(EmailRecord email) throws MessagingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        final MimeMessage message = javaMailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(email.addressee());
         helper.setSubject(email.subject());
@@ -31,9 +31,9 @@ public class EmailService {
     }
 
     public String buildEmailTemplate(EmailType emailType, Long userId, String token) {
-        String url = "href='https://api.hawetec.com.br/finax/login/" + emailType.getValue() + "/" + userId + "/" + token + "'";
+        final String url = "href='https://api.hawetec.com.br/finax/login/" + emailType.getValue() + "/" + userId + "/" + token + "'";
 
-        String action = switch (emailType) {
+        final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> "ativar sua conta.";
             case CHANGE_PASSWORD -> "redefinir sua senha.";
         };

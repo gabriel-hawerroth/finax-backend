@@ -44,7 +44,7 @@ public class LoginService {
 
         userRepository.save(user);
 
-        Token token = new Token();
+        final Token token = new Token();
         token.setUserId(user.getId());
         token.setToken(utilsService.generateHash(user.getEmail()));
         tokenRepository.save(token);
@@ -55,10 +55,10 @@ public class LoginService {
     }
 
     public ResponseEntity<Void> activateUser(Long userId, String token) {
-        String savedToken = tokenRepository.findByUserId(userId)
+        final String savedToken = tokenRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST)).getToken();
 
-        User user = userRepository.findById(userId)
+        final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (savedToken.equals(token)) {
@@ -68,25 +68,21 @@ public class LoginService {
 
         categoryRepository.insertNewUserCategories(userId);
 
-        String url = "https://hawetec.com.br/finax/ativacao-da-conta";
-
-        UriComponentsBuilder redirectUriBuilder = UriComponentsBuilder
-                .fromUriString(url);
-
-        String redirectUrl = redirectUriBuilder.build().toUriString();
+        final URI uri = URI.create(UriComponentsBuilder
+                .fromUriString("https://hawetec.com.br/finax/ativacao-da-conta").build().toUriString());
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create(redirectUrl))
+                .location(uri)
                 .build();
     }
 
     public void sendChangePasswordMail(String email) {
-        User user = userRepository.findByEmail(email)
+        final User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
-        Optional<Token> tok = tokenRepository.findByUserId(user.getId());
+        final Optional<Token> tok = tokenRepository.findByUserId(user.getId());
 
-        Token token = new Token();
+        final Token token = new Token();
         tok.ifPresent(value -> token.setId(value.getId()));
         token.setUserId(user.getId());
         token.setToken(utilsService.generateHash(user.getEmail()));
@@ -96,10 +92,10 @@ public class LoginService {
     }
 
     public ResponseEntity<Void> permitChangePassword(Long userId, String token) {
-        String savedToken = tokenRepository.findByUserId(userId)
+        final String savedToken = tokenRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not found")).getToken();
 
-        User user = userRepository.findById(userId)
+        final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (savedToken.equals(token)) {
@@ -107,27 +103,23 @@ public class LoginService {
             userRepository.save(user);
         }
 
-        String url = "https://hawetec.com.br/finax/recuperacao-da-senha/" + user.getId();
-
-        UriComponentsBuilder redirectUriBuilder = UriComponentsBuilder
-                .fromUriString(url);
-
-        String redirectUrl = redirectUriBuilder.build().toUriString();
+        final URI uri = URI.create(UriComponentsBuilder
+                .fromUriString("https://hawetec.com.br/finax/recuperacao-da-senha/" + user.getId()).build().toUriString());
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create(redirectUrl))
+                .location(uri)
                 .build();
     }
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
         try {
-            EmailRecord email = new EmailRecord(
-                    userMail,
-                    "Ativação da conta Finax",
-                    emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
+            emailService.enviarEmail(
+                    new EmailRecord(
+                            userMail,
+                            "Ativação da conta Finax",
+                            emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
+                    )
             );
-
-            emailService.enviarEmail(email);
         } catch (MessagingException messagingException) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -135,13 +127,13 @@ public class LoginService {
 
     private void sendChangePasswordEmail(String userMail, Long userId, String token) {
         try {
-            EmailRecord email = new EmailRecord(
-                    userMail,
-                    "Alteração da senha Finax",
-                    emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, userId, token)
+            emailService.enviarEmail(
+                    new EmailRecord(
+                            userMail,
+                            "Alteração da senha Finax",
+                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, userId, token)
+                    )
             );
-
-            emailService.enviarEmail(email);
         } catch (MessagingException messagingException) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }

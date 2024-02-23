@@ -6,19 +6,19 @@ import java.util.Date;
 public class InterfacesSQL {
 
     public interface GenericIdDs {
-        Long getId();
+        long getId();
         String getDs();
     }
 
     public interface MonthlyReleases {
-        Long getId();
-        Long getUserId();
+        long getId();
+        long getUserId();
         String getDescription();
-        Long getAccountId();
+        long getAccountId();
         String getAccountName();
-        Double getAmount();
+        double getAmount();
         String getType();
-        Boolean getDone();
+        boolean getDone();
         Long getTargetAccountId();
         String getTargetAccountName();
         Long getCategoryId();
@@ -30,44 +30,44 @@ public class InterfacesSQL {
         String getObservation();
         String getAttachmentName();
         Long getDuplicatedReleaseId();
-        Boolean getIsDuplicatedRelease();
+        boolean getIsDuplicatedRelease();
     }
 
     public interface MonthlyBalance {
-        Double getRevenues();
-        Double getExpenses();
-        Double getBalance();
-        Double getGeneralBalance();
-        Double getExpectedBalance();
+        double getRevenues();
+        double getExpenses();
+        double getBalance();
+        double getGeneralBalance();
+        double getExpectedBalance();
     }
 
     public interface HomeBalances {
-        Double getRevenues();
-        Double getExpenses();
+        double getRevenues();
+        double getExpenses();
     }
 
     public interface UserCreditCards {
-        Long getId();
-        Long getUser_id();
+        long getId();
+        long getUser_id();
         String getName();
-        Double getCard_limit();
+        double getCard_limit();
         int getClose_day();
         int getExpires_day();
         String getImage();
-        Long getStandard_payment_account_id();
+        long getStandard_payment_account_id();
         boolean getActive();
         String getAccount_name();
         String getAccount_image();
     }
 
     public interface AccountBasicList {
-        Long getId();
+        long getId();
         String getName();
         String getImage();
     }
 
     public interface CardBasicList {
-        Long getId();
+        long getId();
         String getName();
         String getImage();
     }
