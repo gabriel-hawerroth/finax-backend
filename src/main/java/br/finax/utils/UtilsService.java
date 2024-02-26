@@ -33,7 +33,7 @@ public class UtilsService {
         }
     }
 
-    public byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
+    public static byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
         int imageSize = getImageSize(data, isAttachment);
@@ -74,7 +74,7 @@ public class UtilsService {
         return imageSize;
     }
 
-    public byte[] compressPdf(byte[] pdfData) throws IOException {
+    public static byte[] compressPdf(byte[] pdfData) throws IOException {
         try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfData))) {
             // Remove unused resources and optimize
             document.setAllSecurityToBeRemoved(true);
@@ -97,7 +97,7 @@ public class UtilsService {
     }
 
     // Removes unused objects from pdf
-    private void removeUnusedObjects(PDDocument document) {
+    private static void removeUnusedObjects(PDDocument document) {
         PDPageTree pages = document.getPages();
         for (PDPage page : pages) {
             PDResources resources = page.getResources();
@@ -112,7 +112,7 @@ public class UtilsService {
         catalog.getCOSObject().setNeedToBeUpdated(true);
     }
 
-    public String generateHash(String text) {
+    public static String generateHash(String text) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(text.getBytes(StandardCharsets.UTF_8));

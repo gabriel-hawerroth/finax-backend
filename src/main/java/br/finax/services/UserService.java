@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import static br.finax.utils.UtilsService.compressImage;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -85,7 +87,7 @@ public class UserService {
 
         if (!imgExtension.equals("png") && !imgExtension.equals("webp")) {
             try {
-                image = utilsService.compressImage(image, false);
+                image = compressImage(image, false);
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }

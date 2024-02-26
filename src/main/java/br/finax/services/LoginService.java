@@ -7,7 +7,6 @@ import br.finax.records.EmailRecord;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
-import br.finax.utils.UtilsService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,8 @@ import javax.mail.MessagingException;
 import java.net.URI;
 import java.util.Optional;
 
+import static br.finax.utils.UtilsService.generateHash;
+
 @Service
 @RequiredArgsConstructor
 public class LoginService {
@@ -29,7 +30,6 @@ public class LoginService {
     private final TokenRepository tokenRepository;
     private final BCryptPasswordEncoder bCrypt;
     private final EmailService emailService;
-    private final UtilsService utilsService;
     private final CategoryRepository categoryRepository;
 
     public ResponseEntity<User> newUser(User user) {
@@ -46,7 +46,7 @@ public class LoginService {
 
         final Token token = new Token();
         token.setUserId(user.getId());
-        token.setToken(utilsService.generateHash(user.getEmail()));
+        token.setToken(generateHash(user.getEmail()));
         tokenRepository.save(token);
 
         sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());
@@ -85,7 +85,7 @@ public class LoginService {
         final Token token = new Token();
         tok.ifPresent(value -> token.setId(value.getId()));
         token.setUserId(user.getId());
-        token.setToken(utilsService.generateHash(user.getEmail()));
+        token.setToken(generateHash(user.getEmail()));
         tokenRepository.save(token);
 
         sendChangePasswordEmail(user.getEmail(), user.getId(), token.getToken());

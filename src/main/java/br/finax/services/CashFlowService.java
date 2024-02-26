@@ -21,6 +21,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import static br.finax.utils.UtilsService.compressImage;
+import static br.finax.utils.UtilsService.compressPdf;
+
 @Service
 @RequiredArgsConstructor
 public class CashFlowService {
@@ -151,13 +154,13 @@ public class CashFlowService {
         try {
             switch (fileExtension) {
                 case "pdf":
-                    release.setAttachment(utilsService.compressPdf(attachment.getBytes()));
+                    release.setAttachment(compressPdf(attachment.getBytes()));
                     break;
                 case "png", "webp":
                     release.setAttachment(attachment.getBytes());
                     break;
                 default:
-                    release.setAttachment(utilsService.compressImage(attachment.getBytes(), true));
+                    release.setAttachment(compressImage(attachment.getBytes(), true));
             }
 
             release.setAttachmentName(attachment.getOriginalFilename());
