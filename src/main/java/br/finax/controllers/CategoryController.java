@@ -24,7 +24,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    private Category getById(@PathVariable Long id) {
+    private Category getById(@PathVariable long id) {
         return categoryService.getById(id);
     }
 
@@ -34,7 +34,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<Void> deleteById(@PathVariable Long id) {
+    private ResponseEntity<Void> deleteById(@PathVariable long id) {
         return categoryService.deleteById(id);
     }
 }

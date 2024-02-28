@@ -113,7 +113,7 @@ public class LoginService {
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
         try {
-            emailService.enviarEmail(
+            emailService.sendMail(
                     new EmailRecord(
                             userMail,
                             "Ativação da conta Finax",
@@ -127,7 +127,7 @@ public class LoginService {
 
     private void sendChangePasswordEmail(String userMail, Long userId, String token) {
         try {
-            emailService.enviarEmail(
+            emailService.sendMail(
                     new EmailRecord(
                             userMail,
                             "Alteração da senha Finax",

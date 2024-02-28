@@ -41,8 +41,8 @@ public class CustomAuthenticationProvider implements AuthenticationManager {
         return authentication;
     }
 
-    private Authentication doLogin(String username, String password) {
-        final User user = userRepository.findByEmail(username)
+    private Authentication doLogin(String email, String password) {
+        final User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         if (!encoder.matches(password, user.getPassword()))

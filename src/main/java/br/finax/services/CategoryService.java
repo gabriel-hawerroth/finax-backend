@@ -26,7 +26,7 @@ public class CategoryService {
         );
     }
 
-    public Category getById(Long id) {
+    public Category getById(long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
@@ -39,11 +39,11 @@ public class CategoryService {
         }
     }
 
-    public ResponseEntity<Void> deleteById(Long id) {
+    public ResponseEntity<Void> deleteById(long id) {
         try {
             categoryRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            Category category = categoryRepository.findById(id)
+            final Category category = categoryRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
             category.setActive(false);

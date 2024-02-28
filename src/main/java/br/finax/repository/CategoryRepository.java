@@ -24,7 +24,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
                 id
             """, nativeQuery = true
     )
-    List<Category> findByUser(Long userId);
+    List<Category> findByUser(long userId);
 
     @Modifying
     @Transactional
@@ -36,5 +36,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             FROM Category c
             WHERE c.user_id = 0 AND c.id <> 21
             """, nativeQuery = true)
-    void insertNewUserCategories(Long userId);
+    void insertNewUserCategories(long userId);
 }

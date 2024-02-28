@@ -25,7 +25,7 @@ public class CreditCardController {
     }
 
     @GetMapping("/{id}")
-    private CreditCard getById(@PathVariable Long id) {
+    private CreditCard getById(@PathVariable long id) {
         return creditCardService.getById(id);
     }
 

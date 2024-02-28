@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface UserConfigsRepository extends JpaRepository<UserConfigs, Long> {
 
-    Optional<UserConfigs> findByUserId(Long userId);
+    Optional<UserConfigs> findByUserId(long userId);
 }

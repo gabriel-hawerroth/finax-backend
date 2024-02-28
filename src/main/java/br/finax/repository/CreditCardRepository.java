@@ -9,8 +9,7 @@ import java.util.List;
 
 public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 cc.*,
@@ -18,17 +17,15 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 ba.image AS account_image
             FROM
                 credit_card cc
-                JOIN bank_accounts ba ON cc.standard_payment_account_id = ba.id
+                JOIN bank_account ba ON cc.standard_payment_account_id = ba.id
             WHERE
                 cc.user_id = :userId
             ORDER BY
                 cc.id
-            """, nativeQuery = true
-    )
-    List<UserCreditCards> getAllByUser(Long userId);
+            """, nativeQuery = true)
+    List<UserCreditCards> getAllByUser(long userId);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 cc.id,
@@ -41,7 +38,6 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 AND cc.active = true
             ORDER BY
                 cc.id
-            """, nativeQuery = true
-    )
-    List<CardBasicList> getBasicList(Long user_id);
+            """, nativeQuery = true)
+    List<CardBasicList> getBasicList(long user_id);
 }

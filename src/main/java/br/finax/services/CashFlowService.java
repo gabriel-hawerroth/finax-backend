@@ -1,10 +1,14 @@
 package br.finax.services;
 
+import br.finax.enums.DuplicatedReleaseAction;
+import br.finax.enums.ReleasedOn;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
+import br.finax.models.Invoice;
 import br.finax.models.User;
 import br.finax.records.MontlhyCashFlow;
 import br.finax.repository.CashFlowRepository;
+import br.finax.repository.InvoiceRepository;
 import br.finax.utils.UtilsService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,10 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static br.finax.utils.UtilsService.compressImage;
 import static br.finax.utils.UtilsService.compressPdf;
@@ -29,14 +31,10 @@ import static br.finax.utils.UtilsService.compressPdf;
 public class CashFlowService {
 
     private final CashFlowRepository cashFlowRepository;
+    private final InvoiceRepository invoiceRepository;
     private final UtilsService utilsService;
 
-    public CashFlow getById(Long id) {
-        return cashFlowRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Release not found"));
-    }
-
-    public MontlhyCashFlow getMonthlyFlow(Date firstDt, Date lastDt, Date firstDtCurrentMonth) {
+    public MontlhyCashFlow getMonthlyFlow(final Date firstDt, final Date lastDt, final Date firstDtCurrentMonth) {
         final User user = utilsService.getAuthUser();
 
         return new MontlhyCashFlow(
@@ -45,14 +43,18 @@ public class CashFlowService {
         );
     }
 
-    public ResponseEntity<CashFlow> addRelease(CashFlow release, String releasedOn, int repeatFor) {
+    public ResponseEntity<CashFlow> addRelease(final CashFlow release, final ReleasedOn releasedOn, final int repeatFor) {
         try {
+            if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
+                checkInvoice(release);
+            }
+
             if (release.getRepeat().isBlank()) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
             }
 
             final boolean isFixedRepeat = release.getRepeat().equals("fixed");
-            final double installmentsAmount = release.getAmount() / repeatFor;
+            double installmentsAmount = release.getAmount() / repeatFor;
 
             if (!isFixedRepeat) {
                 release.setAmount(installmentsAmount);
@@ -86,11 +88,21 @@ public class CashFlowService {
         }
     }
 
-    public ResponseEntity<CashFlow> editRelease(CashFlow release, String duplicatedReleaseAction) {
+    public ResponseEntity<CashFlow> editRelease(
+            final CashFlow release, final ReleasedOn releasedOn, final DuplicatedReleaseAction duplicatedReleaseAction
+    ) {
         try {
+            final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
+            final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
+
+            if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
+                checkInvoice(release);
+            }
+
             final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
+            // things that can't change
             release.setUserId(existingRelease.getUserId());
             release.setType(existingRelease.getType());
             release.setAttachment(existingRelease.getAttachment());
@@ -99,16 +111,14 @@ public class CashFlowService {
             release.setRepeat(existingRelease.getRepeat());
             release.setFixedBy(existingRelease.getFixedBy());
 
-            final boolean updatingAll = duplicatedReleaseAction.equals("all");
-
             if (!updatingAll) {
                 cashFlowRepository.save(release);
             }
 
-            if (duplicatedReleaseAction.equals("nexts") || updatingAll) {
+            if (updatingNexts || updatingAll) {
                 final List<CashFlow> duplicatedReleases;
 
-                if (duplicatedReleaseAction.equals("nexts")) {
+                if (updatingNexts) {
                     duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
                             release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId(),
                             existingRelease.getDate()
@@ -143,7 +153,7 @@ public class CashFlowService {
         }
     }
 
-    public ResponseEntity<CashFlow> addAttachment(Long id, MultipartFile attachment) {
+    public ResponseEntity<CashFlow> addAttachment(long id, final MultipartFile attachment) {
         final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
@@ -171,7 +181,7 @@ public class CashFlowService {
         return ResponseEntity.ok().body(cashFlowRepository.save(release));
     }
 
-    public ResponseEntity<CashFlow> removeAttachment(Long id) {
+    public ResponseEntity<CashFlow> removeAttachment(long id) {
         final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
@@ -181,7 +191,7 @@ public class CashFlowService {
         return ResponseEntity.ok().body(cashFlowRepository.save(release));
     }
 
-    public ResponseEntity<byte[]> getAttachment(Long id) {
+    public ResponseEntity<byte[]> getAttachment(long id) {
         return ResponseEntity.ok().body(
                 cashFlowRepository.findById(id)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST))
@@ -189,19 +199,19 @@ public class CashFlowService {
         );
     }
 
-    public ResponseEntity<?> delete(Long id, String duplicatedReleasesAction) {
+    public ResponseEntity<?> delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
         try {
             final CashFlow release = cashFlowRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
-            if (duplicatedReleasesAction.equals("nexts")) {
+            if (duplicatedReleasesAction == DuplicatedReleaseAction.NEXTS) {
                 cashFlowRepository.deleteAll(
                         cashFlowRepository.getNextDuplicatedReleases(
                                 release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
                                 release.getDate()
                         )
                 );
-            } else if (duplicatedReleasesAction.equals("all")) {
+            } else if (duplicatedReleasesAction == DuplicatedReleaseAction.ALL) {
                 cashFlowRepository.deleteAll(
                         cashFlowRepository.getAllDuplicatedReleases(
                                 release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
@@ -209,7 +219,7 @@ public class CashFlowService {
                 );
             }
 
-            if (!duplicatedReleasesAction.equals("all"))
+            if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
                 cashFlowRepository.deleteById(id);
 
             return ResponseEntity.ok().build();
@@ -218,14 +228,14 @@ public class CashFlowService {
         }
     }
 
-    private CashFlow createDuplicatedRelease(CashFlow original, Double newAmount, LocalDate newDate) {
+    private CashFlow createDuplicatedRelease(final CashFlow original, double newAmount, final LocalDate newDate) {
         return new DuplicatedReleaseBuilder(original)
                 .amount(newAmount)
                 .date(newDate)
                 .build();
     }
 
-    LocalDate getNewDate(LocalDate dt, String fixedBy) {
+    final LocalDate getNewDate(final LocalDate dt, final String fixedBy) {
         return switch (fixedBy) {
             case "daily" -> dt.plusDays(1);
             case "weekly" -> dt.plusWeeks(1);
@@ -236,5 +246,26 @@ public class CashFlowService {
             case "annual" -> dt.plusYears(1);
             default -> dt;
         };
+    }
+
+    final void checkInvoice(final CashFlow release) {
+        Long invoiceId = invoiceRepository.checkIfExists(
+                release.getUserId(), release.getAccountId(), formatDt(release.getDate())
+        );
+
+        if (invoiceId == null) {
+            invoiceId = invoiceRepository.save(
+                    new Invoice(
+                            release.getUserId(), release.getAccountId(), formatDt(release.getDate())
+                    )
+            ).getId();
+        }
+
+        release.setInvoice_id(invoiceId);
+        release.setAccountId(null);
+    }
+
+    final String formatDt(final LocalDate date) {
+        return date.format(DateTimeFormatter.ofPattern("MM/yyyy"));
     }
 }

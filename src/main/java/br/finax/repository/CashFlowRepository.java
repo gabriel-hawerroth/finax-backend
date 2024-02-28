@@ -10,8 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 cf.id,
@@ -31,11 +30,10 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.date,
                 cf.time,
                 cf.observation,
-                cf.attachment,
                 cf.attachment_name AS attachmentName,
                 cf.duplicated_release_id AS duplicatedReleaseId,
                 (CASE WHEN
-                        (SELECT COUNT(1) FROM cash_flow WHERE duplicated_release_id = cf.id) > 0
+                        EXISTS (SELECT 1 FROM cash_flow WHERE duplicated_release_id = cf.id)
                             OR
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
@@ -43,20 +41,18 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 END) AS isDuplicatedRelease
             FROM
                 cash_flow cf
-                JOIN bank_accounts ba ON cf.account_id = ba.id
-                LEFT JOIN bank_accounts tba ON cf.target_account_id  = tba.id
+                LEFT JOIN bank_account ba ON cf.account_id = ba.id
+                LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
-                ba.user_id = :userId
+                cf.user_id = :userId
                 AND cf.date between :firstDt and :lastDt
             ORDER BY
                 cf.date, cf.time, cf.id ASC
-            """, nativeQuery = true
-    )
-    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(Long userId, Date firstDt, Date lastDt);
+            """, nativeQuery = true)
+    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, Date firstDt, Date lastDt);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
@@ -67,7 +63,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                     SELECT
                         COALESCE(SUM(ba.balance), 0)
                     FROM
-                        bank_accounts ba
+                        bank_account ba
                     WHERE
                         ba.user_id = :userId
                         AND ba.active = true
@@ -76,7 +72,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 (
                    SELECT
                         COALESCE(
-                           (SELECT SUM(ba.balance) FROM bank_accounts ba WHERE ba.user_id = :userId AND ba.active = true AND ba.add_overall_balance = true)
+                           (SELECT SUM(ba.balance) FROM bank_account ba WHERE ba.user_id = :userId AND ba.active = true AND ba.add_overall_balance = true)
                            + COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0)
                            - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0)
                         , 0)
@@ -93,12 +89,10 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.user_id = :userId
                 AND cf.done = true
                 AND cf.date between :firstDt and :lastDt
-            """, nativeQuery = true
-    )
-    InterfacesSQL.MonthlyBalance getMonthlyBalance(Long userId, Date firstDt, Date lastDt, Date firstDtCurrentMonth);
+            """, nativeQuery = true)
+    InterfacesSQL.MonthlyBalance getMonthlyBalance(long userId, Date firstDt, Date lastDt, Date firstDtCurrentMonth);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
@@ -110,34 +104,36 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.done = true
                 AND cf.date between :firstDt and :lastDt
             LIMIT 1
-            """, nativeQuery = true
-    )
-    InterfacesSQL.HomeBalances getHomeBalances(Long userId, Date firstDt, Date lastDt);
+            """, nativeQuery = true)
+    InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 cf.id,
+                cf.user_id AS userId,
                 cf.description,
-                cf.account_id as accountId,
-                ba.name as accountName,
+                cf.account_id AS accountId,
+                ba.name AS accountName,
                 cf.amount,
                 cf.type,
                 cf.done,
-                cf.target_account_id as targetAccountId,
-                tba.name as targetAccountName,
-                cf.category_id as categoryId,
-                c.name as categoryName,
-                c.color as categoryColor,
-                c.icon as categoryIcon,
+                cf.target_account_id AS targetAccountId,
+                tba.name AS targetAccountName,
+                cf.category_id AS categoryId,
+                c.name AS categoryName,
+                c.color AS categoryColor,
+                c.icon AS categoryIcon,
                 cf.date,
                 cf.time,
-                cf.observation
+                cf.observation,
+                cf.attachment_name AS attachmentName,
+                cf.duplicated_release_id AS duplicatedReleaseId,
+                false AS isDuplicatedRelease
             FROM
                 cash_flow cf
-                JOIN bank_accounts ba ON cf.account_id = ba.id
-                LEFT JOIN bank_accounts tba ON cf.target_account_id  = tba.id
+                LEFT JOIN bank_account ba ON cf.account_id = ba.id
+                LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
                 ba.user_id = :userId
@@ -145,12 +141,10 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.done = false
             ORDER BY
                 cf.date, cf.time, cf.id ASC
-            """, nativeQuery = true
-    )
-    List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(Long userId);
+            """, nativeQuery = true)
+    List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 *
@@ -160,22 +154,19 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.duplicated_release_id = :duplicatedReleaseId
                 AND cf.date > :date
             ORDER BY cf.id
-            """, nativeQuery = true
-    )
-    List<CashFlow> getNextDuplicatedReleases(Long duplicatedReleaseId, LocalDate date);
+            """, nativeQuery = true)
+    List<CashFlow> getNextDuplicatedReleases(long duplicatedReleaseId, LocalDate date);
 
-    @Query(
-            value =
-                    """
-                    SELECT
-                        *
-                    FROM
-                        cash_flow cf
-                    WHERE
-                        cf.duplicated_release_id = :duplicatedReleaseId
-                        OR cf.id = :duplicatedReleaseId
-                    ORDER BY cf.id
-                    """, nativeQuery = true
-    )
-    List<CashFlow> getAllDuplicatedReleases(Long duplicatedReleaseId);
+    @Query(value =
+            """
+            SELECT
+                *
+            FROM
+                cash_flow cf
+            WHERE
+                cf.duplicated_release_id = :duplicatedReleaseId
+                OR cf.id = :duplicatedReleaseId
+            ORDER BY cf.id
+            """, nativeQuery = true)
+    List<CashFlow> getAllDuplicatedReleases(long duplicatedReleaseId);
 }

@@ -9,40 +9,36 @@ import java.util.List;
 
 public interface AccountsRepository extends JpaRepository<Account, Long> {
 
-    List<Account> findAllByUserIdOrderByIdAsc(Long userId);
+    List<Account> findAllByUserIdOrderByIdAsc(long userId);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 *
             FROM
-                bank_accounts ba
+                bank_account ba
             WHERE
                 ba.user_id = :user_id
                 AND ba.active = true
                 AND ba.add_overall_balance = true
             ORDER BY
                 ba.id
-            """, nativeQuery = true
-    )
-    List<Account> getHomeAccountsList(Long user_id);
+            """, nativeQuery = true)
+    List<Account> getHomeAccountsList(long user_id);
 
-    @Query(
-        value =
+    @Query(value =
             """
             SELECT
                 ba.id,
                 ba.name,
                 ba.image
             FROM
-                bank_accounts ba
+                bank_account ba
             WHERE
                 ba.user_id = :user_id
                 AND ba.active = true
             ORDER BY
                 ba.id
-            """, nativeQuery = true
-    )
-    List<AccountBasicList> getBasicList(Long user_id);
+            """, nativeQuery = true)
+    List<AccountBasicList> getBasicList(long user_id);
 }

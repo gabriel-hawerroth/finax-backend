@@ -14,7 +14,7 @@ public class InterfacesSQL {
         long getId();
         long getUserId();
         String getDescription();
-        long getAccountId();
+        Long getAccountId();
         String getAccountName();
         double getAmount();
         String getType();

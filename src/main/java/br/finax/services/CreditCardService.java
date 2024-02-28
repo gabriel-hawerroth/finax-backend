@@ -17,14 +17,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CreditCardService {
 
-    private final UtilsService utilsService;
     private final CreditCardRepository creditCardRepository;
+    private final UtilsService utilsService;
 
     public List<InterfacesSQL.UserCreditCards> getByUser() {
         return creditCardRepository.getAllByUser(utilsService.getAuthUser().getId());
     }
 
-    public CreditCard getById(Long id) {
+    public CreditCard getById(long id) {
         return creditCardRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit card not found"));
     }

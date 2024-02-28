@@ -25,7 +25,7 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    private Account getById(@PathVariable Long id) {
+    private Account getById(@PathVariable long id) {
         return accountService.getById(id);
     }
 
@@ -35,7 +35,7 @@ public class AccountController {
     }
 
     @GetMapping("/adjust-balance/{id}")
-    private ResponseEntity<Account> adjustBalance(@PathVariable Long id, @RequestParam Double newBalance) {
+    private ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam double newBalance) {
         return accountService.adjustBalance(id, newBalance);
     }
 

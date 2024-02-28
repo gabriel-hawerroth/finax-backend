@@ -28,7 +28,7 @@ public class AccountService {
         return accountRepository.findAllByUserIdOrderByIdAsc(utilsService.getAuthUser().getId());
     }
 
-    public Account getById(Long id) {
+    public Account getById(long id) {
         return accountRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account not found"));
     }
@@ -37,12 +37,12 @@ public class AccountService {
         return ResponseEntity.ok().body(accountRepository.save(account));
     }
 
-    public ResponseEntity<Account> adjustBalance(Long accountId, Double newBalance) {
+    public ResponseEntity<Account> adjustBalance(long accountId, double newBalance) {
         try {
             final Account account = accountRepository.findById(accountId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
-            CashFlow release = new CashFlow();
+            final CashFlow release = new CashFlow();
             release.setUserId(account.getUserId());
             release.setDescription("");
             release.setAccountId(account.getId());
@@ -52,7 +52,7 @@ public class AccountService {
             release.setCategoryId(21L);
             release.setDate(LocalDate.now());
 
-            cashFlowRepository.saveAndFlush(release);
+            cashFlowRepository.save(release);
 
             account.setBalance(newBalance);
 
