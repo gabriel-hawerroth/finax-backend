@@ -1,13 +1,12 @@
 package br.finax.services;
 
+import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasedOn;
-import br.finax.models.CashFlow;
-import br.finax.models.DuplicatedReleaseBuilder;
-import br.finax.models.Invoice;
-import br.finax.models.User;
+import br.finax.models.*;
 import br.finax.records.MontlhyCashFlow;
 import br.finax.repository.CashFlowRepository;
+import br.finax.repository.CreditCardRepository;
 import br.finax.repository.InvoiceRepository;
 import br.finax.utils.UtilsService;
 
@@ -32,15 +31,23 @@ public class CashFlowService {
 
     private final CashFlowRepository cashFlowRepository;
     private final InvoiceRepository invoiceRepository;
+    private final CreditCardRepository creditCardRepository;
     private final UtilsService utilsService;
 
-    public MontlhyCashFlow getMonthlyFlow(final Date firstDt, final Date lastDt, final Date firstDtCurrentMonth) {
-        final User user = utilsService.getAuthUser();
+    public MontlhyCashFlow getMonthlyFlow(final Date firstDt, final Date lastDt, final Date firstDtCurrentMonth,
+                                          final ReleasesViewMode viewMode, final Date firstDtInvoice, final Date lastDtInvoice) {
+        final long userId = utilsService.getAuthUser().getId();
 
-        return new MontlhyCashFlow(
-                cashFlowRepository.getMonthlyReleases(user.getId(), firstDt, lastDt),
-                cashFlowRepository.getMonthlyBalance(user.getId(), firstDt, lastDt, firstDtCurrentMonth)
-        );
+        return switch (viewMode) {
+            case releases -> new MontlhyCashFlow(
+                    cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt),
+                    cashFlowRepository.getMonthlyBalance(userId, firstDt, lastDt)
+            );
+            case invoice -> new MontlhyCashFlow(
+                    cashFlowRepository.getMonthlyReleasesInvoiceMode(userId, firstDt, lastDt, firstDtInvoice, lastDtInvoice),
+                    cashFlowRepository.getMonthlyBalanceInvoiceMode(userId, firstDt, lastDt, firstDtCurrentMonth)
+            );
+        };
     }
 
     public ResponseEntity<CashFlow> addRelease(final CashFlow release, final ReleasedOn releasedOn, final int repeatFor) {
@@ -146,9 +153,13 @@ public class CashFlowService {
 
             return ResponseEntity.ok().body(release);
         } catch (RuntimeException e) {
-            if (e.getCause().getCause().toString().contains("Insufficient balance for this transaction")) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Insufficient balance for this transaction");
+            try {
+                if (e.getCause().getCause().toString().contains("Insufficient balance for this transaction")) {
+                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Insufficient balance for this transaction");
+                }
+            } catch (Exception ignored) {
             }
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
@@ -235,7 +246,7 @@ public class CashFlowService {
                 .build();
     }
 
-    final LocalDate getNewDate(final LocalDate dt, final String fixedBy) {
+    private LocalDate getNewDate(final LocalDate dt, final String fixedBy) {
         return switch (fixedBy) {
             case "daily" -> dt.plusDays(1);
             case "weekly" -> dt.plusWeeks(1);
@@ -249,19 +260,24 @@ public class CashFlowService {
     }
 
     final void checkInvoice(final CashFlow release) {
-        Long invoiceId = invoiceRepository.checkIfExists(
-                release.getUserId(), release.getAccountId(), formatDt(release.getDate())
+        final int cardCloseDay = creditCardRepository.findById(release.getAccountId())
+                .orElseThrow(() -> new RuntimeException("Credit card not found")).getClose_day();
+
+        final boolean cardAlreadyClose = release.getDate().getDayOfMonth() > cardCloseDay;
+
+        final String dt = formatDt(cardAlreadyClose ? release.getDate().plusMonths(1) : release.getDate());
+
+        Optional<Invoice> invoice = invoiceRepository.findByMonthYear(
+                release.getUserId(), release.getAccountId(), dt
         );
 
-        if (invoiceId == null) {
-            invoiceId = invoiceRepository.save(
-                    new Invoice(
-                            release.getUserId(), release.getAccountId(), formatDt(release.getDate())
-                    )
-            ).getId();
+        if (invoice.isEmpty()) {
+            invoice = Optional.of(invoiceRepository.save(
+                    new Invoice(release.getUserId(), release.getAccountId(), dt)
+            ));
         }
 
-        release.setInvoice_id(invoiceId);
+        release.setInvoice_id(invoice.map(Invoice::getId).orElse(null));
         release.setAccountId(null);
     }
 

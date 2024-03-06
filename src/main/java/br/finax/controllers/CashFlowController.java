@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasedOn;
 import br.finax.models.CashFlow;
@@ -23,9 +24,12 @@ public class CashFlowController {
 
     @Cacheable
     @GetMapping
-    private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt,
-                               @RequestParam Date lastDt, @RequestParam Date firstDtCurrentMonth) {
-        return cashFlowService.getMonthlyFlow(firstDt, lastDt, firstDtCurrentMonth);
+    private MontlhyCashFlow getMonthlyFlow(@RequestParam Date firstDt, @RequestParam Date lastDt,
+               @RequestParam Date firstDtCurrentMonth, @RequestParam String viewMode,
+               @RequestParam Date firstDtInvoice, @RequestParam Date lastDtInvoice) {
+        return cashFlowService.getMonthlyFlow(
+                firstDt, lastDt, firstDtCurrentMonth, ReleasesViewMode.valueOf(viewMode), firstDtInvoice, lastDtInvoice
+        );
     }
 
     @PostMapping
@@ -37,7 +41,8 @@ public class CashFlowController {
     @PutMapping
     private ResponseEntity<CashFlow> editRelease(@RequestBody CashFlow release,
                                  @RequestParam String releasedOn, @RequestParam String duplicatedReleaseAction) {
-        return cashFlowService.editRelease(release, ReleasedOn.valueOf(releasedOn), DuplicatedReleaseAction.valueOf(duplicatedReleaseAction));
+        return cashFlowService.editRelease(
+                release, ReleasedOn.valueOf(releasedOn), DuplicatedReleaseAction.valueOf(duplicatedReleaseAction));
     }
 
     @PutMapping("/add-attachment/{id}")

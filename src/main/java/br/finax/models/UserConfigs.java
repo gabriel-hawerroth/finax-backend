@@ -24,4 +24,7 @@ public class UserConfigs {
     private String language;
 
     private String currency;
+
+    @Column(name = "releases_view_mode")
+    private String releasesViewMode;
 }

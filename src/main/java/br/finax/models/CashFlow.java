@@ -32,7 +32,7 @@ public class CashFlow {
     private Long targetAccountId;
 
     @Column(name = "category_id")
-    private long categoryId;
+    private Long categoryId;
 
     private LocalDate date;
 

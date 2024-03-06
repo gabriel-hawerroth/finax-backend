@@ -22,7 +22,7 @@ public class UserConfigsService {
             return userConfigsRepository.findByUserId(utilsService.getAuthUser().getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Configurações do usuário não encontrada");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User configs not found");
         }
     }
 
@@ -30,7 +30,7 @@ public class UserConfigsService {
         try {
             return ResponseEntity.ok().body(userConfigsRepository.save(userConfigs));
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao salvar as configurações do usuário");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error saving configs");
         }
     }
 }

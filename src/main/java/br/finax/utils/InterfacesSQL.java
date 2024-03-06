@@ -14,7 +14,7 @@ public class InterfacesSQL {
         long getId();
         long getUserId();
         String getDescription();
-        Long getAccountId();
+        long getAccountId();
         String getAccountName();
         double getAmount();
         String getType();
@@ -31,6 +31,7 @@ public class InterfacesSQL {
         String getAttachmentName();
         Long getDuplicatedReleaseId();
         boolean getIsDuplicatedRelease();
+        boolean getIsCreditCardRelease();
     }
 
     public interface MonthlyBalance {

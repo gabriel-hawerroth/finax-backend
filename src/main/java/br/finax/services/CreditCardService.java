@@ -1,7 +1,11 @@
 package br.finax.services;
 
 import br.finax.models.CreditCard;
+import br.finax.models.Invoice;
+import br.finax.records.InvoiceAndReleases;
+import br.finax.repository.CashFlowRepository;
 import br.finax.repository.CreditCardRepository;
+import br.finax.repository.InvoiceRepository;
 import br.finax.utils.InterfacesSQL;
 import br.finax.utils.UtilsService;
 
@@ -18,6 +22,8 @@ import java.util.List;
 public class CreditCardService {
 
     private final CreditCardRepository creditCardRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final CashFlowRepository cashFlowRepository;
     private final UtilsService utilsService;
 
     public List<InterfacesSQL.UserCreditCards> getByUser() {
@@ -35,5 +41,16 @@ public class CreditCardService {
 
     public List<InterfacesSQL.CardBasicList> getBasicList() {
         return creditCardRepository.getBasicList(utilsService.getAuthUser().getId());
+    }
+
+    public InvoiceAndReleases getInvoiceAndReleases(long creditCardId, String selectedMonth) {
+        final Invoice invoice =
+                invoiceRepository.findByMonthYear(utilsService.getAuthUser().getId(), creditCardId, selectedMonth)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice not found"));
+
+        return new InvoiceAndReleases(
+                invoice,
+                cashFlowRepository.getByInvoice(invoice.getId())
+        );
     }
 }
