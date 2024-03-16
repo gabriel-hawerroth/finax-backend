@@ -1,9 +1,8 @@
 package br.finax.controllers;
 
 import br.finax.models.CreditCard;
-import br.finax.records.InvoiceAndReleases;
 import br.finax.services.CreditCardService;
-import br.finax.utils.InterfacesSQL;
+import br.finax.dto.InterfacesSQL;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/credit-card")
 public class CreditCardController {
 
@@ -36,10 +35,5 @@ public class CreditCardController {
     @GetMapping("/basic-list")
     private List<InterfacesSQL.CardBasicList> getBasicList() {
         return creditCardService.getBasicList();
-    }
-
-    @GetMapping("/invoice-and-releases")
-    private InvoiceAndReleases getInvoiceAndReleases(@RequestParam long creditCardId, @RequestParam String selectedMonth) {
-        return creditCardService.getInvoiceAndReleases(creditCardId, selectedMonth);
     }
 }

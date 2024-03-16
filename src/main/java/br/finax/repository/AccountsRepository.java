@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.Account;
-import br.finax.utils.InterfacesSQL.AccountBasicList;
+import br.finax.dto.InterfacesSQL.AccountBasicList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -31,7 +31,8 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             SELECT
                 ba.id,
                 ba.name,
-                ba.image
+                ba.image,
+                ba.balance
             FROM
                 bank_account ba
             WHERE

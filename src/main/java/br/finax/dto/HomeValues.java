@@ -1,7 +1,6 @@
-package br.finax.records;
+package br.finax.dto;
 
 import br.finax.models.Account;
-import br.finax.utils.InterfacesSQL;
 
 import java.util.List;
 

@@ -1,13 +1,12 @@
 package br.finax.services;
 
+import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasedOn;
 import br.finax.models.*;
-import br.finax.records.MontlhyCashFlow;
-import br.finax.repository.CashFlowRepository;
-import br.finax.repository.CreditCardRepository;
-import br.finax.repository.InvoiceRepository;
+import br.finax.dto.CashFlowValues;
+import br.finax.repository.*;
 import br.finax.utils.UtilsService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,33 +31,53 @@ public class CashFlowService {
     private final CashFlowRepository cashFlowRepository;
     private final InvoiceRepository invoiceRepository;
     private final CreditCardRepository creditCardRepository;
+
+    private final AccountsRepository accountsRepository;
+    private final CategoryRepository categoryRepository;
+
     private final UtilsService utilsService;
 
-    public MontlhyCashFlow getMonthlyFlow(final Date firstDt, final Date lastDt, final Date firstDtCurrentMonth,
-                                          final ReleasesViewMode viewMode, final Date firstDtInvoice, final Date lastDtInvoice) {
+    public MonthlyCashFlow getMonthlyFlow(
+            final Date firstDt, final Date lastDt,
+            final ReleasesViewMode viewMode, final Date firstDtCurrentMonth,
+            final Date firstDtInvoice, final Date lastDtInvoice
+    ) {
         final long userId = utilsService.getAuthUser().getId();
 
         return switch (viewMode) {
-            case releases -> new MontlhyCashFlow(
-                    cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt),
-                    cashFlowRepository.getMonthlyBalance(userId, firstDt, lastDt)
+            case releases -> new MonthlyCashFlow(
+                    cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
             );
-            case invoice -> new MontlhyCashFlow(
-                    cashFlowRepository.getMonthlyReleasesInvoiceMode(userId, firstDt, lastDt, firstDtInvoice, lastDtInvoice),
-                    cashFlowRepository.getMonthlyBalanceInvoiceMode(userId, firstDt, lastDt, firstDtCurrentMonth)
+            case invoice -> new MonthlyCashFlow(
+                    cashFlowRepository.getMonthlyReleasesInvoiceMode(
+                            userId, firstDt, lastDt, firstDtInvoice, lastDtInvoice
+                    ),
+                    cashFlowRepository.getExpectedBalance(userId, firstDtCurrentMonth, lastDt)
             );
         };
     }
 
-    public ResponseEntity<CashFlow> addRelease(final CashFlow release, final ReleasedOn releasedOn, final int repeatFor) {
-        try {
-            if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
-                checkInvoice(release);
-            }
+    public CashFlowValues getValues() {
+        final long userId = utilsService.getAuthUser().getId();
 
-            if (release.getRepeat().isBlank()) {
+        return new CashFlowValues(
+                accountsRepository.getBasicList(userId),
+                categoryRepository.findByUser(userId),
+                creditCardRepository.getBasicList(userId)
+        );
+    }
+
+    public ResponseEntity<CashFlow> addRelease(
+            final CashFlow release, final ReleasedOn releasedOn, final int repeatFor
+    ) {
+        try {
+            final long creditCardId = release.getAccountId();
+
+            if (releasedOn.equals(ReleasedOn.CREDIT_CARD))
+                checkInvoice(release);
+
+            if (release.getRepeat().isBlank())
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
-            }
 
             final boolean isFixedRepeat = release.getRepeat().equals("fixed");
             double installmentsAmount = release.getAmount() / repeatFor;
@@ -74,13 +93,18 @@ public class CashFlowService {
             LocalDate dt = savedRelease.getDate();
 
             for (var i = 0; i < repeatFor - 1; i++) {
-                releases.add(
-                        createDuplicatedRelease(
-                                savedRelease,
-                                isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
-                                isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
-                        )
+                final CashFlow newRelease = createDuplicatedRelease(
+                        savedRelease,
+                        isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
+                        isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
                 );
+
+                if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
+                    newRelease.setAccountId(creditCardId);
+                    checkInvoice(newRelease);
+                }
+
+                releases.add(newRelease);
                 dt = releases.get(i).getDate();
             }
 

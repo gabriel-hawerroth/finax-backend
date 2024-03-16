@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.CreditCard;
-import br.finax.utils.InterfacesSQL.*;
+import br.finax.dto.InterfacesSQL.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

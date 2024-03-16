@@ -1,7 +1,7 @@
 package br.finax.repository;
 
 import br.finax.models.CashFlow;
-import br.finax.utils.InterfacesSQL;
+import br.finax.dto.InterfacesSQL;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -45,7 +45,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                     THEN true
                     ELSE false
                 END) AS isDuplicatedRelease,
-                cf.invoice_id IS NOT NULL AS isCreditCardRelease
+                cf.invoice_id IS NOT NULL AS isCreditCardRelease,
+                null AS creditCardImg
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
@@ -90,7 +91,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                     THEN true
                     ELSE false
                 END) AS isDuplicatedRelease,
-                false AS isCreditCardRelease
+                false AS isCreditCardRelease,
+                null as creditCardImg
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
@@ -126,7 +128,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 null AS attachmentName,
                 null AS duplicatedReleaseId,
                 false AS isDuplicatedRelease,
-                false AS isCreditCardRelease
+                false AS isCreditCardRelease,
+                cc.image AS creditCardImg
             FROM
                 cash_flow cf
                 JOIN invoice i ON cf.invoice_id = i.id
@@ -156,60 +159,76 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
     @Query(value =
             """
             SELECT
-                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
-                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
-                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0)
-                    - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS balance,
-                0 AS generalBalance,
-                0 AS expectedBalance
+                (
+                    (SELECT COALESCE(SUM(ba.balance), 0)
+                    FROM bank_account ba
+                    WHERE ba.user_id = :user_id
+                    AND ba.active IS TRUE
+                    AND ba.archived IS FALSE
+                    AND ba.add_overall_balance IS TRUE) +
+                    COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) -
+                    COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) -
+                    (SELECT
+                        COALESCE(SUM(cf2.amount), 0) -
+                        (SELECT COALESCE(SUM(ip.payment_amount), 0)
+                        FROM invoice_payment ip
+                        JOIN invoice i ON ip.invoice_id = i.id
+                        WHERE i.user_id = :user_id
+                        AND ip.payment_date < :last_dt) AS open_card_expenses
+                    FROM cash_flow cf2
+                    WHERE cf2.user_id = :user_id
+                    AND cf2.done IS TRUE
+                    AND cf2.date < :last_dt
+                    AND cf2.invoice_id IS NOT NULL)
+                ) AS expectedBalance
             FROM
                 cash_flow cf
             WHERE
-                cf.user_id = :userId
-                AND cf.done = true
-                AND cf.date between :firstDt and :lastDt
+                cf.user_id = :user_id
+                AND cf.date BETWEEN :first_dt AND :last_dt
+                AND cf.done IS FALSE
+                AND cf.account_id IS NOT NULL
             """, nativeQuery = true)
-    InterfacesSQL.MonthlyBalance getMonthlyBalance(long userId, Date firstDt, Date lastDt);
+    double getExpectedBalance(long user_id, Date first_dt, Date last_dt);
 
-    @Query(value =
-            """
-            SELECT
-                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
-                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
-                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0)
-                    - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS balance,
-                (
-                    SELECT
-                        COALESCE(SUM(ba.balance), 0)
-                    FROM
-                        bank_account ba
-                    WHERE
-                        ba.user_id = :userId
-                        AND ba.active = true
-                        AND ba.add_overall_balance = true
-                ) AS generalBalance,
-                (
-                   SELECT
-                        COALESCE(
-                           (SELECT SUM(ba.balance) FROM bank_account ba WHERE ba.user_id = :userId AND ba.active = true AND ba.add_overall_balance = true)
-                           + COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0)
-                           - COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0)
-                        , 0)
-                   FROM
-                       cash_flow cf
-                   WHERE
-                       cf.user_id = :userId
-                       AND cf.done = false
-                       AND cf.date between :firstDtCurrentMonth AND :lastDt
-                    ) AS expectedBalance
-            FROM
-                cash_flow cf
-            WHERE
-                cf.user_id = :userId
-                AND cf.done = true
-                AND cf.date between :firstDt and :lastDt
-            """, nativeQuery = true)
-    InterfacesSQL.MonthlyBalance getMonthlyBalanceInvoiceMode(long userId, Date firstDt, Date lastDt, Date firstDtCurrentMonth);
+//    @Query(value =
+//            """
+//            SELECT
+//                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
+//                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
+//                0 AS generalBalance
+//            FROM
+//                cash_flow cf
+//            WHERE
+//                cf.user_id = :userId
+//                AND cf.done = true
+//                AND cf.date between :firstDt and :lastDt
+//            """, nativeQuery = true)
+//    InterfacesSQL.MonthlyBalance getMonthlyBalance(long userId, Date firstDt, Date lastDt);
+//
+//    @Query(value =
+//            """
+//            SELECT
+//                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
+//                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
+//                (
+//                    SELECT
+//                        COALESCE(SUM(ba.balance), 0)
+//                    FROM
+//                        bank_account ba
+//                    WHERE
+//                        ba.user_id = :userId
+//                        AND ba.active = true
+//                        AND ba.add_overall_balance = true
+//                ) AS generalBalance
+//            FROM
+//                cash_flow cf
+//            WHERE
+//                cf.user_id = :userId
+//                AND cf.done = true
+//                AND cf.date between :firstDt and :lastDt
+//            """, nativeQuery = true)
+//    InterfacesSQL.MonthlyBalance getMonthlyBalanceInvoiceMode(long userId, Date firstDt, Date lastDt);
 
     @Query(value =
             """

@@ -1,4 +1,4 @@
-package br.finax.records;
+package br.finax.dto;
 
 public record EmailRecord(
         String addressee,

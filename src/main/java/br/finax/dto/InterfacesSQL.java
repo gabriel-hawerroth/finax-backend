@@ -1,4 +1,4 @@
-package br.finax.utils;
+package br.finax.dto;
 
 import java.util.Date;
 
@@ -32,14 +32,13 @@ public class InterfacesSQL {
         Long getDuplicatedReleaseId();
         boolean getIsDuplicatedRelease();
         boolean getIsCreditCardRelease();
+        String getCreditCardImg();
     }
 
     public interface MonthlyBalance {
         double getRevenues();
         double getExpenses();
-        double getBalance();
         double getGeneralBalance();
-        double getExpectedBalance();
     }
 
     public interface HomeBalances {
@@ -65,6 +64,7 @@ public class InterfacesSQL {
         long getId();
         String getName();
         String getImage();
+        long getBalance();
     }
 
     public interface CardBasicList {

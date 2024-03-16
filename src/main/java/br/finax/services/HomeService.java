@@ -1,7 +1,7 @@
 package br.finax.services;
 
 import br.finax.models.User;
-import br.finax.records.HomeValues;
+import br.finax.dto.HomeValues;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
 import br.finax.utils.UtilsService;

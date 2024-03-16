@@ -1,6 +1,6 @@
 package br.finax.controllers;
 
-import br.finax.records.HomeValues;
+import br.finax.dto.HomeValues;
 import br.finax.services.HomeService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class HomeController {
 
     private final HomeService homeService;
 
-    @GetMapping("/get-home-values")
+    @GetMapping("/get-values")
     private HomeValues getHomeAccounts(@RequestParam Date firstDt, @RequestParam Date lastDt) {
         return homeService.getHomeValues(firstDt, lastDt);
     }

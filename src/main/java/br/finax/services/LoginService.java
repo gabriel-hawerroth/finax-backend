@@ -3,7 +3,7 @@ package br.finax.services;
 import br.finax.enums.EmailType;
 import br.finax.models.Token;
 import br.finax.models.User;
-import br.finax.records.EmailRecord;
+import br.finax.dto.EmailRecord;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;

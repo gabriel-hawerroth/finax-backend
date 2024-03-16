@@ -1,7 +1,7 @@
 package br.finax.services;
 
 import br.finax.enums.EmailType;
-import br.finax.records.EmailRecord;
+import br.finax.dto.EmailRecord;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;

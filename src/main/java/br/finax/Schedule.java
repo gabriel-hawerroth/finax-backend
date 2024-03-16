@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -20,6 +22,8 @@ public class Schedule {
 
     @PersistenceContext
     private final EntityManager entityManager;
+
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
 
     // Method for not leaving the machine idle
     @Scheduled(cron = "0 * * * * *") //every minute
@@ -36,6 +40,7 @@ public class Schedule {
     public void optimizeDatabase() {
         entityManager.createNativeQuery("commit; vacuum full analyze; commit;").executeUpdate();
         entityManager.createNativeQuery("commit; reindex database finax_db; commit;").executeUpdate();
+        System.out.println("Database optimized: " + dateFormat.format(LocalDateTime.now()));
     }
 
 //    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM
