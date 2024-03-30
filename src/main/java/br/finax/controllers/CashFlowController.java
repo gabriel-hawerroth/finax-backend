@@ -9,7 +9,6 @@ import br.finax.dto.CashFlowValues;
 import br.finax.services.CashFlowService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +22,6 @@ public class CashFlowController {
 
     private final CashFlowService cashFlowService;
 
-    @Cacheable
     @GetMapping
     private MonthlyCashFlow getMonthlyFlow(
             @RequestParam Date firstDt, @RequestParam Date lastDt,
@@ -66,7 +64,6 @@ public class CashFlowController {
         return cashFlowService.removeAttachment(id);
     }
 
-    @Cacheable
     @GetMapping("/get-attachment/{id}")
     private ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
         return cashFlowService.getAttachment(id);

@@ -1,4 +1,4 @@
-package br.finax.security;
+package br.finax.configs;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -25,5 +25,4 @@ public class CorsConfig {
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
-
 }

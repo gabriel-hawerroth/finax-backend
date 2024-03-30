@@ -4,7 +4,6 @@ import br.finax.models.User;
 import br.finax.services.UserService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,7 +53,6 @@ public class UserController {
         return userService.changeUserImage(file);
     }
 
-    @Cacheable
     @GetMapping("/get-user-image")
     private ResponseEntity<byte[]> getUserImage() {
         return userService.getUserImage();

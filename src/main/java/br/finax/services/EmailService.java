@@ -7,8 +7,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -27,11 +27,11 @@ public class EmailService {
     }
 
     public String buildEmailTemplate(EmailType emailType, Long userId, String token) {
-        final String url = "href='https://api.hawetec.com.br/finax/login/" + emailType.getValue() + "/" + userId + "/" + token + "'";
+        final String url = "https://api.hawetec.com.br/finax/login/" + emailType.getValue() + "/" + userId + "/" + token;
 
         final String action = switch (emailType) {
-            case ACTIVATE_ACCOUNT -> "ativar sua conta.";
-            case CHANGE_PASSWORD -> "redefinir sua senha.";
+            case ACTIVATE_ACCOUNT -> " ativar sua conta.";
+            case CHANGE_PASSWORD -> " redefinir sua senha.";
         };
 
         return """
@@ -102,18 +102,16 @@ public class EmailService {
                             <h1>Finax</h1>
 
                            <p class="line">
-                             Clique
-                             <a
+                             Clique <a href='
                 """
-                + url +
+                    + url +
                 """
-                                target="_blank"
-                              >aqui</a>
-                              para
+                            ' target="_blank">aqui</a>
+                             para
                 """
-                + action +
+                    + action +
                 """
-                            </p>
+                           </p>
 
                             <p class="line">
                               Para entrar em contato com nosso suporte, envie uma mensagem nesse

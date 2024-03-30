@@ -4,7 +4,6 @@ import br.finax.models.Category;
 import br.finax.services.CategoryService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +16,6 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @Cacheable
     @GetMapping("/get-by-user")
     private List<Category> getByUser() {
         return categoryService.getByUser();
