@@ -1,5 +1,7 @@
 package br.finax.dto;
 
+import br.finax.models.Category;
+
 import java.util.Date;
 
 @SuppressWarnings("unused")
@@ -71,5 +73,9 @@ public class InterfacesSQL {
         long getId();
         String getName();
         String getImage();
+    }
+
+    public interface SpendsByCategory {
+
     }
 }

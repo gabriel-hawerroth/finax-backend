@@ -37,4 +37,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             WHERE c.user_id = 0 AND c.id <> 21
             """, nativeQuery = true)
     void insertNewUserCategories(long userId);
+
+    List<Category> findByIdIn(List<Long> id);
 }

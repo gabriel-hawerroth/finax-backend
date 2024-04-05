@@ -120,7 +120,7 @@ public class CashFlowService {
     }
 
     public ResponseEntity<CashFlow> editRelease(
-            final CashFlow release, final ReleasedOn releasedOn, final DuplicatedReleaseAction duplicatedReleaseAction
+            CashFlow release, final ReleasedOn releasedOn, final DuplicatedReleaseAction duplicatedReleaseAction
     ) {
         try {
             final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
@@ -143,7 +143,7 @@ public class CashFlowService {
             release.setFixedBy(existingRelease.getFixedBy());
 
             if (!updatingAll) {
-                cashFlowRepository.save(release);
+                release = cashFlowRepository.save(release);
             }
 
             if (updatingNexts || updatingAll) {

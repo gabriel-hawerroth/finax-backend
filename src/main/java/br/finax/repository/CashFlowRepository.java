@@ -191,45 +191,6 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     double getExpectedBalance(long user_id, Date first_dt, Date last_dt);
 
-//    @Query(value =
-//            """
-//            SELECT
-//                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
-//                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
-//                0 AS generalBalance
-//            FROM
-//                cash_flow cf
-//            WHERE
-//                cf.user_id = :userId
-//                AND cf.done = true
-//                AND cf.date between :firstDt and :lastDt
-//            """, nativeQuery = true)
-//    InterfacesSQL.MonthlyBalance getMonthlyBalance(long userId, Date firstDt, Date lastDt);
-//
-//    @Query(value =
-//            """
-//            SELECT
-//                COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
-//                COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses,
-//                (
-//                    SELECT
-//                        COALESCE(SUM(ba.balance), 0)
-//                    FROM
-//                        bank_account ba
-//                    WHERE
-//                        ba.user_id = :userId
-//                        AND ba.active = true
-//                        AND ba.add_overall_balance = true
-//                ) AS generalBalance
-//            FROM
-//                cash_flow cf
-//            WHERE
-//                cf.user_id = :userId
-//                AND cf.done = true
-//                AND cf.date between :firstDt and :lastDt
-//            """, nativeQuery = true)
-//    InterfacesSQL.MonthlyBalance getMonthlyBalanceInvoiceMode(long userId, Date firstDt, Date lastDt);
-
     @Query(value =
             """
             SELECT
@@ -349,4 +310,6 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.date, cf.time, cf.id asc
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getByInvoice(long invoice_id);
+
+    List<CashFlow> findByUserIdAndDateBetweenAndType(long userId, LocalDate startDate, LocalDate endDate, String type);
 }
