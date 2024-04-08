@@ -212,8 +212,14 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.id,
                 cf.user_id AS userId,
                 cf.description,
-                cf.account_id AS accountId,
-                ba.name AS accountName,
+                CASE
+                    WHEN cf.account_id IS NULL THEN cc.id
+                    ELSE cf.account_id
+                END AS accountId,
+                CASE
+                    WHEN cf.account_id IS NULL THEN cc.name
+                    ELSE ba.name
+                END AS accountName,
                 cf.amount,
                 cf.type,
                 cf.done,
@@ -228,15 +234,19 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.observation,
                 cf.attachment_name AS attachmentName,
                 cf.duplicated_release_id AS duplicatedReleaseId,
-                false AS isDuplicatedRelease
+                false AS isDuplicatedRelease,
+                cf.invoice_id is not null as isCreditCardRelease
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
                 LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
                 LEFT JOIN category c ON cf.category_id = c.id
+                LEFT JOIN invoice i ON cf.invoice_id = i.id
+                LEFT JOIN credit_card cc ON i.credit_card_id = cc.id
             WHERE
-                ba.user_id = :userId
+                cf.user_id = :userId
                 AND cf.date between current_date AND (current_date + interval '1 month')
+                AND cf.type <> 'T'
                 AND cf.done = false
             ORDER BY
                 cf.date, cf.time, cf.id ASC
@@ -311,5 +321,5 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getByInvoice(long invoice_id);
 
-    List<CashFlow> findByUserIdAndDateBetweenAndType(long userId, LocalDate startDate, LocalDate endDate, String type);
+    List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long userId, LocalDate startDate, LocalDate endDate, String type, boolean done);
 }

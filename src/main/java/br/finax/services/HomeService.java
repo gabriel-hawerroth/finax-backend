@@ -47,7 +47,7 @@ public class HomeService {
             LocalDate endDt = lastDt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
             final List<CashFlow> expenses =
-                    cashFlowRepository.findByUserIdAndDateBetweenAndType(userId, startDt, endDt, "E");
+                    cashFlowRepository.findByUserIdAndDateBetweenAndTypeAndDone(userId, startDt, endDt, "E", true);
 
             final Map<Long, Category> categoryMap = new HashMap<>();
             List<Long> categoryIds = expenses.stream().map(CashFlow::getCategoryId).collect(Collectors.toList());
