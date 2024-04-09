@@ -16,14 +16,11 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.id,
                 cf.user_id AS userId,
                 cf.description,
-                CASE
-                    WHEN cf.account_id IS NULL THEN cc.id
-                    ELSE cf.account_id
-                END AS accountId,
-                CASE
-                    WHEN cf.account_id IS NULL THEN cc.name
-                    ELSE ba.name
-                END AS accountName,
+                cf.account_id AS accountId,
+                ba.name AS accountName,
+                cf.credit_card_id AS cardId,
+                cc.name AS cardName,
+                cc.image AS cardImg,
                 cf.amount,
                 cf.type,
                 cf.done,
@@ -44,16 +41,13 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
                     ELSE false
-                END) AS isDuplicatedRelease,
-                cf.invoice_id IS NOT NULL AS isCreditCardRelease,
-                null AS creditCardImg
+                END) AS isDuplicatedRelease
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
                 LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
+                LEFT JOIN credit_card cc ON cf.credit_card_id = cc.id
                 LEFT JOIN category c ON cf.category_id = c.id
-                LEFT JOIN invoice i ON cf.invoice_id = i.id
-                LEFT JOIN credit_card cc ON i.credit_card_id = cc.id
             WHERE
                 cf.user_id = :userId
                 AND cf.date between :firstDt and :lastDt
@@ -70,6 +64,9 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.description,
                 cf.account_id AS accountId,
                 ba.name AS accountName,
+                null AS accountId,
+                null AS accountName,
+                null AS accountImg,
                 cf.amount,
                 cf.type,
                 cf.date,
@@ -90,33 +87,30 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
                     ELSE false
-                END) AS isDuplicatedRelease,
-                false AS isCreditCardRelease,
-                null as creditCardImg
+                END) AS isDuplicatedRelease
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
-                LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
+                LEFT JOIN bank_account tba ON cf.target_account_id = tba.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
                 cf.user_id = :userId
-                AND cf.date between :firstDt and :lastDt
-                and cf.account_id is not null
+                AND cf.date BETWEEN :firstDt AND :lastDt
+                AND cf.account_id IS NOT NULL
             UNION ALL
             SELECT
                 cf.invoice_id AS id,
                 cf.user_id AS userId,
                 i.month_year AS description,
-                cc.id AS accountId,
-                cc.name AS accountName,
+                null AS accountId,
+                null AS accountName,
+                cc.id AS cardId,
+                cc.name AS cardName,
+                cc.image AS cardImg,
                 SUM(cf.amount) AS amount,
                 'I' AS type,
-                CASE
-                    WHEN i.payment_date IS NOT NULL
-                        THEN i.payment_date
-                    ELSE TO_DATE(cc.expires_day || '/' || i.month_year, 'DD/MM/YYYY')
-                END AS date,
-                i.payment_account_id IS NOT NULL AS done,
+                TO_DATE(cc.expires_day || '/' || i.month_year, 'DD/MM/YYYY') AS date,
+                false AS done,
                 null AS targetAccountId,
                 null AS targetAccountName,
                 0 AS categoryId,
@@ -127,16 +121,14 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 '' AS observation,
                 null AS attachmentName,
                 null AS duplicatedReleaseId,
-                false AS isDuplicatedRelease,
-                false AS isCreditCardRelease,
-                cc.image AS creditCardImg
+                false AS isDuplicatedRelease
             FROM
                 cash_flow cf
                 JOIN invoice i ON cf.invoice_id = i.id
                 JOIN credit_card cc ON i.credit_card_id = cc.id
             WHERE
                 cf.user_id = :userId
-                AND cf.date between :firstDtInvoice and :lastDtInvoice
+                AND cf.date BETWEEN :firstDtInvoice AND :lastDtInvoice
                 AND cf.invoice_id IS NOT NULL
                 AND cf.done IS TRUE
             GROUP BY
@@ -146,13 +138,9 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cc.id,
                 cc.name,
                 i.payment_account_id is not null,
-                CASE
-                    WHEN i.payment_date IS NOT NULL
-                        THEN i.payment_date
-                    ELSE TO_DATE(cc.expires_day || '/' || i.month_year, 'DD/MM/YYYY')
-                END
+                TO_DATE(cc.expires_day || '/' || i.month_year, 'DD/MM/YYYY')
             ORDER BY
-                date, time, id ASC
+                date, time, id
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getMonthlyReleasesInvoiceMode(long userId, Date firstDt, Date lastDt, Date firstDtInvoice, Date lastDtInvoice);
 
@@ -212,14 +200,11 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.id,
                 cf.user_id AS userId,
                 cf.description,
-                CASE
-                    WHEN cf.account_id IS NULL THEN cc.id
-                    ELSE cf.account_id
-                END AS accountId,
-                CASE
-                    WHEN cf.account_id IS NULL THEN cc.name
-                    ELSE ba.name
-                END AS accountName,
+                cf.account_id AS accountId,
+                ba.name AS accountName,
+                cf.credit_card_id AS cardId,
+                cc.name AS cardName,
+                cc.image AS cardImg,
                 cf.amount,
                 cf.type,
                 cf.done,
@@ -234,15 +219,13 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.observation,
                 cf.attachment_name AS attachmentName,
                 cf.duplicated_release_id AS duplicatedReleaseId,
-                false AS isDuplicatedRelease,
-                cf.invoice_id is not null as isCreditCardRelease
+                false AS isDuplicatedRelease
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
                 LEFT JOIN bank_account tba ON cf.target_account_id  = tba.id
+                LEFT JOIN credit_card cc ON cf.credit_card_id = cc.id
                 LEFT JOIN category c ON cf.category_id = c.id
-                LEFT JOIN invoice i ON cf.invoice_id = i.id
-                LEFT JOIN credit_card cc ON i.credit_card_id = cc.id
             WHERE
                 cf.user_id = :userId
                 AND cf.date between current_date AND (current_date + interval '1 month')
@@ -285,8 +268,11 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.id,
                 cf.user_id AS userId,
                 cf.description,
-                cc.id AS accountId,
-                cc.name AS accountName,
+                null AS accountId,
+                null AS accountName,
+                cc.id AS cardId,
+                cc.name AS cardName,
+                cc.image AS cardImg,
                 cf.amount,
                 cf.type,
                 cf.done,
@@ -307,19 +293,18 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
                     ELSE false
-                END) AS isDuplicatedRelease,
-                true AS isCreditCardRelease
+                END) AS isDuplicatedRelease
             FROM
                 cash_flow cf
-                JOIN invoice i ON cf.invoice_id = i.id
-                JOIN credit_card cc ON i.credit_card_id = cc.id
+                JOIN credit_card cc ON cf.credit_card_id = cc.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
-                cf.invoice_id = :invoice_id
+                cf.credit_card_id = :credit_card_id
             ORDER BY
                 cf.date, cf.time, cf.id asc
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getByInvoice(long invoice_id);
+    List<InterfacesSQL.MonthlyReleases> getByInvoice(long credit_card_id);
+    // ajustar para buscar entre as datas de fechamento do cartão
 
     List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long userId, LocalDate startDate, LocalDate endDate, String type, boolean done);
 }

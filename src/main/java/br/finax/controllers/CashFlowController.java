@@ -3,7 +3,6 @@ package br.finax.controllers;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.DuplicatedReleaseAction;
-import br.finax.enums.ReleasedOn;
 import br.finax.models.CashFlow;
 import br.finax.dto.CashFlowValues;
 import br.finax.services.CashFlowService;
@@ -40,18 +39,18 @@ public class CashFlowController {
 
     @PostMapping
     private ResponseEntity<CashFlow> addRelease(
-            @RequestBody CashFlow release, @RequestParam String releasedOn, @RequestParam int repeatFor
+            @RequestBody CashFlow release, @RequestParam int repeatFor
     ) {
-        return cashFlowService.addRelease(release, ReleasedOn.valueOf(releasedOn), repeatFor);
+        return cashFlowService.addRelease(release, repeatFor);
     }
 
     @PutMapping
     private ResponseEntity<CashFlow> editRelease(
-            @RequestBody CashFlow release, @RequestParam String releasedOn,
+            @RequestBody CashFlow release,
             @RequestParam String duplicatedReleaseAction
     ) {
         return cashFlowService.editRelease(
-                release, ReleasedOn.valueOf(releasedOn), DuplicatedReleaseAction.valueOf(duplicatedReleaseAction));
+                release, DuplicatedReleaseAction.valueOf(duplicatedReleaseAction));
     }
 
     @PutMapping("/add-attachment/{id}")

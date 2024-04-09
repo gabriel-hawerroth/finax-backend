@@ -43,7 +43,7 @@ public class InvoiceService {
         return invoice.map(value -> new InvoiceMonthValues(
                 value,
                 invoicePaymentRepository.findAllByInvoiceIdOrderByPaymentDateDescPaymentHourDesc(value.getId()),
-                cashFlowRepository.getByInvoice(value.getId())
+                cashFlowRepository.getByInvoice(value.getCredit_card_id())
         )).orElseGet(() -> new InvoiceMonthValues(
                 null,
                 new ArrayList<>(),

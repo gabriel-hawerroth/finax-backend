@@ -1,7 +1,5 @@
 package br.finax.dto;
 
-import br.finax.models.Category;
-
 import java.util.Date;
 
 @SuppressWarnings("unused")
@@ -16,8 +14,11 @@ public class InterfacesSQL {
         long getId();
         long getUserId();
         String getDescription();
-        long getAccountId();
+        Long getAccountId();
         String getAccountName();
+        Long getCardId();
+        String getCardName();
+        String getCardImg();
         double getAmount();
         String getType();
         boolean getDone();
@@ -33,8 +34,6 @@ public class InterfacesSQL {
         String getAttachmentName();
         Long getDuplicatedReleaseId();
         boolean getIsDuplicatedRelease();
-        boolean getIsCreditCardRelease();
-        String getCreditCardImg();
     }
 
     public interface MonthlyBalance {

@@ -53,5 +53,5 @@ public class CashFlow {
     @Column(name = "fixed_by")
     private String fixedBy;
 
-    private Long invoice_id;
+    private Long credit_card_id;
 }

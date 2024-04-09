@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.DuplicatedReleaseAction;
-import br.finax.enums.ReleasedOn;
 import br.finax.models.*;
 import br.finax.dto.CashFlowValues;
 import br.finax.repository.*;
@@ -18,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static br.finax.utils.UtilsService.compressImage;
@@ -29,7 +27,6 @@ import static br.finax.utils.UtilsService.compressPdf;
 public class CashFlowService {
 
     private final CashFlowRepository cashFlowRepository;
-    private final InvoiceRepository invoiceRepository;
     private final CreditCardRepository creditCardRepository;
 
     private final AccountsRepository accountsRepository;
@@ -68,14 +65,9 @@ public class CashFlowService {
     }
 
     public ResponseEntity<CashFlow> addRelease(
-            final CashFlow release, final ReleasedOn releasedOn, final int repeatFor
+            final CashFlow release, final int repeatFor
     ) {
         try {
-            final long creditCardId = release.getAccountId();
-
-            if (releasedOn.equals(ReleasedOn.CREDIT_CARD))
-                checkInvoice(release);
-
             if (release.getRepeat().isBlank())
                 return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
 
@@ -99,11 +91,6 @@ public class CashFlowService {
                         isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
                 );
 
-                if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
-                    newRelease.setAccountId(creditCardId);
-                    checkInvoice(newRelease);
-                }
-
                 releases.add(newRelease);
                 dt = releases.get(i).getDate();
             }
@@ -120,15 +107,11 @@ public class CashFlowService {
     }
 
     public ResponseEntity<CashFlow> editRelease(
-            CashFlow release, final ReleasedOn releasedOn, final DuplicatedReleaseAction duplicatedReleaseAction
+            CashFlow release, final DuplicatedReleaseAction duplicatedReleaseAction
     ) {
         try {
             final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
             final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
-
-            if (releasedOn.equals(ReleasedOn.CREDIT_CARD)) {
-                checkInvoice(release);
-            }
 
             final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
@@ -283,29 +266,29 @@ public class CashFlowService {
         };
     }
 
-    final void checkInvoice(final CashFlow release) {
-        final int cardCloseDay = creditCardRepository.findById(release.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Credit card not found")).getClose_day();
+//    final void checkInvoice(final CashFlow release) {
+//        final int cardCloseDay = creditCardRepository.findById(release.getAccountId())
+//                .orElseThrow(() -> new RuntimeException("Credit card not found")).getClose_day();
+//
+//        final boolean cardAlreadyClose = release.getDate().getDayOfMonth() > cardCloseDay;
+//
+//        final String dt = formatDt(cardAlreadyClose ? release.getDate().plusMonths(1) : release.getDate());
+//
+//        Optional<Invoice> invoice = invoiceRepository.findByMonthYear(
+//                release.getUserId(), release.getAccountId(), dt
+//        );
+//
+//        if (invoice.isEmpty()) {
+//            invoice = Optional.of(invoiceRepository.save(
+//                    new Invoice(release.getUserId(), release.getAccountId(), dt)
+//            ));
+//        }
+//
+//        release.setInvoice_id(invoice.map(Invoice::getId).orElse(null));
+//        release.setAccountId(null);
+//    }
 
-        final boolean cardAlreadyClose = release.getDate().getDayOfMonth() > cardCloseDay;
-
-        final String dt = formatDt(cardAlreadyClose ? release.getDate().plusMonths(1) : release.getDate());
-
-        Optional<Invoice> invoice = invoiceRepository.findByMonthYear(
-                release.getUserId(), release.getAccountId(), dt
-        );
-
-        if (invoice.isEmpty()) {
-            invoice = Optional.of(invoiceRepository.save(
-                    new Invoice(release.getUserId(), release.getAccountId(), dt)
-            ));
-        }
-
-        release.setInvoice_id(invoice.map(Invoice::getId).orElse(null));
-        release.setAccountId(null);
-    }
-
-    final String formatDt(final LocalDate date) {
-        return date.format(DateTimeFormatter.ofPattern("MM/yyyy"));
-    }
+//    final String formatDt(final LocalDate date) {
+//        return date.format(DateTimeFormatter.ofPattern("MM/yyyy"));
+//    }
 }

@@ -24,7 +24,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setDuplicatedReleaseId(original.getId());
         duplicatedRelease.setRepeat(original.getRepeat());
         duplicatedRelease.setFixedBy(original.getFixedBy());
-        duplicatedRelease.setInvoice_id(original.getInvoice_id());
+        duplicatedRelease.setCredit_card_id(original.getCredit_card_id());
     }
 
     public DuplicatedReleaseBuilder amount(Double amount) {
