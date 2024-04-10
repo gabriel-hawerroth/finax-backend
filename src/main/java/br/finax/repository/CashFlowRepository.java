@@ -299,11 +299,13 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 JOIN credit_card cc ON cf.credit_card_id = cc.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
-                cf.credit_card_id = :credit_card_id
+                cf.user_id = :user_id
+                AND cf.credit_card_id = :credit_card_id
+                AND cf.date BETWEEN :first_dt AND :last_dt
             ORDER BY
-                cf.date, cf.time, cf.id asc
+                cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getByInvoice(long credit_card_id);
+    List<InterfacesSQL.MonthlyReleases> getByInvoice(long user_id, long credit_card_id, Date first_dt, Date last_dt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
     List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long userId, LocalDate startDate, LocalDate endDate, String type, boolean done);

@@ -14,23 +14,24 @@ public class InvoicePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "invoice_id")
-    private long invoiceId;
+    @Column(nullable = false)
+    private long credit_card_id;
 
-    @Column(name = "payment_account_id")
-    private long paymentAccountId;
+    @Column(length = 7, nullable = false)
+    private String invoice_month_year;
 
-    @Column(name = "payment_amount")
-    private double paymentAmount;
+    @Column(nullable = false)
+    private Long payment_account_id;
 
-    @Column(name = "payment_date")
-    private LocalDate paymentDate;
+    @Column(nullable = false, precision = 2)
+    private double payment_amount;
 
-    @Column(name = "payment_hour")
-    private String paymentHour;
+    @Column(nullable = false)
+    private LocalDate payment_date;
+
+    private String payment_hour;
 
     private byte[] attachment;
 
-    @Column(name = "attachment_name")
-    private String attachmentName;
+    private String attachment_name;
 }

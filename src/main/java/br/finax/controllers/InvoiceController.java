@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/invoice")
@@ -17,8 +19,11 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     @GetMapping("/get-month-values")
-    private InvoiceMonthValues getInvoiceAndReleases(@RequestParam long creditCardId, @RequestParam String selectedMonth) {
-        return invoiceService.getInvoiceAndReleases(creditCardId, selectedMonth);
+    private InvoiceMonthValues getInvoiceAndReleases(
+            @RequestParam long creditCardId, @RequestParam String selectedMonth,
+            @RequestParam Date firstDt, @RequestParam Date lastDt
+    ) {
+        return invoiceService.getInvoiceAndReleases(creditCardId, selectedMonth, firstDt, lastDt);
     }
 
     @GetMapping("/get-values")

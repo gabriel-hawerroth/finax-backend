@@ -1,7 +1,6 @@
 package br.finax.services;
 
 import br.finax.models.CreditCard;
-import br.finax.models.Invoice;
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
 import br.finax.models.InvoicePayment;
@@ -15,9 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static br.finax.utils.UtilsService.compressImage;
 import static br.finax.utils.UtilsService.compressPdf;
@@ -26,7 +23,6 @@ import static br.finax.utils.UtilsService.compressPdf;
 @RequiredArgsConstructor
 public class InvoiceService {
 
-    private final InvoiceRepository invoiceRepository;
     private final InvoicePaymentRepository invoicePaymentRepository;
     private final CashFlowRepository cashFlowRepository;
 
@@ -36,19 +32,16 @@ public class InvoiceService {
 
     private final UtilsService utilsService;
 
-    public InvoiceMonthValues getInvoiceAndReleases(long creditCardId, String selectedMonth) {
-        final Optional<Invoice> invoice =
-                invoiceRepository.findByMonthYear(utilsService.getAuthUser().getId(), creditCardId, selectedMonth);
+    public InvoiceMonthValues getInvoiceAndReleases(
+            long creditCardId, String selectedMonth,
+            Date firstDt, Date lastDt
+    ) {
+        final long userId = utilsService.getAuthUser().getId();
 
-        return invoice.map(value -> new InvoiceMonthValues(
-                value,
-                invoicePaymentRepository.findAllByInvoiceIdOrderByPaymentDateDescPaymentHourDesc(value.getId()),
-                cashFlowRepository.getByInvoice(value.getCredit_card_id())
-        )).orElseGet(() -> new InvoiceMonthValues(
-                null,
-                new ArrayList<>(),
-                new ArrayList<>()
-        ));
+        return new InvoiceMonthValues(
+                invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth),
+                cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt)
+        );
     }
 
     public InvoiceValues getValues(long creditCardId) {
@@ -83,7 +76,7 @@ public class InvoiceService {
 
             final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
 
-            payment.setAttachmentName(attachment.getOriginalFilename());
+            payment.setAttachment_name(attachment.getOriginalFilename());
 
             switch (fileExtension) {
                 case "pdf":
@@ -108,7 +101,7 @@ public class InvoiceService {
                     .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
             payment.setAttachment(null);
-            payment.setAttachmentName(null);
+            payment.setAttachment_name(null);
 
             return invoicePaymentRepository.save(payment);
         } catch (RuntimeException e) {

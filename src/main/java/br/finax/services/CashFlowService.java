@@ -159,15 +159,8 @@ public class CashFlowService {
             }
 
             return ResponseEntity.ok().body(release);
-        } catch (RuntimeException e) {
-            try {
-                if (e.getCause().getCause().toString().contains("Insufficient balance for this transaction")) {
-                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Insufficient balance for this transaction");
-                }
-            } catch (Exception ignored) {
-            }
-
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
