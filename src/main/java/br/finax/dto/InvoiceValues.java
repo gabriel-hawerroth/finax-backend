@@ -8,7 +8,6 @@ import br.finax.dto.InterfacesSQL.CardBasicList;
 import java.util.List;
 
 public record InvoiceValues(
-    CreditCard creditCard,
     List<AccountBasicList> accountsList,
     List<Category> categoriesList,
     List<CardBasicList> creditCardsList

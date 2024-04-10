@@ -27,8 +27,8 @@ public class InvoiceController {
     }
 
     @GetMapping("/get-values")
-    private InvoiceValues getValues(@RequestParam long creditCardId) {
-        return invoiceService.getValues(creditCardId);
+    private InvoiceValues getValues() {
+        return invoiceService.getValues();
     }
 
     @PostMapping("/save-payment")

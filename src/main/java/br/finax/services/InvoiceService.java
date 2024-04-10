@@ -44,14 +44,10 @@ public class InvoiceService {
         );
     }
 
-    public InvoiceValues getValues(long creditCardId) {
+    public InvoiceValues getValues() {
         final long userId = utilsService.getAuthUser().getId();
 
-        final CreditCard creditCard = creditCardRepository.findById(creditCardId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
-
         return new InvoiceValues(
-                creditCard,
                 accountsRepository.getBasicList(userId),
                 categoryRepository.findByUser(userId),
                 creditCardRepository.getBasicList(userId)
