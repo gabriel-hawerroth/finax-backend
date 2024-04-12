@@ -1,12 +1,10 @@
 package br.finax.services;
 
-import br.finax.models.CreditCard;
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
 import br.finax.models.InvoicePayment;
 import br.finax.repository.*;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
 
 import static br.finax.utils.UtilsService.compressImage;
 import static br.finax.utils.UtilsService.compressPdf;

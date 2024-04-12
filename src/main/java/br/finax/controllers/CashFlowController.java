@@ -1,12 +1,11 @@
 package br.finax.controllers;
 
-import br.finax.dto.MonthlyCashFlow;
-import br.finax.enums.ReleasesViewMode;
-import br.finax.enums.DuplicatedReleaseAction;
-import br.finax.models.CashFlow;
 import br.finax.dto.CashFlowValues;
+import br.finax.dto.MonthlyCashFlow;
+import br.finax.enums.DuplicatedReleaseAction;
+import br.finax.enums.ReleasesViewMode;
+import br.finax.models.CashFlow;
 import br.finax.services.CashFlowService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

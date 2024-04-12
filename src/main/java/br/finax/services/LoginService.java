@@ -1,13 +1,13 @@
 package br.finax.services;
 
+import br.finax.dto.EmailRecord;
 import br.finax.enums.EmailType;
 import br.finax.models.Token;
 import br.finax.models.User;
-import br.finax.dto.EmailRecord;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
-
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import jakarta.mail.MessagingException;
 import java.net.URI;
 import java.util.Optional;
 

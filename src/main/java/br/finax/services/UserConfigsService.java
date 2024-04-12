@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

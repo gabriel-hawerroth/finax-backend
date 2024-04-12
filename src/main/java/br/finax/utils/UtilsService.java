@@ -1,18 +1,13 @@
 package br.finax.utils;
 
 import br.finax.models.User;
-
 import net.coobird.thumbnailator.Thumbnails;
+import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageTree;
-import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
@@ -24,15 +19,6 @@ import java.security.NoSuchAlgorithmException;
 
 @Service
 public class UtilsService {
-    public User getAuthUser() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            return (User) authentication.getPrincipal();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public static byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
@@ -57,16 +43,16 @@ public class UtilsService {
     private static int getImageSize(byte[] data, boolean isAttachment) {
         int imageSize =
                 data.length < 50000 ? 250 : //0,05MB - 50kb
-                data.length < 125000 ? 300 : //0,125MB - 125kb
-                data.length < 250000 ? 400 : //0,25MB - 250kb
-                data.length < 500000 ? 500 : //0,5MB - 500kb
-                data.length < 1000000 ? 750 : //1,0MB
-                data.length < 1500000 ? 1000 : //1,5MB
-                data.length < 2000000 ? 1200 : //2,0MB
-                data.length < 2500000 ? 1300 : //2,5MB
-                data.length < 3000000 ? 1400 : //3,0MB
-                data.length < 3500000 ? 1500 : //3,5MB
-                1600;
+                        data.length < 125000 ? 300 : //0,125MB - 125kb
+                                data.length < 250000 ? 400 : //0,25MB - 250kb
+                                        data.length < 500000 ? 500 : //0,5MB - 500kb
+                                                data.length < 1000000 ? 750 : //1,0MB
+                                                        data.length < 1500000 ? 1000 : //1,5MB
+                                                                data.length < 2000000 ? 1200 : //2,0MB
+                                                                        data.length < 2500000 ? 1300 : //2,5MB
+                                                                                data.length < 3000000 ? 1400 : //3,0MB
+                                                                                        data.length < 3500000 ? 1500 : //3,5MB
+                                                                                                1600;
 
         if (isAttachment) {
             imageSize = imageSize * 2;
@@ -126,6 +112,15 @@ public class UtilsService {
             return hexStringBuilder.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public User getAuthUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            return (User) authentication.getPrincipal();
+        } catch (Exception e) {
+            return null;
         }
     }
 }

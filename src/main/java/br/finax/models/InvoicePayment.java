@@ -1,8 +1,8 @@
 package br.finax.models;
 
+import jakarta.persistence.*;
 import lombok.Data;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Data

@@ -5,7 +5,7 @@ import br.finax.dto.LoginResponseDTO;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.security.TokenService;
-
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,8 +40,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody @Valid User data){
-        if(this.repository.findByEmail(data.getEmail()).isPresent())
+    public ResponseEntity<User> register(@RequestBody @Valid User data) {
+        if (this.repository.findByEmail(data.getEmail()).isPresent())
             return ResponseEntity.badRequest().build();
 
         data.setPassword(bCrypt.encode(data.getPassword()));

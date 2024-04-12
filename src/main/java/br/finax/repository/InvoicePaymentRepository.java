@@ -8,8 +8,7 @@ import java.util.List;
 
 public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, Long> {
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 *
             FROM

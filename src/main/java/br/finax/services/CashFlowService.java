@@ -1,13 +1,16 @@
 package br.finax.services;
 
-import br.finax.dto.MonthlyCashFlow;
-import br.finax.enums.ReleasesViewMode;
-import br.finax.enums.DuplicatedReleaseAction;
-import br.finax.models.*;
 import br.finax.dto.CashFlowValues;
-import br.finax.repository.*;
+import br.finax.dto.MonthlyCashFlow;
+import br.finax.enums.DuplicatedReleaseAction;
+import br.finax.enums.ReleasesViewMode;
+import br.finax.models.CashFlow;
+import br.finax.models.DuplicatedReleaseBuilder;
+import br.finax.repository.AccountsRepository;
+import br.finax.repository.CashFlowRepository;
+import br.finax.repository.CategoryRepository;
+import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +20,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 import static br.finax.utils.UtilsService.compressImage;
 import static br.finax.utils.UtilsService.compressPdf;
@@ -143,7 +149,7 @@ public class CashFlowService {
                     );
                 }
 
-                for (CashFlow item: duplicatedReleases) {
+                for (CashFlow item : duplicatedReleases) {
                     item.setDescription(release.getDescription());
                     item.setAccountId(release.getAccountId());
                     item.setAmount(release.getAmount());

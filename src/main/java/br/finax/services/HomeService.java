@@ -1,15 +1,14 @@
 package br.finax.services;
 
+import br.finax.dto.HomeValues;
 import br.finax.dto.SpendByCategory;
 import br.finax.models.CashFlow;
 import br.finax.models.Category;
 import br.finax.models.User;
-import br.finax.dto.HomeValues;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
 import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

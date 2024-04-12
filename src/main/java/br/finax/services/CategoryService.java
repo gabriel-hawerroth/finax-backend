@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.models.Category;
 import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

@@ -1,9 +1,8 @@
 package br.finax.controllers;
 
+import br.finax.dto.InterfacesSQL.AccountBasicList;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
-import br.finax.dto.InterfacesSQL.AccountBasicList;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

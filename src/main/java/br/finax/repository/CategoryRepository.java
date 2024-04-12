@@ -1,18 +1,16 @@
 package br.finax.repository;
 
 import br.finax.models.Category;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import jakarta.transaction.Transactional;
 import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    @Query(
-        value =
-            """
+    @Query(value = """
             SELECT
                 *
             FROM
@@ -28,9 +26,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Modifying
     @Transactional
-    @Query(
-        value =
-            """
+    @Query(value = """
             INSERT INTO CATEGORY (name, color, icon, type, user_id)
             SELECT name, color, icon, type, :userId
             FROM Category c

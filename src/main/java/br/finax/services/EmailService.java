@@ -1,14 +1,13 @@
 package br.finax.services;
 
-import br.finax.enums.EmailType;
 import br.finax.dto.EmailRecord;
+import br.finax.enums.EmailType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -104,36 +103,36 @@ public class EmailService {
                            <p class="line">
                              Clique <a href='
                 """
-                    + url +
+                + url +
                 """
-                            ' target="_blank">aqui</a>
-                             para
+                                    ' target="_blank">aqui</a>
+                                     para
+                        """
+                + action +
                 """
-                    + action +
-                """
-                           </p>
+                                   </p>
 
-                            <p class="line">
-                              Para entrar em contato com nosso suporte, envie uma mensagem nesse
-                              mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
-                              dúvidas ou qualquer problema que você encontrar no sistema!
-                            </p>
+                                    <p class="line">
+                                      Para entrar em contato com nosso suporte, envie uma mensagem nesse
+                                      mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
+                                      dúvidas ou qualquer problema que você encontrar no sistema!
+                                    </p>
 
-                            <div class="card">
-                              <h2>Sistema em desenvolvimento</h2>
-                              <span>
-                                Informamos que nosso sistema ainda está em fase de desenvolvimento
-                                e o acesso está liberado à todos os módulos para fins de teste e
-                                divulgação.
-                                <br /> <br />
-                                Após o lançamento oficial todos os usuários terão seu acesso
-                                restrito ao nível gratuito!
-                              </span>
+                                    <div class="card">
+                                      <h2>Sistema em desenvolvimento</h2>
+                                      <span>
+                                        Informamos que nosso sistema ainda está em fase de desenvolvimento
+                                        e o acesso está liberado à todos os módulos para fins de teste e
+                                        divulgação.
+                                        <br /> <br />
+                                        Após o lançamento oficial todos os usuários terão seu acesso
+                                        restrito ao nível gratuito!
+                                      </span>
+                                    </div>
+                              </div>
                             </div>
-                      </div>
-                    </div>
-                  </body>
-                </html>
-                """;
+                          </body>
+                        </html>
+                        """;
     }
 }

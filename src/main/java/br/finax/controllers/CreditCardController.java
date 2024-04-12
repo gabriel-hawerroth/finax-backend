@@ -1,9 +1,8 @@
 package br.finax.controllers;
 
+import br.finax.dto.InterfacesSQL;
 import br.finax.models.CreditCard;
 import br.finax.services.CreditCardService;
-import br.finax.dto.InterfacesSQL;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

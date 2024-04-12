@@ -1,7 +1,7 @@
 package br.finax.repository;
 
-import br.finax.models.Account;
 import br.finax.dto.InterfacesSQL.AccountBasicList;
+import br.finax.models.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -11,8 +11,7 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
 
     List<Account> findAllByUserIdOrderByIdAsc(long userId);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 *
             FROM
@@ -26,8 +25,7 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             """, nativeQuery = true)
     List<Account> getHomeAccountsList(long user_id);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 ba.id,
                 ba.name,

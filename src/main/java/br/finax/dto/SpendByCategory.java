@@ -6,4 +6,5 @@ public record SpendByCategory(
         Category category,
         double percent,
         double value
-) {}
+) {
+}

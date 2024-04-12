@@ -1,10 +1,9 @@
 package br.finax.services;
 
+import br.finax.dto.InterfacesSQL;
 import br.finax.models.CreditCard;
 import br.finax.repository.CreditCardRepository;
-import br.finax.dto.InterfacesSQL;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

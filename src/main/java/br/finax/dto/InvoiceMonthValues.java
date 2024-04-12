@@ -7,4 +7,5 @@ import java.util.List;
 public record InvoiceMonthValues(
         List<InvoicePayment> invoicePayments,
         List<InterfacesSQL.MonthlyReleases> releases
-) {}
+) {
+}

@@ -2,14 +2,13 @@ package br.finax.controllers;
 
 import br.finax.models.User;
 import br.finax.services.UserService;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -40,7 +39,7 @@ public class UserController {
 
     @PutMapping("/change-password")
     private ResponseEntity<User> changePassword(@RequestParam String newPassword, @RequestParam String currentPassword) {
-       return userService.changePassword(newPassword, currentPassword);
+        return userService.changePassword(newPassword, currentPassword);
     }
 
     @PutMapping

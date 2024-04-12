@@ -2,7 +2,6 @@ package br.finax.controllers;
 
 import br.finax.models.User;
 import br.finax.services.LoginService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

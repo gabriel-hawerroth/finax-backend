@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +39,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
-       final User user = userRepository.findById(userId)
+        final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
 
         if (!user.isCanChangePassword())

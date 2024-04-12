@@ -1,7 +1,7 @@
 package br.finax.repository;
 
-import br.finax.models.CashFlow;
 import br.finax.dto.InterfacesSQL;
+import br.finax.models.CashFlow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,8 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 cf.id,
                 cf.user_id AS userId,
@@ -56,8 +55,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, Date firstDt, Date lastDt);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 cf.id,
                 cf.user_id AS userId,
@@ -144,8 +142,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getMonthlyReleasesInvoiceMode(long userId, Date firstDt, Date lastDt, Date firstDtInvoice, Date lastDtInvoice);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 (
                     (SELECT COALESCE(SUM(ba.balance), 0)
@@ -179,8 +176,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     double getExpectedBalance(long user_id, Date first_dt, Date last_dt);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 COALESCE(SUM(CASE WHEN cf.type = 'R' THEN cf.amount ELSE 0 END), 0) AS revenues,
                 COALESCE(SUM(CASE WHEN cf.type = 'E' THEN cf.amount ELSE 0 END), 0) AS expenses
@@ -194,8 +190,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 cf.id,
                 cf.user_id AS userId,
@@ -236,8 +231,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 *
             FROM
@@ -249,8 +243,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<CashFlow> getNextDuplicatedReleases(long duplicatedReleaseId, LocalDate date);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 *
             FROM
@@ -262,8 +255,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             """, nativeQuery = true)
     List<CashFlow> getAllDuplicatedReleases(long duplicatedReleaseId);
 
-    @Query(value =
-            """
+    @Query(value = """
             SELECT
                 cf.id,
                 cf.user_id AS userId,

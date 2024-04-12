@@ -2,7 +2,6 @@ package br.finax.controllers;
 
 import br.finax.models.UserConfigs;
 import br.finax.services.UserConfigsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +15,7 @@ public class UserConfigsController {
 
     @GetMapping("/get-by-user")
     private UserConfigs getByUser() {
-        return  userConfigsService.getByUser();
+        return userConfigsService.getByUser();
     }
 
     @PostMapping("/save")

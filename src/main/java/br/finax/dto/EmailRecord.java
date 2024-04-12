@@ -4,4 +4,5 @@ public record EmailRecord(
         String addressee,
         String subject,
         String content
-) {}
+) {
+}

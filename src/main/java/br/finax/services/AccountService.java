@@ -1,12 +1,11 @@
 package br.finax.services;
 
+import br.finax.dto.InterfacesSQL.AccountBasicList;
 import br.finax.models.Account;
 import br.finax.models.CashFlow;
 import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
-import br.finax.dto.InterfacesSQL.AccountBasicList;
 import br.finax.utils.UtilsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

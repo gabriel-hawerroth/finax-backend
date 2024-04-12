@@ -8,4 +8,5 @@ public record HomeValues(
         InterfacesSQL.HomeBalances balances,
         List<Account> accountsList,
         List<InterfacesSQL.MonthlyReleases> upcomingReleasesExpected
-) {}
+) {
+}
