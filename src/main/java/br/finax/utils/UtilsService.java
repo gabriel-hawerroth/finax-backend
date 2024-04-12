@@ -2,7 +2,8 @@ package br.finax.utils;
 
 import br.finax.models.User;
 import net.coobird.thumbnailator.Thumbnails;
-import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -61,41 +62,17 @@ public class UtilsService {
     }
 
     public static byte[] compressPdf(byte[] pdfData) throws IOException {
-        try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfData))) {
-            // Remove unused resources and optimize
-            document.setAllSecurityToBeRemoved(true);
+        try (PDDocument document = Loader.loadPDF(pdfData)) {
             document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
-            removeUnusedObjects(document);
 
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                document.getDocument().setIsXRefStream(true);
-                document.getDocumentCatalog().setStructureTreeRoot(null);
                 document.save(outputStream);
-
                 byte[] response = outputStream.toByteArray();
-
                 System.out.println("PDF - Original size: " + pdfData.length + " bytes");
                 System.out.println("PDF - Compressed size: " + response.length + " bytes");
-
-                return outputStream.toByteArray();
+                return response;
             }
         }
-    }
-
-    // Removes unused objects from pdf
-    private static void removeUnusedObjects(PDDocument document) {
-        PDPageTree pages = document.getPages();
-        for (PDPage page : pages) {
-            PDResources resources = page.getResources();
-            if (resources != null) {
-                resources.getCOSObject().setDirect(false);
-                resources.getCOSObject().setNeedToBeUpdated(true);
-            }
-        }
-
-        PDDocumentCatalog catalog = document.getDocumentCatalog();
-        catalog.getCOSObject().setDirect(false);
-        catalog.getCOSObject().setNeedToBeUpdated(true);
     }
 
     public static String generateHash(String text) {
