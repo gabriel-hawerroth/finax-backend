@@ -35,13 +35,13 @@ public class InvoiceController {
         return invoiceService.savePayment(payment);
     }
 
-    @PutMapping("/save-attachment/{invoiceId}")
-    private InvoicePayment saveInvoiceAttachment(@PathVariable long invoiceId, @RequestParam MultipartFile attachment) {
-        return invoiceService.saveInvoiceAttachment(invoiceId, attachment);
+    @PutMapping("/save-payment-attachment/{invoicePaymentId}")
+    private InvoicePayment saveInvoiceAttachment(@PathVariable long invoicePaymentId, @RequestParam MultipartFile attachment) {
+        return invoiceService.saveInvoiceAttachment(invoicePaymentId, attachment);
     }
 
-    @DeleteMapping("/remove-attachment/{invoiceId}")
-    private InvoicePayment removeAttachment(@PathVariable long invoiceId) {
-        return invoiceService.removeAttachment(invoiceId);
+    @DeleteMapping("/remove-payment-attachment/{invoicePaymentId}")
+    private InvoicePayment removeAttachment(@PathVariable long invoicePaymentId) {
+        return invoiceService.removeAttachment(invoicePaymentId);
     }
 }

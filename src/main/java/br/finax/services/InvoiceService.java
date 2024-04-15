@@ -57,17 +57,17 @@ public class InvoiceService {
         try {
             return invoicePaymentRepository.save(payment);
         } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error saving invoice payment");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "error saving invoice payment");
         }
     }
 
     public InvoicePayment saveInvoiceAttachment(long invoiceId, MultipartFile attachment) {
         try {
             if (attachment == null || attachment.isEmpty())
-                throw new RuntimeException("Invalid attachment");
+                throw new IllegalArgumentException("invalid attachment");
 
             final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"));
 
             final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
 
