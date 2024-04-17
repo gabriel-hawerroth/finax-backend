@@ -7,6 +7,7 @@ import br.finax.repository.*;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,9 +56,26 @@ public class InvoiceService {
 
     public InvoicePayment savePayment(InvoicePayment payment) {
         try {
+            if (payment.getId() != null) {
+                final InvoicePayment invoicePayment = invoicePaymentRepository.findById(payment.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"));
+
+                payment.setAttachment(invoicePayment.getAttachment());
+                payment.setAttachment_name(invoicePayment.getAttachment_name());
+            }
+
             return invoicePaymentRepository.save(payment);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "error saving invoice payment");
+        }
+    }
+
+    public ResponseEntity<Void> deletePayment(long invoicePaymentId) {
+        try {
+            invoicePaymentRepository.deleteById(invoicePaymentId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "error deleting invoice payment");
         }
     }
 
@@ -102,5 +120,13 @@ public class InvoiceService {
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    public ResponseEntity<byte[]> getPaymentAttachment(long invoicePaymentId) {
+        return ResponseEntity.ok().body(
+                invoicePaymentRepository.findById(invoicePaymentId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"))
+                        .getAttachment()
+        );
     }
 }

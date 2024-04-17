@@ -1,5 +1,6 @@
 package br.finax.dto;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @SuppressWarnings("unused")
@@ -115,7 +116,25 @@ public class InterfacesSQL {
         String getImage();
     }
 
-    public interface SpendsByCategory {
+    public interface InvoicePaymentsPerson {
+        long getId();
 
+        long getCredit_card_id();
+
+        String getInvoice_month_year();
+
+        long getPayment_account_id();
+
+        String getPayment_account_name();
+
+        String getPayment_account_image();
+
+        double getPayment_amount();
+
+        LocalDate getPayment_date();
+
+        String getPayment_hour();
+
+        String getAttachment_name();
     }
 }

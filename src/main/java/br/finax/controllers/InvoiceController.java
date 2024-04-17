@@ -5,6 +5,7 @@ import br.finax.dto.InvoiceValues;
 import br.finax.models.InvoicePayment;
 import br.finax.services.InvoiceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +36,11 @@ public class InvoiceController {
         return invoiceService.savePayment(payment);
     }
 
+    @DeleteMapping("/delete-payment/{invoicePaymentId}")
+    private ResponseEntity<Void> deletePayment(@PathVariable long invoicePaymentId) {
+        return invoiceService.deletePayment(invoicePaymentId);
+    }
+
     @PutMapping("/save-payment-attachment/{invoicePaymentId}")
     private InvoicePayment saveInvoiceAttachment(@PathVariable long invoicePaymentId, @RequestParam MultipartFile attachment) {
         return invoiceService.saveInvoiceAttachment(invoicePaymentId, attachment);
@@ -43,5 +49,10 @@ public class InvoiceController {
     @DeleteMapping("/remove-payment-attachment/{invoicePaymentId}")
     private InvoicePayment removeAttachment(@PathVariable long invoicePaymentId) {
         return invoiceService.removeAttachment(invoicePaymentId);
+    }
+
+    @GetMapping("/get-payment-attachment/{invoicePaymentId}")
+    private ResponseEntity<byte[]> getPaymentAttachment(@PathVariable long invoicePaymentId) {
+        return invoiceService.getPaymentAttachment(invoicePaymentId);
     }
 }

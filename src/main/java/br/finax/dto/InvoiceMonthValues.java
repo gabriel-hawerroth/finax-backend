@@ -1,11 +1,12 @@
 package br.finax.dto;
 
-import br.finax.models.InvoicePayment;
+import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
+import br.finax.dto.InterfacesSQL.MonthlyReleases;
 
 import java.util.List;
 
 public record InvoiceMonthValues(
-        List<InvoicePayment> invoicePayments,
-        List<InterfacesSQL.MonthlyReleases> releases
+        List<InvoicePaymentsPerson> invoicePayments,
+        List<MonthlyReleases> releases
 ) {
 }
