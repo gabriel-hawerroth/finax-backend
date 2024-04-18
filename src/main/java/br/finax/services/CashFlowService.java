@@ -264,30 +264,4 @@ public class CashFlowService {
             default -> dt;
         };
     }
-
-//    final void checkInvoice(final CashFlow release) {
-//        final int cardCloseDay = creditCardRepository.findById(release.getAccountId())
-//                .orElseThrow(() -> new RuntimeException("Credit card not found")).getClose_day();
-//
-//        final boolean cardAlreadyClose = release.getDate().getDayOfMonth() > cardCloseDay;
-//
-//        final String dt = formatDt(cardAlreadyClose ? release.getDate().plusMonths(1) : release.getDate());
-//
-//        Optional<Invoice> invoice = invoiceRepository.findByMonthYear(
-//                release.getUserId(), release.getAccountId(), dt
-//        );
-//
-//        if (invoice.isEmpty()) {
-//            invoice = Optional.of(invoiceRepository.save(
-//                    new Invoice(release.getUserId(), release.getAccountId(), dt)
-//            ));
-//        }
-//
-//        release.setInvoice_id(invoice.map(Invoice::getId).orElse(null));
-//        release.setAccountId(null);
-//    }
-
-//    final String formatDt(final LocalDate date) {
-//        return date.format(DateTimeFormatter.ofPattern("MM/yyyy"));
-//    }
 }

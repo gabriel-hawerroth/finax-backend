@@ -7,6 +7,7 @@ import java.util.List;
 
 public record InvoiceMonthValues(
         List<InvoicePaymentsPerson> invoicePayments,
-        List<MonthlyReleases> releases
+        List<MonthlyReleases> releases,
+        double previousBalance
 ) {
 }

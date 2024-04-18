@@ -40,7 +40,8 @@ public class InvoiceService {
 
         return new InvoiceMonthValues(
                 invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth),
-                cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt)
+                cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt),
+                invoicePaymentRepository.getInvoicePreviousBalance(userId, creditCardId, firstDt)
         );
     }
 
