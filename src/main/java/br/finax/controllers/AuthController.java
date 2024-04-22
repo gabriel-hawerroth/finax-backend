@@ -29,10 +29,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
-        Authentication auth = this.authenticationManager.authenticate(usernamePassword);
+        final var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
+        final Authentication auth = authenticationManager.authenticate(usernamePassword);
 
-        String token = tokenService.generateToken((User) auth.getPrincipal());
+        final String token = tokenService.generateToken((User) auth.getPrincipal());
 
         return ResponseEntity.ok(
                 new LoginResponseDTO((User) auth.getPrincipal(), token)
@@ -40,12 +40,16 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody @Valid User data) {
-        if (this.repository.findByEmail(data.getEmail()).isPresent())
+    public ResponseEntity<User> register(@RequestBody @Valid User user) {
+        if (repository.findByEmail(user.getEmail()).isPresent())
             return ResponseEntity.badRequest().build();
 
-        data.setPassword(bCrypt.encode(data.getPassword()));
+        user.setPassword(bCrypt.encode(user.getPassword()));
+        user.setActive(false);
+        user.setAccess("premium");
+        user.setCanChangePassword(false);
+        user.setSignature("month");
 
-        return ResponseEntity.ok().body(this.repository.save(data));
+        return ResponseEntity.ok().body(repository.save(user));
     }
 }
