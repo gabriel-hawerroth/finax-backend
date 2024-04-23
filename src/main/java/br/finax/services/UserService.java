@@ -1,15 +1,14 @@
 package br.finax.services;
 
+import br.finax.exceptions.*;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +30,7 @@ public class UserService {
 
     public User getById(long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(NotFoundException::new);
     }
 
     public User getAuthUser() {
@@ -40,22 +39,22 @@ public class UserService {
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
         final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(NotFoundException::new);
 
         if (!user.isCanChangePassword())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Without permission to change the password");
+            throw new CannotChangePasswordException();
 
         user.setPassword(bCrypt.encode(newPassword));
         user.setCanChangePassword(false);
 
-        return ResponseEntity.status(HttpStatus.OK).body(userRepository.save(user));
+        return ResponseEntity.ok().body(userRepository.save(user));
     }
 
     public ResponseEntity<User> changePassword(String newPassword, String currentPassword) {
         final User user = utilsService.getAuthUser();
 
         if (!bCrypt.matches(currentPassword, user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "The current password is incorrect");
+            throw new InvalidPasswordException();
         }
 
         user.setPassword(bCrypt.encode(newPassword));
@@ -65,7 +64,7 @@ public class UserService {
 
     public ResponseEntity<User> editUser(User user) {
         final User existentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(NotFoundException::new);
 
         existentUser.setFirstName(user.getFirstName());
         existentUser.setLastName(user.getLastName());
@@ -75,10 +74,10 @@ public class UserService {
 
     public ResponseEntity<User> changeUserImage(MultipartFile file) throws IOException {
         final User user = userRepository.findById(utilsService.getAuthUser().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(NotFoundException::new);
 
         if (file.isEmpty())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new EmptyFileException();
 
         byte[] image = file.getBytes();
 
@@ -88,7 +87,7 @@ public class UserService {
             try {
                 image = compressImage(image, false);
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new CompressionErrorException();
             }
         }
 

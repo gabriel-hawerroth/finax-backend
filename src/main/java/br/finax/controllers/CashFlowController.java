@@ -68,7 +68,7 @@ public class CashFlowController {
     }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<?> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
+    private ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
         return cashFlowService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
     }
 }

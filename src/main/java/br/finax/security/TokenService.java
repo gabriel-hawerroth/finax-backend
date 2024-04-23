@@ -1,5 +1,6 @@
 package br.finax.security;
 
+import br.finax.exceptions.TokenCreationException;
 import br.finax.models.User;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -19,21 +20,23 @@ public class TokenService {
     private String secret;
 
     public String generateToken(User user) {
+        final Algorithm algorithm = Algorithm.HMAC256(secret);
+
         try {
-            final Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("api-finax")
                     .withSubject(user.getEmail())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating token", exception);
+            throw new TokenCreationException("Error while generating token");
         }
     }
 
     public String validateToken(String token) {
+        final Algorithm algorithm = Algorithm.HMAC256(secret);
+
         try {
-            final Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.require(algorithm)
                     .withIssuer("api-finax")
                     .build()

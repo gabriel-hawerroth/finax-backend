@@ -4,6 +4,9 @@ import br.finax.dto.CashFlowValues;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
+import br.finax.exceptions.CompressionErrorException;
+import br.finax.exceptions.EmptyFileException;
+import br.finax.exceptions.NotFoundException;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.repository.AccountsRepository;
@@ -16,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -34,7 +36,6 @@ public class CashFlowService {
 
     private final CashFlowRepository cashFlowRepository;
     private final CreditCardRepository creditCardRepository;
-
     private final AccountsRepository accountsRepository;
     private final CategoryRepository categoryRepository;
 
@@ -70,111 +71,99 @@ public class CashFlowService {
         );
     }
 
-    public ResponseEntity<CashFlow> addRelease(
-            final CashFlow release, final int repeatFor
-    ) {
-        try {
-            if (release.getRepeat().isBlank())
-                return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
+    public ResponseEntity<CashFlow> addRelease(final CashFlow release, final int repeatFor) {
+        if (release.getRepeat().isBlank())
+            return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
 
-            final boolean isFixedRepeat = release.getRepeat().equals("fixed");
-            double installmentsAmount = release.getAmount() / repeatFor;
+        final boolean isFixedRepeat = release.getRepeat().equals("fixed");
+        double installmentsAmount = release.getAmount() / repeatFor;
 
-            if (!isFixedRepeat) {
-                release.setAmount(installmentsAmount);
-                release.setFixedBy("");
-            }
-
-            final CashFlow savedRelease = cashFlowRepository.save(release);
-
-            final List<CashFlow> releases = new LinkedList<>();
-            LocalDate dt = savedRelease.getDate();
-
-            for (var i = 0; i < repeatFor - 1; i++) {
-                final CashFlow newRelease = createDuplicatedRelease(
-                        savedRelease,
-                        isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
-                        isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
-                );
-
-                releases.add(newRelease);
-                dt = releases.get(i).getDate();
-            }
-
-            cashFlowRepository.saveAll(releases);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedRelease);
-        } catch (RuntimeException e) {
-            if (e.getCause().getCause().toString().contains("Insufficient balance for this transaction")) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Insufficient balance for this transaction");
-            }
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        if (!isFixedRepeat) {
+            release.setAmount(installmentsAmount);
+            release.setFixedBy("");
         }
+
+        final CashFlow savedRelease = cashFlowRepository.save(release);
+
+        final List<CashFlow> releases = new LinkedList<>();
+        LocalDate dt = savedRelease.getDate();
+
+        for (var i = 0; i < repeatFor - 1; i++) {
+            final CashFlow newRelease = createDuplicatedRelease(
+                    savedRelease,
+                    isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
+                    isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
+            );
+
+            releases.add(newRelease);
+            dt = releases.get(i).getDate();
+        }
+
+        cashFlowRepository.saveAll(releases);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRelease);
     }
 
     public ResponseEntity<CashFlow> editRelease(
             CashFlow release, final DuplicatedReleaseAction duplicatedReleaseAction
     ) {
-        try {
-            final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
-            final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
+        final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
+        final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
-            final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+        final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
+                .orElseThrow(NotFoundException::new);
 
-            // things that can't change
-            release.setUserId(existingRelease.getUserId());
-            release.setType(existingRelease.getType());
-            release.setAttachment(existingRelease.getAttachment());
-            release.setAttachmentName(existingRelease.getAttachmentName());
-            release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
-            release.setRepeat(existingRelease.getRepeat());
-            release.setFixedBy(existingRelease.getFixedBy());
+        // things that can't change
+        release.setUserId(existingRelease.getUserId());
+        release.setType(existingRelease.getType());
+        release.setAttachment(existingRelease.getAttachment());
+        release.setAttachmentName(existingRelease.getAttachmentName());
+        release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
+        release.setRepeat(existingRelease.getRepeat());
+        release.setFixedBy(existingRelease.getFixedBy());
 
-            if (!updatingAll) {
-                release = cashFlowRepository.save(release);
-            }
-
-            if (updatingNexts || updatingAll) {
-                final List<CashFlow> duplicatedReleases;
-
-                if (updatingNexts) {
-                    duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
-                            release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId(),
-                            existingRelease.getDate()
-                    );
-                } else {
-                    duplicatedReleases = cashFlowRepository.getAllDuplicatedReleases(
-                            release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId()
-                    );
-                }
-
-                for (CashFlow item : duplicatedReleases) {
-                    item.setDescription(release.getDescription());
-                    item.setAccountId(release.getAccountId());
-                    item.setAmount(release.getAmount());
-                    item.setTargetAccountId(release.getTargetAccountId());
-                    item.setCategoryId(release.getCategoryId());
-                    item.setDate(item.getDate());
-                    item.setTime(release.getTime());
-                    item.setObservation(release.getObservation());
-                    item.setDone(release.isDone());
-                }
-
-                cashFlowRepository.saveAll(duplicatedReleases);
-            }
-
-            return ResponseEntity.ok().body(release);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        if (!updatingAll) {
+            release = cashFlowRepository.save(release);
         }
+
+        if (updatingNexts || updatingAll) {
+            final List<CashFlow> duplicatedReleases;
+
+            if (updatingNexts) {
+                duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
+                        release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId(),
+                        existingRelease.getDate()
+                );
+            } else {
+                duplicatedReleases = cashFlowRepository.getAllDuplicatedReleases(
+                        release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId()
+                );
+            }
+
+            for (CashFlow item : duplicatedReleases) {
+                item.setDescription(release.getDescription());
+                item.setAccountId(release.getAccountId());
+                item.setAmount(release.getAmount());
+                item.setTargetAccountId(release.getTargetAccountId());
+                item.setCategoryId(release.getCategoryId());
+                item.setDate(item.getDate());
+                item.setTime(release.getTime());
+                item.setObservation(release.getObservation());
+                item.setDone(release.isDone());
+            }
+
+            cashFlowRepository.saveAll(duplicatedReleases);
+        }
+
+        return ResponseEntity.ok().body(release);
     }
 
     public ResponseEntity<CashFlow> addAttachment(long id, final MultipartFile attachment) {
         final CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(NotFoundException::new);
 
-        if (attachment.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (attachment.isEmpty())
+            throw new EmptyFileException();
 
         final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
 
@@ -189,18 +178,18 @@ public class CashFlowService {
                 default:
                     release.setAttachment(compressImage(attachment.getBytes(), true));
             }
-
-            release.setAttachmentName(attachment.getOriginalFilename());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CompressionErrorException();
         }
+
+        release.setAttachmentName(attachment.getOriginalFilename());
 
         return ResponseEntity.ok().body(cashFlowRepository.save(release));
     }
 
     public ResponseEntity<CashFlow> removeAttachment(long id) {
         final CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(NotFoundException::new);
 
         release.setAttachment(null);
         release.setAttachmentName(null);
@@ -211,38 +200,34 @@ public class CashFlowService {
     public ResponseEntity<byte[]> getAttachment(long id) {
         return ResponseEntity.ok().body(
                 cashFlowRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST))
+                        .orElseThrow(NotFoundException::new)
                         .getAttachment()
         );
     }
 
-    public ResponseEntity<?> delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
-        try {
-            final CashFlow release = cashFlowRepository.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+    public ResponseEntity<Void> delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
+        final CashFlow release = cashFlowRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
 
-            if (duplicatedReleasesAction == DuplicatedReleaseAction.NEXTS) {
-                cashFlowRepository.deleteAll(
-                        cashFlowRepository.getNextDuplicatedReleases(
-                                release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
-                                release.getDate()
-                        )
-                );
-            } else if (duplicatedReleasesAction == DuplicatedReleaseAction.ALL) {
-                cashFlowRepository.deleteAll(
-                        cashFlowRepository.getAllDuplicatedReleases(
-                                release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
-                        )
-                );
-            }
-
-            if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
-                cashFlowRepository.deleteById(id);
-
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (duplicatedReleasesAction == DuplicatedReleaseAction.NEXTS) {
+            cashFlowRepository.deleteAll(
+                    cashFlowRepository.getNextDuplicatedReleases(
+                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
+                            release.getDate()
+                    )
+            );
+        } else if (duplicatedReleasesAction == DuplicatedReleaseAction.ALL) {
+            cashFlowRepository.deleteAll(
+                    cashFlowRepository.getAllDuplicatedReleases(
+                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
+                    )
+            );
         }
+
+        if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
+            cashFlowRepository.deleteById(id);
+
+        return ResponseEntity.ok().build();
     }
 
     private CashFlow createDuplicatedRelease(final CashFlow original, double newAmount, final LocalDate newDate) {

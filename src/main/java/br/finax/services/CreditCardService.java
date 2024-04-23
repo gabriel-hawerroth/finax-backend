@@ -1,14 +1,13 @@
 package br.finax.services;
 
 import br.finax.dto.InterfacesSQL;
+import br.finax.exceptions.NotFoundException;
 import br.finax.models.CreditCard;
 import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,8 +23,7 @@ public class CreditCardService {
     }
 
     public CreditCard getById(long id) {
-        return creditCardRepository.findById(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credit card not found"));
+        return creditCardRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
     public ResponseEntity<CreditCard> save(CreditCard card) {

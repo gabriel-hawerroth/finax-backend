@@ -1,15 +1,14 @@
 package br.finax.utils;
 
+import br.finax.exceptions.InvalidHashAlgorithmException;
 import br.finax.models.User;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -76,28 +75,26 @@ public class UtilsService {
     }
 
     public static String generateHash(String text) {
+        MessageDigest digest;
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(text.getBytes(StandardCharsets.UTF_8));
-
-            // Converter bytes em representação hexadecimal
-            StringBuilder hexStringBuilder = new StringBuilder();
-            for (byte b : hashBytes) {
-                hexStringBuilder.append(String.format("%02x", b));
-            }
-
-            return hexStringBuilder.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new InvalidHashAlgorithmException();
         }
+
+        byte[] hashBytes = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+
+        // Converter bytes em representação hexadecimal
+        StringBuilder hexStringBuilder = new StringBuilder();
+        for (byte b : hashBytes) {
+            hexStringBuilder.append(String.format("%02x", b));
+        }
+
+        return hexStringBuilder.toString();
     }
 
     public User getAuthUser() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            return (User) authentication.getPrincipal();
-        } catch (Exception e) {
-            return null;
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
     }
 }

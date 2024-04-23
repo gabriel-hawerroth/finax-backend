@@ -1,6 +1,5 @@
 package br.finax.controllers;
 
-import br.finax.models.User;
 import br.finax.services.LoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +11,6 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     private final LoginService loginService;
-
-    @PostMapping("/new-user")
-    private ResponseEntity<User> newUser(@RequestBody User user) {
-        return loginService.newUser(user);
-    }
 
     @GetMapping("/activate-account/{userId}/{token}")
     private ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable String token) {

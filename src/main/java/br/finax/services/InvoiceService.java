@@ -2,15 +2,15 @@ package br.finax.services;
 
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
+import br.finax.exceptions.CompressionErrorException;
+import br.finax.exceptions.NotFoundException;
 import br.finax.models.InvoicePayment;
 import br.finax.repository.*;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -56,42 +56,34 @@ public class InvoiceService {
     }
 
     public InvoicePayment savePayment(InvoicePayment payment) {
-        try {
-            if (payment.getId() != null) {
-                final InvoicePayment invoicePayment = invoicePaymentRepository.findById(payment.getId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"));
+        if (payment.getId() != null) {
+            final InvoicePayment invoicePayment = invoicePaymentRepository.findById(payment.getId())
+                    .orElseThrow(NotFoundException::new);
 
-                payment.setAttachment(invoicePayment.getAttachment());
-                payment.setAttachment_name(invoicePayment.getAttachment_name());
-            }
-
-            return invoicePaymentRepository.save(payment);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "error saving invoice payment");
+            payment.setAttachment(invoicePayment.getAttachment());
+            payment.setAttachment_name(invoicePayment.getAttachment_name());
         }
+
+        return invoicePaymentRepository.save(payment);
     }
 
     public ResponseEntity<Void> deletePayment(long invoicePaymentId) {
-        try {
-            invoicePaymentRepository.deleteById(invoicePaymentId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "error deleting invoice payment");
-        }
+        invoicePaymentRepository.deleteById(invoicePaymentId);
+        return ResponseEntity.ok().build();
     }
 
     public InvoicePayment saveInvoiceAttachment(long invoiceId, MultipartFile attachment) {
+        if (attachment == null || attachment.isEmpty())
+            throw new IllegalArgumentException("invalid attachment");
+
+        final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
+                .orElseThrow(NotFoundException::new);
+
+        final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
+
+        payment.setAttachment_name(attachment.getOriginalFilename());
+
         try {
-            if (attachment == null || attachment.isEmpty())
-                throw new IllegalArgumentException("invalid attachment");
-
-            final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"));
-
-            final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
-
-            payment.setAttachment_name(attachment.getOriginalFilename());
-
             switch (fileExtension) {
                 case "pdf":
                     payment.setAttachment(compressPdf(attachment.getBytes()));
@@ -102,31 +94,27 @@ public class InvoiceService {
                 default:
                     payment.setAttachment(compressImage(attachment.getBytes(), true));
             }
-
-            return invoicePaymentRepository.save(payment);
-        } catch (RuntimeException | IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IOException ioException) {
+            throw new CompressionErrorException();
         }
+
+        return invoicePaymentRepository.save(payment);
     }
 
     public InvoicePayment removeAttachment(long invoiceId) {
-        try {
-            final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
-                    .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
+                .orElseThrow(NotFoundException::new);
 
-            payment.setAttachment(null);
-            payment.setAttachment_name(null);
+        payment.setAttachment(null);
+        payment.setAttachment_name(null);
 
-            return invoicePaymentRepository.save(payment);
-        } catch (RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        return invoicePaymentRepository.save(payment);
     }
 
     public ResponseEntity<byte[]> getPaymentAttachment(long invoicePaymentId) {
         return ResponseEntity.ok().body(
                 invoicePaymentRepository.findById(invoicePaymentId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invoice payment not found"))
+                        .orElseThrow(NotFoundException::new)
                         .getAttachment()
         );
     }
