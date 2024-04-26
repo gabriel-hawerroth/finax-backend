@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.EmailRecord;
+import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
     private final JavaMailSender javaMailSender;
 
-    public void sendMail(EmailRecord email) throws MessagingException {
+    public void sendMail(EmailDTO email) throws MessagingException {
         final MimeMessage message = javaMailSender.createMimeMessage();
         final MimeMessageHelper helper = new MimeMessageHelper(message, true);
 

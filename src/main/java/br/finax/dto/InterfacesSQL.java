@@ -60,14 +60,6 @@ public class InterfacesSQL {
         boolean getIsDuplicatedRelease();
     }
 
-    public interface MonthlyBalance {
-        double getRevenues();
-
-        double getExpenses();
-
-        double getGeneralBalance();
-    }
-
     public interface HomeBalances {
         double getRevenues();
 

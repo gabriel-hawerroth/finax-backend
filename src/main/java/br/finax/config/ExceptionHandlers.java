@@ -1,4 +1,4 @@
-package br.finax.configs;
+package br.finax.config;
 
 import br.finax.dto.ResponseError;
 import br.finax.exceptions.*;

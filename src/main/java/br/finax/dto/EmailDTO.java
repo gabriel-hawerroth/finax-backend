@@ -1,6 +1,6 @@
 package br.finax.dto;
 
-public record EmailRecord(
+public record EmailDTO(
         String addressee,
         String subject,
         String content

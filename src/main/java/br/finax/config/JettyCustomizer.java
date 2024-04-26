@@ -1,4 +1,4 @@
-package br.finax.configs;
+package br.finax.config;
 
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;

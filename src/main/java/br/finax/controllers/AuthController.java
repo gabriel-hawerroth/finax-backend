@@ -1,7 +1,7 @@
 package br.finax.controllers;
 
 import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.EmailRecord;
+import br.finax.dto.EmailDTO;
 import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.BadCredentialsException;
@@ -86,7 +86,7 @@ public class AuthController {
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
         try {
             emailService.sendMail(
-                    new EmailRecord(
+                    new EmailDTO(
                             userMail,
                             "Ativação da conta Finax",
                             emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)

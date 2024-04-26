@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.EmailRecord;
+import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.UnsendedEmailException;
@@ -91,7 +91,7 @@ public class LoginService {
     private void sendChangePasswordEmail(String userMail, Long userId, String token) {
         try {
             emailService.sendMail(
-                    new EmailRecord(
+                    new EmailDTO(
                             userMail,
                             "Alteração da senha Finax",
                             emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, userId, token)
