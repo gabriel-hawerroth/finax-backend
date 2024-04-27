@@ -1,5 +1,6 @@
 package br.finax.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class DuplicatedReleaseBuilder {
@@ -11,7 +12,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setUserId(original.getUserId());
         duplicatedRelease.setDescription(original.getDescription());
         duplicatedRelease.setAccountId(original.getAccountId());
-        duplicatedRelease.setAmount(0.0);
+        duplicatedRelease.setAmount(BigDecimal.ZERO);
         duplicatedRelease.setType(original.getType());
         duplicatedRelease.setDone(false);
         duplicatedRelease.setTargetAccountId(original.getTargetAccountId());
@@ -27,7 +28,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setCredit_card_id(original.getCredit_card_id());
     }
 
-    public DuplicatedReleaseBuilder amount(Double amount) {
+    public DuplicatedReleaseBuilder amount(BigDecimal amount) {
         duplicatedRelease.setAmount(amount);
         return this;
     }

@@ -1,6 +1,7 @@
 package br.finax.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,10 +17,11 @@ public class AccessLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private long userId;
 
-    @Column(name = "login_dt")
+    @PastOrPresent
+    @Column(name = "login_dt", nullable = false)
     private LocalDateTime loginDt;
 
     public AccessLog(long userId, LocalDateTime loginDt) {

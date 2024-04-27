@@ -1,4 +1,15 @@
 package br.finax.dto;
 
-public record AuthenticationDTO(String login, String password) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record AuthenticationDTO(
+        @NotNull
+        @NotBlank
+        String login,
+
+        @NotNull
+        @NotBlank
+        String password
+) {
 }

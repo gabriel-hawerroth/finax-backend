@@ -2,6 +2,7 @@ package br.finax.controllers;
 
 import br.finax.models.Category;
 import br.finax.services.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    private Category save(@RequestBody Category category) {
+    private Category save(@RequestBody @Valid Category category) {
         return categoryService.save(category);
     }
 

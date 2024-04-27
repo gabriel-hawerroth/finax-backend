@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -53,26 +55,31 @@ public class HomeService {
             List<Category> categories = categoryRepository.findByIdIn(categoryIds);
             categories.forEach(category -> categoryMap.put(category.getId(), category));
 
-            double totalExpense = expenses.stream().mapToDouble(CashFlow::getAmount).sum();
+            BigDecimal totalExpense = expenses.stream().map(CashFlow::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            Map<Long, Double> categoryExpenseMap = new HashMap<>();
+            Map<Long, BigDecimal> categoryExpenseMap = new HashMap<>();
             for (CashFlow expense : expenses) {
-                double categoryExpense = categoryExpenseMap.getOrDefault(expense.getCategoryId(), 0.0);
-                categoryExpense += expense.getAmount();
+                BigDecimal categoryExpense = categoryExpenseMap.getOrDefault(expense.getCategoryId(), BigDecimal.ZERO);
+                categoryExpense = categoryExpense.add(expense.getAmount());
                 categoryExpenseMap.put(expense.getCategoryId(), categoryExpense);
             }
 
             List<SpendByCategory> spendByCategories = new ArrayList<>();
-            for (Map.Entry<Long, Double> entry : categoryExpenseMap.entrySet()) {
+            for (Map.Entry<Long, BigDecimal> entry : categoryExpenseMap.entrySet()) {
                 Long categoryId = entry.getKey();
-                Double categoryExpense = entry.getValue();
+                BigDecimal categoryExpense = entry.getValue();
                 Category category = categoryMap.get(categoryId);
 
-                double percent = (categoryExpense / totalExpense) * 100;
+                double percent = Double.parseDouble(
+                        String.valueOf(
+                                categoryExpense.divide(totalExpense, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100))
+                        )
+                );
                 spendByCategories.add(new SpendByCategory(category, percent, categoryExpense));
             }
 
-            spendByCategories.sort((a, b) -> Double.compare(b.value(), a.value()));
+            spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
+//            spendByCategories.sort((a, b) -> Double.compare(b.value(), a.value()));
 
             return ResponseEntity.ok(spendByCategories);
         } catch (Exception e) {

@@ -4,6 +4,7 @@ import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
 import br.finax.models.InvoicePayment;
 import br.finax.services.InvoiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/save-payment")
-    private InvoicePayment savePayment(@RequestBody InvoicePayment payment) {
+    private InvoicePayment savePayment(@RequestBody @Valid InvoicePayment payment) {
         return invoiceService.savePayment(payment);
     }
 

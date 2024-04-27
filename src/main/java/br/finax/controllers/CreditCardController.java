@@ -3,6 +3,7 @@ package br.finax.controllers;
 import br.finax.dto.InterfacesSQL;
 import br.finax.models.CreditCard;
 import br.finax.services.CreditCardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class CreditCardController {
     }
 
     @PostMapping
-    private ResponseEntity<CreditCard> save(@RequestBody CreditCard card) {
+    private ResponseEntity<CreditCard> save(@RequestBody @Valid CreditCard card) {
         return creditCardService.save(card);
     }
 

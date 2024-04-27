@@ -6,6 +6,7 @@ import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
 import br.finax.models.CashFlow;
 import br.finax.services.CashFlowService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +39,15 @@ public class CashFlowController {
 
     @PostMapping
     private ResponseEntity<CashFlow> addRelease(
-            @RequestBody CashFlow release, @RequestParam int repeatFor
+            @RequestBody @Valid CashFlow release,
+            @RequestParam int repeatFor
     ) {
         return cashFlowService.addRelease(release, repeatFor);
     }
 
     @PutMapping
     private ResponseEntity<CashFlow> editRelease(
-            @RequestBody CashFlow release,
+            @RequestBody @Valid CashFlow release,
             @RequestParam String duplicatedReleaseAction
     ) {
         return cashFlowService.editRelease(

@@ -6,8 +6,10 @@ import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.UnsendedEmailException;
+import br.finax.models.AccessLog;
 import br.finax.models.Token;
 import br.finax.models.User;
+import br.finax.repository.AccessLogRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
 import br.finax.security.TokenService;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+
 import static br.finax.utils.UtilsService.generateHash;
 
 @RestController
@@ -41,6 +45,7 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final AccessLogRepository accessLogRepository;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
@@ -55,10 +60,18 @@ public class AuthController {
             throw new BadCredentialsException("Inactive user");
         }
 
-        final String token = tokenService.generateToken((User) auth.getPrincipal());
+        final User user = (User) auth.getPrincipal();
+
+        final String token = tokenService.generateToken(user);
+
+        if (user.getId() != 1) {
+            accessLogRepository.save(
+                    new AccessLog(user.getId(), LocalDateTime.now())
+            );
+        }
 
         return ResponseEntity.ok(
-                new LoginResponseDTO((User) auth.getPrincipal(), token)
+                new LoginResponseDTO(user, token)
         );
     }
 

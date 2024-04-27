@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class AccountService {
         return ResponseEntity.ok().body(accountRepository.save(account));
     }
 
-    public ResponseEntity<Account> adjustBalance(long accountId, double newBalance) {
+    public ResponseEntity<Account> adjustBalance(long accountId, BigDecimal newBalance) {
         final Account account = accountRepository.findById(accountId)
                 .orElseThrow(NotFoundException::new);
 
@@ -42,10 +43,14 @@ public class AccountService {
         release.setUserId(account.getUserId());
         release.setDescription("");
         release.setAccountId(account.getId());
-        release.setAmount(newBalance > account.getBalance() ? newBalance - account.getBalance() : account.getBalance() - newBalance);
-        release.setType(newBalance > account.getBalance() ? "R" : "E");
+        release.setAmount(
+                newBalance.compareTo(account.getBalance()) > 0
+                        ? newBalance.subtract(account.getBalance())
+                        : account.getBalance().subtract(newBalance)
+        );
+        release.setType(newBalance.compareTo(account.getBalance()) > 0 ? "R" : "E");
         release.setDone(true);
-        release.setCategoryId(21L);
+        release.setCategoryId(1L);
         release.setDate(LocalDate.now());
 
         cashFlowRepository.save(release);

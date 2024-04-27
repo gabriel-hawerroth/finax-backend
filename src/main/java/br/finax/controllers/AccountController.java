@@ -3,10 +3,12 @@ package br.finax.controllers;
 import br.finax.dto.InterfacesSQL.AccountBasicList;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -27,12 +29,12 @@ public class AccountController {
     }
 
     @PostMapping
-    private ResponseEntity<Account> save(@RequestBody Account account) {
+    private ResponseEntity<Account> save(@RequestBody @Valid Account account) {
         return accountService.save(account);
     }
 
     @GetMapping("/adjust-balance/{id}")
-    private ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam double newBalance) {
+    private ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam BigDecimal newBalance) {
         return accountService.adjustBalance(id, newBalance);
     }
 

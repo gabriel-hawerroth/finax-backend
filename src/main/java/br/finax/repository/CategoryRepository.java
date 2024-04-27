@@ -30,7 +30,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             INSERT INTO CATEGORY (name, color, icon, type, user_id)
             SELECT name, color, icon, type, :userId
             FROM Category c
-            WHERE c.user_id = 0 AND c.id <> 21
+            WHERE c.user_id = 0 AND c.id <> 1
             """, nativeQuery = true)
     void insertNewUserCategories(long userId);
 

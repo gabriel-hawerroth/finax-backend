@@ -2,6 +2,7 @@ package br.finax.controllers;
 
 import br.finax.models.User;
 import br.finax.services.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,7 @@ public class UserController {
     }
 
     @PutMapping
-    private ResponseEntity<User> editUser(@RequestBody User user) {
+    private ResponseEntity<User> editUser(@RequestBody @Valid User user) {
         return userService.editUser(user);
     }
 

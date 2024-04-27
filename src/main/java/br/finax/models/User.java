@@ -1,6 +1,7 @@
 package br.finax.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,23 +18,29 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Email
+    @Column(nullable = false, length = 40)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false, length = 30)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", length = 40)
     private String lastName;
 
+    @Column(nullable = false, length = 10)
     private String access;
 
+    @Column(nullable = false)
     private boolean active;
 
-    @Column(name = "can_change_password")
+    @Column(name = "can_change_password", nullable = false)
     private boolean canChangePassword;
 
+    @Column(nullable = false, length = 5)
     private String signature;
 
     @Column(name = "signature_expiration")

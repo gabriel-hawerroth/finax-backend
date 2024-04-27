@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedList;
@@ -76,7 +78,7 @@ public class CashFlowService {
             return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
 
         final boolean isFixedRepeat = release.getRepeat().equals("fixed");
-        double installmentsAmount = release.getAmount() / repeatFor;
+        BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
 
         if (!isFixedRepeat) {
             release.setAmount(installmentsAmount);
@@ -230,7 +232,7 @@ public class CashFlowService {
         return ResponseEntity.ok().build();
     }
 
-    private CashFlow createDuplicatedRelease(final CashFlow original, double newAmount, final LocalDate newDate) {
+    private CashFlow createDuplicatedRelease(final CashFlow original, BigDecimal newAmount, final LocalDate newDate) {
         return new DuplicatedReleaseBuilder(original)
                 .amount(newAmount)
                 .date(newDate)

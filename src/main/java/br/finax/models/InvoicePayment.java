@@ -1,8 +1,10 @@
 package br.finax.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -17,18 +19,20 @@ public class InvoicePayment {
     @Column(nullable = false)
     private long credit_card_id;
 
-    @Column(length = 7, nullable = false)
+    @NotBlank
+    @Column(nullable = false, length = 7)
     private String invoice_month_year;
 
     @Column(nullable = false)
     private Long payment_account_id;
 
-    @Column(nullable = false, precision = 2)
-    private double payment_amount;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal payment_amount;
 
     @Column(nullable = false)
     private LocalDate payment_date;
 
+    @Column(length = 5)
     private String payment_hour;
 
     private byte[] attachment;
