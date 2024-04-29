@@ -1,6 +1,6 @@
 package br.finax.security;
 
-import br.finax.exceptions.UnauthorizedException;
+import br.finax.exceptions.NotFoundException;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -15,17 +15,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
+    public final Map<String, User> usersCache = new ConcurrentHashMap<>();
     private final TokenService tokenService;
     private final UserRepository userRepository;
-
-    private final Map<String, User> tokens = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -33,20 +31,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if (token != null) {
             final String userMail = tokenService.validateToken(token);
-            User user;
-
-            if (userMail != null && !userMail.isEmpty()) {
-                user = findTokenCache(token);
-
-                if (user == null) {
-                    user = userRepository.findByEmail(userMail)
-                            .orElseThrow(UnauthorizedException::new);
-                    addCache(token, user);
-                }
-            } else {
-                removeCacheIfExists(token);
-                throw new UnauthorizedException();
-            }
+            final User user = findUserByMail(userMail);
 
             final var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -61,24 +46,15 @@ public class SecurityFilter extends OncePerRequestFilter {
         return authHeader.replace("Bearer ", "");
     }
 
-    private void addCache(String token, User user) {
-        // Iterate through the map to find existing entry with same user ID
-        for (Map.Entry<String, User> entry : tokens.entrySet()) {
-            if (Objects.equals(entry.getValue().getId(), user.getId())) {
-                // Remove existing entry with same user ID
-                tokens.remove(entry.getKey());
-                break;
-            }
+    private User findUserByMail(String email) {
+        User user = usersCache.get(email);
+
+        if (user == null) {
+            user = userRepository.findByEmail(email)
+                    .orElseThrow(NotFoundException::new);
+            usersCache.put(email, user);
         }
-        // Add the new user with the token
-        tokens.put(token, user);
-    }
 
-    private User findTokenCache(String token) {
-        return tokens.get(token);
-    }
-
-    private void removeCacheIfExists(String token) {
-        tokens.remove(token);
+        return user;
     }
 }

@@ -2,6 +2,7 @@ package br.finax;
 
 import br.finax.models.Category;
 import br.finax.repository.CategoryRepository;
+import br.finax.security.SecurityFilter;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -18,6 +19,7 @@ import java.util.List;
 public class Schedule {
 
     private final CategoryRepository categoryRepository;
+    private final SecurityFilter securityFilter;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -40,6 +42,12 @@ public class Schedule {
         entityManager.createNativeQuery("commit; vacuum full analyze; commit;").executeUpdate();
         entityManager.createNativeQuery("commit; reindex database finax_db; commit;").executeUpdate();
         System.out.println("Database optimized: " + dateFormat.format(LocalDateTime.now()));
+    }
+
+    @Scheduled(cron = "0 0 4 * * *")
+    public void clearUsersCache() {
+        securityFilter.usersCache.clear();
+        System.out.println("Cleared user cache: " + dateFormat.format(LocalDateTime.now()));
     }
 
 //    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM
