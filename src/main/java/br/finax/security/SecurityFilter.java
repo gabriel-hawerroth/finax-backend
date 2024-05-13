@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,11 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SecurityFilter extends OncePerRequestFilter {
 
     public final Map<String, User> usersCache = new ConcurrentHashMap<>();
+
     private final TokenService tokenService;
     private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
         final String token = this.recoverToken(request);
 
         if (token != null) {
@@ -46,13 +50,15 @@ public class SecurityFilter extends OncePerRequestFilter {
         return authHeader.replace("Bearer ", "");
     }
 
-    private User findUserByMail(String email) {
-        User user = usersCache.get(email);
+    private User findUserByMail(String userMail) {
+        final User user;
 
-        if (user == null) {
-            user = userRepository.findByEmail(email)
+        if (usersCache.containsKey(userMail)) {
+            user = usersCache.get(userMail);
+        } else {
+            user = userRepository.findByEmail(userMail)
                     .orElseThrow(NotFoundException::new);
-            usersCache.put(email, user);
+            usersCache.put(userMail, user);
         }
 
         return user;

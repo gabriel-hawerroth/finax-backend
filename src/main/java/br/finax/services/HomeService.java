@@ -19,7 +19,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +50,7 @@ public class HomeService {
                     cashFlowRepository.findByUserIdAndDateBetweenAndTypeAndDone(userId, startDt, endDt, "E", true);
 
             final Map<Long, Category> categoryMap = new HashMap<>();
-            List<Long> categoryIds = expenses.stream().map(CashFlow::getCategoryId).collect(Collectors.toList());
+            List<Long> categoryIds = expenses.stream().map(CashFlow::getCategoryId).toList();
             List<Category> categories = categoryRepository.findByIdIn(categoryIds);
             categories.forEach(category -> categoryMap.put(category.getId(), category));
 
@@ -79,7 +78,6 @@ public class HomeService {
             }
 
             spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
-//            spendByCategories.sort((a, b) -> Double.compare(b.value(), a.value()));
 
             return ResponseEntity.ok(spendByCategories);
         } catch (Exception e) {

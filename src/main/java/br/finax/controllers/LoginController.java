@@ -13,17 +13,17 @@ public class LoginController {
     private final LoginService loginService;
 
     @GetMapping("/activate-account/{userId}/{token}")
-    private ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable String token) {
+    public ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable String token) {
         return loginService.activateUser(userId, token);
     }
 
     @PostMapping("/send-change-password-email")
-    private void sendChangePasswordMail(@RequestParam String email) {
+    public void sendChangePasswordMail(@RequestParam String email) {
         loginService.sendChangePasswordMail(email);
     }
 
     @GetMapping("/permit-change-password/{userId}/{token}")
-    private ResponseEntity<Void> permitChangePassword(@PathVariable Long userId, @PathVariable String token) {
+    public ResponseEntity<Void> permitChangePassword(@PathVariable Long userId, @PathVariable String token) {
         return loginService.permitChangePassword(userId, token);
     }
 }

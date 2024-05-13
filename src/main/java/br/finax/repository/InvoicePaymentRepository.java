@@ -19,13 +19,13 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 invoice_payment ip
                 JOIN bank_account ba ON ip.payment_account_id = ba.id
             WHERE
-                ip.credit_card_id = :credit_card_id
-                AND ip.invoice_month_year = :month_year
+                ip.creditCardId = :creditCardId
+                AND ip.invoice_month_year = :monthYear
             ORDER BY
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true
     )
-    List<InvoicePaymentsPerson> getInvoicePayments(long credit_card_id, String month_year);
+    List<InvoicePaymentsPerson> getInvoicePayments(long creditCardId, String monthYear);
 
     @Query(value = """
             SELECT
@@ -34,17 +34,17 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                     SUM(cf.amount) -
                     (SELECT SUM(ip.payment_amount)
                     FROM invoice_payment ip
-                    WHERE ip.credit_card_id = :credit_card_id)
+                    WHERE ip.creditCardId = :creditCardId)
                     , 0)
                 , 0) AS previousBalance
             FROM
                 cash_flow cf
             WHERE
-                cf.user_id = :user_id
-                AND cf.credit_card_id = :credit_card_id
-                AND cf.date < :first_dt
+                cf.userId = :userId
+                AND cf.creditCardId = :creditCardId
+                AND cf.date < :firstDt
                 AND cf.done is true
             """, nativeQuery = true
     )
-    double getInvoicePreviousBalance(long user_id, long credit_card_id, Date first_dt);
+    double getInvoicePreviousBalance(long userId, long creditCardId, Date firstDt);
 }

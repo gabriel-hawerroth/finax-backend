@@ -15,12 +15,12 @@ public class UserConfigsController {
     private final UserConfigsService userConfigsService;
 
     @GetMapping("/get-by-user")
-    private UserConfigs getByUser() {
+    public UserConfigs getByUser() {
         return userConfigsService.getByUser();
     }
 
     @PostMapping("/save")
-    private ResponseEntity<UserConfigs> save(@RequestBody @Valid UserConfigs userConfigs) {
+    public ResponseEntity<UserConfigs> save(@RequestBody @Valid UserConfigs userConfigs) {
         return userConfigsService.save(userConfigs);
     }
 }

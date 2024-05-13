@@ -33,10 +33,10 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
             FROM
                 credit_card cc
             WHERE
-                cc.user_id = :user_id
+                cc.user_id = :userId
                 AND cc.active = true
             ORDER BY
                 cc.id
             """, nativeQuery = true)
-    List<CardBasicList> getBasicList(long user_id);
+    List<CardBasicList> getBasicList(long userId);
 }

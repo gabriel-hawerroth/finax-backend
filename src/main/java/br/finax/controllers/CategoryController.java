@@ -17,22 +17,22 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping("/get-by-user")
-    private List<Category> getByUser() {
+    public List<Category> getByUser() {
         return categoryService.getByUser();
     }
 
     @GetMapping("/{id}")
-    private Category getById(@PathVariable long id) {
+    public Category getById(@PathVariable long id) {
         return categoryService.getById(id);
     }
 
     @PostMapping
-    private Category save(@RequestBody @Valid Category category) {
+    public Category save(@RequestBody @Valid Category category) {
         return categoryService.save(category);
     }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<Void> deleteById(@PathVariable long id) {
+    public ResponseEntity<Void> deleteById(@PathVariable long id) {
         return categoryService.deleteById(id);
     }
 }

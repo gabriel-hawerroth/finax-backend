@@ -16,45 +16,45 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
+    public final UserService userService;
 
     @GetMapping
-    private List<User> getUsers() {
+    public List<User> getUsers() {
         return userService.getUsers();
     }
 
     @GetMapping("/{id}")
-    private User getById(@PathVariable long id) {
+    public User getById(@PathVariable long id) {
         return userService.getById(id);
     }
 
     @GetMapping("/get-auth-user")
-    private User getAuthUser() {
+    public User getAuthUser() {
         return userService.getAuthUser();
     }
 
     @PutMapping("/change-forgeted-password")
-    private ResponseEntity<User> changeForgetedPassword(@RequestParam Long userId, @RequestParam String newPassword) {
+    public ResponseEntity<User> changeForgetedPassword(@RequestParam Long userId, @RequestParam String newPassword) {
         return userService.changeForgetedPassword(userId, newPassword);
     }
 
     @PutMapping("/change-password")
-    private ResponseEntity<User> changePassword(@RequestParam String newPassword, @RequestParam String currentPassword) {
+    public ResponseEntity<User> changePassword(@RequestParam String newPassword, @RequestParam String currentPassword) {
         return userService.changePassword(newPassword, currentPassword);
     }
 
     @PutMapping
-    private ResponseEntity<User> editUser(@RequestBody @Valid User user) {
+    public ResponseEntity<User> editUser(@RequestBody @Valid User user) {
         return userService.editUser(user);
     }
 
     @PutMapping("/change-profile-image")
-    private ResponseEntity<User> changeUserImage(@RequestParam MultipartFile file) throws IOException {
+    public ResponseEntity<User> changeUserImage(@RequestParam MultipartFile file) throws IOException {
         return userService.changeUserImage(file);
     }
 
     @GetMapping("/get-user-image")
-    private ResponseEntity<byte[]> getUserImage() {
+    public ResponseEntity<byte[]> getUserImage() {
         return userService.getUserImage();
     }
 }

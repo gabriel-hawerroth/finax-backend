@@ -159,22 +159,22 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         FROM invoice_payment ip
                         JOIN invoice i ON ip.invoice_id = i.id
                         WHERE i.user_id = :user_id
-                        AND ip.payment_date < :last_dt) AS open_card_expenses
+                        AND ip.payment_date < :lastDt) AS open_card_expenses
                     FROM cash_flow cf2
                     WHERE cf2.user_id = :user_id
                     AND cf2.done IS TRUE
-                    AND cf2.date < :last_dt
+                    AND cf2.date < :lastDt
                     AND cf2.invoice_id IS NOT NULL)
                 ) AS expectedBalance
             FROM
                 cash_flow cf
             WHERE
-                cf.user_id = :user_id
-                AND cf.date BETWEEN :first_dt AND :last_dt
+                cf.user_id = :userId
+                AND cf.date BETWEEN :firstDt AND :lastDt
                 AND cf.done IS FALSE
                 AND cf.account_id IS NOT NULL
             """, nativeQuery = true)
-    double getExpectedBalance(long user_id, Date first_dt, Date last_dt);
+    double getExpectedBalance(long userId, Date firstDt, Date lastDt);
 
     @Query(value = """
             SELECT
@@ -291,13 +291,13 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 JOIN credit_card cc ON cf.credit_card_id = cc.id
                 LEFT JOIN category c ON cf.category_id = c.id
             WHERE
-                cf.user_id = :user_id
-                AND cf.credit_card_id = :credit_card_id
-                AND cf.date BETWEEN :first_dt AND :last_dt
+                cf.user_id = :userId
+                AND cf.credit_card_id = :creditCardId
+                AND cf.date BETWEEN :firstDt AND :lastDt
             ORDER BY
                 cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getByInvoice(long user_id, long credit_card_id, Date first_dt, Date last_dt);
+    List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, Date firstDt, Date lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
     List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long userId, LocalDate startDate, LocalDate endDate, String type, boolean done);

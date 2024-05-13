@@ -16,31 +16,40 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
 public class UtilsService {
 
+    private static final Map<Integer, Integer> COMPRESSION_SIZE_MAP = Map.of(
+            50000, 250,     // 0,05MB - 50kb
+            125000, 300,    // 0,125MB - 125kb
+            250000, 400,    // 0,25MB - 250kb
+            500000, 500,   // 0,5MB - 500kb
+            1000000, 750,  // 1,0MB
+            1500000, 1000,  // 1,5MB
+            2000000, 1200,  // 2,0MB
+            2500000, 1300,  // 2,5MB
+            Integer.MAX_VALUE, 1500
+    );
+
     private final Logger logger = Logger.getLogger(getClass().getName());
 
-    private static int getImageSize(byte[] data, boolean isAttachment) {
-        int imageSize =
-                data.length < 50000 ? 250 : //0,05MB - 50kb
-                        data.length < 125000 ? 300 : //0,125MB - 125kb
-                                data.length < 250000 ? 400 : //0,25MB - 250kb
-                                        data.length < 500000 ? 500 : //0,5MB - 500kb
-                                                data.length < 1000000 ? 750 : //1,0MB
-                                                        data.length < 1500000 ? 1000 : //1,5MB
-                                                                data.length < 2000000 ? 1200 : //2,0MB
-                                                                        data.length < 2500000 ? 1300 : //2,5MB
-                                                                                data.length < 3000000 ? 1400 : //3,0MB
-                                                                                        data.length < 3500000 ? 1500 : //3,5MB
-                                                                                                1600;
+    private static int getImageSize(byte[] file, boolean isAttachment) {
+        int size = 1500;
+
+        for (Map.Entry<Integer, Integer> entry : COMPRESSION_SIZE_MAP.entrySet()) {
+            if (file.length < entry.getKey()) {
+                size = entry.getValue();
+            }
+        }
 
         if (isAttachment) {
-            imageSize = imageSize * 2;
+            size = size * 2;
         }
-        return imageSize;
+
+        return size;
     }
 
     public byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
@@ -58,8 +67,8 @@ public class UtilsService {
 
         byte[] response = outputStream.toByteArray();
 
-        logger.info("Original size: " + data.length + " bytes");
-        logger.info("Compressed size: " + response.length + " bytes");
+        logger.info(() -> "Original size: " + data.length);
+        logger.info(() -> "Compressed size: " + response.length);
 
         return response;
     }
@@ -72,8 +81,8 @@ public class UtilsService {
                 document.save(outputStream);
                 byte[] response = outputStream.toByteArray();
 
-                logger.info("PDF - Original size: " + pdfData.length + " bytes");
-                logger.info("PDF - Compressed size: " + response.length + " bytes");
+                logger.info(() -> "PDF - Original size: " + pdfData.length);
+                logger.info(() -> "PDF - Compressed size: " + response.length);
 
                 return response;
             }

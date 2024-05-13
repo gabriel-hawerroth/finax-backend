@@ -21,12 +21,12 @@ public class HomeController {
     private final HomeService homeService;
 
     @GetMapping("/get-values")
-    private HomeValues getHomeAccounts(@RequestParam Date firstDt, @RequestParam Date lastDt) {
+    public HomeValues getHomeAccounts(@RequestParam Date firstDt, @RequestParam Date lastDt) {
         return homeService.getHomeValues(firstDt, lastDt);
     }
 
     @GetMapping("/get-spends-by-category")
-    private ResponseEntity<List<SpendByCategory>> getSpendsByCategory(@RequestParam Date firstDt, @RequestParam Date lastDt) {
+    public ResponseEntity<List<SpendByCategory>> getSpendsByCategory(@RequestParam Date firstDt, @RequestParam Date lastDt) {
         return homeService.getSpendsByCategory(firstDt, lastDt);
     }
 }

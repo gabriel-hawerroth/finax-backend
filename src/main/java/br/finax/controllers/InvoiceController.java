@@ -17,10 +17,10 @@ import java.util.Date;
 @RequestMapping("/invoice")
 public class InvoiceController {
 
-    private final InvoiceService invoiceService;
+    public final InvoiceService invoiceService;
 
     @GetMapping("/get-month-values")
-    private InvoiceMonthValues getInvoiceAndReleases(
+    public InvoiceMonthValues getInvoiceAndReleases(
             @RequestParam long creditCardId, @RequestParam String selectedMonth,
             @RequestParam Date firstDt, @RequestParam Date lastDt
     ) {
@@ -28,32 +28,32 @@ public class InvoiceController {
     }
 
     @GetMapping("/get-values")
-    private InvoiceValues getValues() {
+    public InvoiceValues getValues() {
         return invoiceService.getValues();
     }
 
     @PostMapping("/save-payment")
-    private InvoicePayment savePayment(@RequestBody @Valid InvoicePayment payment) {
+    public InvoicePayment savePayment(@RequestBody @Valid InvoicePayment payment) {
         return invoiceService.savePayment(payment);
     }
 
     @DeleteMapping("/delete-payment/{invoicePaymentId}")
-    private ResponseEntity<Void> deletePayment(@PathVariable long invoicePaymentId) {
+    public ResponseEntity<Void> deletePayment(@PathVariable long invoicePaymentId) {
         return invoiceService.deletePayment(invoicePaymentId);
     }
 
     @PutMapping("/save-payment-attachment/{invoicePaymentId}")
-    private InvoicePayment saveInvoiceAttachment(@PathVariable long invoicePaymentId, @RequestParam MultipartFile attachment) {
+    public InvoicePayment saveInvoiceAttachment(@PathVariable long invoicePaymentId, @RequestParam MultipartFile attachment) {
         return invoiceService.saveInvoiceAttachment(invoicePaymentId, attachment);
     }
 
     @DeleteMapping("/remove-payment-attachment/{invoicePaymentId}")
-    private InvoicePayment removeAttachment(@PathVariable long invoicePaymentId) {
+    public InvoicePayment removeAttachment(@PathVariable long invoicePaymentId) {
         return invoiceService.removeAttachment(invoicePaymentId);
     }
 
     @GetMapping("/get-payment-attachment/{invoicePaymentId}")
-    private ResponseEntity<byte[]> getPaymentAttachment(@PathVariable long invoicePaymentId) {
+    public ResponseEntity<byte[]> getPaymentAttachment(@PathVariable long invoicePaymentId) {
         return invoiceService.getPaymentAttachment(invoicePaymentId);
     }
 }

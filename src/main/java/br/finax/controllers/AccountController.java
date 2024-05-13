@@ -16,30 +16,30 @@ import java.util.List;
 @RequestMapping("/accounts")
 public class AccountController {
 
-    private final AccountService accountService;
+    public final AccountService accountService;
 
     @GetMapping("/get-by-user")
-    private List<Account> getByUser() {
+    public List<Account> getByUser() {
         return accountService.getByUser();
     }
 
     @GetMapping("/{id}")
-    private Account getById(@PathVariable long id) {
+    public Account getById(@PathVariable long id) {
         return accountService.getById(id);
     }
 
     @PostMapping
-    private ResponseEntity<Account> save(@RequestBody @Valid Account account) {
+    public ResponseEntity<Account> save(@RequestBody @Valid Account account) {
         return accountService.save(account);
     }
 
     @GetMapping("/adjust-balance/{id}")
-    private ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam BigDecimal newBalance) {
+    public ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam BigDecimal newBalance) {
         return accountService.adjustBalance(id, newBalance);
     }
 
     @GetMapping("/basic-list")
-    private List<AccountBasicList> getBasicList() {
+    public List<AccountBasicList> getBasicList() {
         return accountService.getBasicList();
     }
 }

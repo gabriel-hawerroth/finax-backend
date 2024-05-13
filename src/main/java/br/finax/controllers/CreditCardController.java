@@ -18,22 +18,22 @@ public class CreditCardController {
     private final CreditCardService creditCardService;
 
     @GetMapping("/get-by-user")
-    private List<InterfacesSQL.UserCreditCards> getByUser() {
+    public List<InterfacesSQL.UserCreditCards> getByUser() {
         return creditCardService.getByUser();
     }
 
     @GetMapping("/{id}")
-    private CreditCard getById(@PathVariable long id) {
+    public CreditCard getById(@PathVariable long id) {
         return creditCardService.getById(id);
     }
 
     @PostMapping
-    private ResponseEntity<CreditCard> save(@RequestBody @Valid CreditCard card) {
+    public ResponseEntity<CreditCard> save(@RequestBody @Valid CreditCard card) {
         return creditCardService.save(card);
     }
 
     @GetMapping("/basic-list")
-    private List<InterfacesSQL.CardBasicList> getBasicList() {
+    public List<InterfacesSQL.CardBasicList> getBasicList() {
         return creditCardService.getBasicList();
     }
 }

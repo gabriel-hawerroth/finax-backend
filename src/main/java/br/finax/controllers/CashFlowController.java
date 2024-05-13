@@ -19,10 +19,10 @@ import java.util.Date;
 @RequestMapping("/cash-flow")
 public class CashFlowController {
 
-    private final CashFlowService cashFlowService;
+    public final CashFlowService cashFlowService;
 
     @GetMapping
-    private MonthlyCashFlow getMonthlyFlow(
+    public MonthlyCashFlow getMonthlyFlow(
             @RequestParam Date firstDt, @RequestParam Date lastDt,
             @RequestParam String viewMode, @RequestParam Date firstDtCurrentMonth,
             @RequestParam Date firstDtInvoice, @RequestParam Date lastDtInvoice
@@ -33,12 +33,12 @@ public class CashFlowController {
     }
 
     @GetMapping("/get-values")
-    private CashFlowValues getValues() {
+    public CashFlowValues getValues() {
         return cashFlowService.getValues();
     }
 
     @PostMapping
-    private ResponseEntity<CashFlow> addRelease(
+    public ResponseEntity<CashFlow> addRelease(
             @RequestBody @Valid CashFlow release,
             @RequestParam int repeatFor
     ) {
@@ -46,7 +46,7 @@ public class CashFlowController {
     }
 
     @PutMapping
-    private ResponseEntity<CashFlow> editRelease(
+    public ResponseEntity<CashFlow> editRelease(
             @RequestBody @Valid CashFlow release,
             @RequestParam String duplicatedReleaseAction
     ) {
@@ -55,22 +55,22 @@ public class CashFlowController {
     }
 
     @PutMapping("/add-attachment/{id}")
-    private ResponseEntity<CashFlow> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
+    public ResponseEntity<CashFlow> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
         return cashFlowService.addAttachment(id, file);
     }
 
     @DeleteMapping("/remove-attachment/{id}")
-    private ResponseEntity<CashFlow> removeAttachment(@PathVariable long id) {
+    public ResponseEntity<CashFlow> removeAttachment(@PathVariable long id) {
         return cashFlowService.removeAttachment(id);
     }
 
     @GetMapping("/get-attachment/{id}")
-    private ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
+    public ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
         return cashFlowService.getAttachment(id);
     }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
+    public ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
         return cashFlowService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
     }
 }

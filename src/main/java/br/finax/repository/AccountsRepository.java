@@ -17,13 +17,13 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             FROM
                 bank_account ba
             WHERE
-                ba.user_id = :user_id
+                ba.user_id = :userId
                 AND ba.active = true
                 AND ba.add_overall_balance = true
             ORDER BY
                 ba.id
             """, nativeQuery = true)
-    List<Account> getHomeAccountsList(long user_id);
+    List<Account> getHomeAccountsList(long userId);
 
     @Query(value = """
             SELECT
@@ -34,10 +34,10 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
             FROM
                 bank_account ba
             WHERE
-                ba.user_id = :user_id
+                ba.user_id = :userId
                 AND ba.active = true
             ORDER BY
                 ba.id
             """, nativeQuery = true)
-    List<AccountBasicList> getBasicList(long user_id);
+    List<AccountBasicList> getBasicList(long userId);
 }
