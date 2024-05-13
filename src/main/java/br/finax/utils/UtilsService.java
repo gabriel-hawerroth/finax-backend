@@ -16,29 +16,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 @Service
 public class UtilsService {
-    public static byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
-        int imageSize = getImageSize(data, isAttachment);
-
-        // Resize and compress the image
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Thumbnails.of(inputStream)
-                .size(imageSize, imageSize)  // Desired size in px
-                .outputFormat("jpg")
-                .outputQuality(0.5)
-                .toOutputStream(outputStream);
-
-        byte[] response = outputStream.toByteArray();
-
-        System.out.println("Original size: " + data.length + " bytes");
-        System.out.println("Compressed size: " + response.length + " bytes");
-
-        return response;
-    }
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     private static int getImageSize(byte[] data, boolean isAttachment) {
         int imageSize =
@@ -60,21 +43,44 @@ public class UtilsService {
         return imageSize;
     }
 
-    public static byte[] compressPdf(byte[] pdfData) throws IOException {
+    public byte[] compressImage(byte[] data, boolean isAttachment) throws IOException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+
+        int imageSize = getImageSize(data, isAttachment);
+
+        // Resize and compress the image
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Thumbnails.of(inputStream)
+                .size(imageSize, imageSize)  // Desired size in px
+                .outputFormat("jpg")
+                .outputQuality(0.5)
+                .toOutputStream(outputStream);
+
+        byte[] response = outputStream.toByteArray();
+
+        logger.info("Original size: " + data.length + " bytes");
+        logger.info("Compressed size: " + response.length + " bytes");
+
+        return response;
+    }
+
+    public byte[] compressPdf(byte[] pdfData) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdfData)) {
             document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
 
             try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 document.save(outputStream);
                 byte[] response = outputStream.toByteArray();
-                System.out.println("PDF - Original size: " + pdfData.length + " bytes");
-                System.out.println("PDF - Compressed size: " + response.length + " bytes");
+
+                logger.info("PDF - Original size: " + pdfData.length + " bytes");
+                logger.info("PDF - Compressed size: " + response.length + " bytes");
+
                 return response;
             }
         }
     }
 
-    public static String generateHash(String text) {
+    public String generateHash(String text) {
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");

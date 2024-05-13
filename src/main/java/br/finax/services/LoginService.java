@@ -9,6 +9,7 @@ import br.finax.models.User;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
+import br.finax.utils.UtilsService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,13 +20,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Optional;
 
-import static br.finax.utils.UtilsService.generateHash;
-
 @Service
 @RequiredArgsConstructor
 public class LoginService {
 
     private final EmailService emailService;
+    private final UtilsService utils;
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -45,8 +45,7 @@ public class LoginService {
 
         categoryRepository.insertNewUserCategories(userId);
 
-        final URI uri = URI.create(UriComponentsBuilder
-                .fromUriString("https://hawetec.com.br/finax/ativacao-da-conta").build().toUriString());
+        final URI uri = URI.create("https://hawetec.com.br/finax/ativacao-da-conta");
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)
@@ -62,7 +61,7 @@ public class LoginService {
         final Token token = new Token();
         tok.ifPresent(value -> token.setId(value.getId()));
         token.setUserId(user.getId());
-        token.setToken(generateHash(user.getEmail()));
+        token.setToken(utils.generateHash(user.getEmail()));
         tokenRepository.save(token);
 
         sendChangePasswordEmail(user.getEmail(), user.getId(), token.getToken());

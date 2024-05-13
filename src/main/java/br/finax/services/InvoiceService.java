@@ -16,9 +16,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
-import static br.finax.utils.UtilsService.compressImage;
-import static br.finax.utils.UtilsService.compressPdf;
-
 @Service
 @RequiredArgsConstructor
 public class InvoiceService {
@@ -30,13 +27,13 @@ public class InvoiceService {
     private final CategoryRepository categoryRepository;
     private final CreditCardRepository creditCardRepository;
 
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public InvoiceMonthValues getInvoiceAndReleases(
             long creditCardId, String selectedMonth,
             Date firstDt, Date lastDt
     ) {
-        final long userId = utilsService.getAuthUser().getId();
+        final long userId = utils.getAuthUser().getId();
 
         return new InvoiceMonthValues(
                 invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth),
@@ -46,7 +43,7 @@ public class InvoiceService {
     }
 
     public InvoiceValues getValues() {
-        final long userId = utilsService.getAuthUser().getId();
+        final long userId = utils.getAuthUser().getId();
 
         return new InvoiceValues(
                 accountsRepository.getBasicList(userId),
@@ -86,13 +83,13 @@ public class InvoiceService {
         try {
             switch (fileExtension) {
                 case "pdf":
-                    payment.setAttachment(compressPdf(attachment.getBytes()));
+                    payment.setAttachment(utils.compressPdf(attachment.getBytes()));
                     break;
                 case "png", "webp":
                     payment.setAttachment(attachment.getBytes());
                     break;
                 default:
-                    payment.setAttachment(compressImage(attachment.getBytes(), true));
+                    payment.setAttachment(utils.compressImage(attachment.getBytes(), true));
             }
         } catch (IOException ioException) {
             throw new CompressionErrorException();

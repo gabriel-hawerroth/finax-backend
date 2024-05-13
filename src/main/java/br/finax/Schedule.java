@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class Schedule {
     private final EntityManager entityManager;
 
     private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     @Value("${spring.datasource.url}")
     private String databaseUrl;
@@ -47,13 +49,19 @@ public class Schedule {
 
         entityManager.createNativeQuery("commit; vacuum full analyze; commit;").executeUpdate();
         entityManager.createNativeQuery("commit; reindex database " + dbName + "; commit;").executeUpdate();
-        System.out.println("Database optimized: " + LocalDateTime.now().format(dateFormat));
+
+        logger.info("Database optimized: " + getNow());
     }
 
-    @Scheduled(cron = "0 0 4 * * *")
-    public void clearUsersCache() { //every day at 4:00AM
+    @Scheduled(cron = "0 40 3 * * *")
+    public void clearUsersCache() { //every day at 3:40AM
         securityFilter.usersCache.clear();
-        System.out.println("Cleared user cache in security filter: " + LocalDateTime.now().format(dateFormat));
+
+        logger.info("Cleared user cache in security filter: " + getNow());
+    }
+
+    private String getNow() {
+        return LocalDateTime.now().format(dateFormat);
     }
 
 //    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM

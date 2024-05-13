@@ -14,15 +14,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static br.finax.utils.UtilsService.compressImage;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCrypt;
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public List<User> getUsers() {
         return userRepository.findAll();
@@ -34,7 +32,7 @@ public class UserService {
     }
 
     public User getAuthUser() {
-        return utilsService.getAuthUser();
+        return utils.getAuthUser();
     }
 
     public ResponseEntity<User> changeForgetedPassword(Long userId, String newPassword) {
@@ -51,7 +49,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changePassword(String newPassword, String currentPassword) {
-        final User user = utilsService.getAuthUser();
+        final User user = utils.getAuthUser();
 
         if (!bCrypt.matches(currentPassword, user.getPassword())) {
             throw new InvalidPasswordException();
@@ -73,7 +71,7 @@ public class UserService {
     }
 
     public ResponseEntity<User> changeUserImage(MultipartFile file) throws IOException {
-        final User user = userRepository.findById(utilsService.getAuthUser().getId())
+        final User user = userRepository.findById(utils.getAuthUser().getId())
                 .orElseThrow(NotFoundException::new);
 
         if (file.isEmpty())
@@ -85,7 +83,7 @@ public class UserService {
 
         if (!imgExtension.equals("png") && !imgExtension.equals("webp")) {
             try {
-                image = compressImage(image, false);
+                image = utils.compressImage(image, false);
             } catch (IOException e) {
                 throw new CompressionErrorException();
             }
@@ -97,6 +95,6 @@ public class UserService {
     }
 
     public ResponseEntity<byte[]> getUserImage() {
-        return ResponseEntity.ok().body(utilsService.getAuthUser().getProfileImage());
+        return ResponseEntity.ok().body(utils.getAuthUser().getProfileImage());
     }
 }

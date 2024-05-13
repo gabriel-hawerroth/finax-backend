@@ -29,9 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import static br.finax.utils.UtilsService.compressImage;
-import static br.finax.utils.UtilsService.compressPdf;
-
 @Service
 @RequiredArgsConstructor
 public class CashFlowService {
@@ -41,14 +38,14 @@ public class CashFlowService {
     private final AccountsRepository accountsRepository;
     private final CategoryRepository categoryRepository;
 
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public MonthlyCashFlow getMonthlyFlow(
             final Date firstDt, final Date lastDt,
             final ReleasesViewMode viewMode, final Date firstDtCurrentMonth,
             final Date firstDtInvoice, final Date lastDtInvoice
     ) {
-        final long userId = utilsService.getAuthUser().getId();
+        final long userId = utils.getAuthUser().getId();
 
         return switch (viewMode) {
             case releases -> new MonthlyCashFlow(
@@ -64,7 +61,7 @@ public class CashFlowService {
     }
 
     public CashFlowValues getValues() {
-        final long userId = utilsService.getAuthUser().getId();
+        final long userId = utils.getAuthUser().getId();
 
         return new CashFlowValues(
                 accountsRepository.getBasicList(userId),
@@ -172,13 +169,13 @@ public class CashFlowService {
         try {
             switch (fileExtension) {
                 case "pdf":
-                    release.setAttachment(compressPdf(attachment.getBytes()));
+                    release.setAttachment(utils.compressPdf(attachment.getBytes()));
                     break;
                 case "png", "webp":
                     release.setAttachment(attachment.getBytes());
                     break;
                 default:
-                    release.setAttachment(compressImage(attachment.getBytes(), true));
+                    release.setAttachment(utils.compressImage(attachment.getBytes(), true));
             }
         } catch (IOException e) {
             throw new CompressionErrorException();

@@ -14,6 +14,7 @@ import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
 import br.finax.security.TokenService;
 import br.finax.services.EmailService;
+import br.finax.utils.UtilsService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 
-import static br.finax.utils.UtilsService.generateHash;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -42,6 +41,7 @@ public class AuthController {
 
     private final EmailService emailService;
     private final TokenService tokenService;
+    private final UtilsService utils;
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -88,7 +88,7 @@ public class AuthController {
 
         final Token token = new Token();
         token.setUserId(user.getId());
-        token.setToken(generateHash(user.getEmail()));
+        token.setToken(utils.generateHash(user.getEmail()));
         tokenRepository.save(token);
 
         sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());

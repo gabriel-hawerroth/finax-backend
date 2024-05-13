@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MainApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        System.out.println("version: " + SpringVersion.getVersion());
+        System.out.println("Spring version: " + SpringVersion.getVersion());
         SpringApplication.run(MainApplication.class, args);
     }
 
