@@ -11,7 +11,9 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseError> generalExceptionHandler(Exception ex) {
-        return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
+        return ResponseEntity.internalServerError().body(
+                new ResponseError(ex.getMessage())
+        );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
