@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    public final Map<String, User> usersCache = new ConcurrentHashMap<>();
+    private final Map<String, User> usersCache = new ConcurrentHashMap<>();
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
@@ -62,5 +62,9 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
 
         return user;
+    }
+
+    public void clearUsersCache() {
+        usersCache.clear();
     }
 }

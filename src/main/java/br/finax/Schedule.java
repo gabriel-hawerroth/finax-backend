@@ -43,7 +43,7 @@ public class Schedule {
     }
 
     @Transactional
-    @Scheduled(cron = "0 30 3 * * *") //every day at 3:30AM
+    @Scheduled(cron = "25 30 3 * * *") //every day at 3:30AM
     public void optimizeDatabase() {
         final String dbName = databaseUrl.split("//")[1].split("/")[1];
 
@@ -55,7 +55,7 @@ public class Schedule {
 
     @Scheduled(cron = "0 40 3 * * *")
     public void clearUsersCache() { //every day at 3:40AM
-        securityFilter.usersCache.clear();
+        securityFilter.clearUsersCache();
 
         logger.info("Cleared user cache in security filter: " + getNow());
     }
