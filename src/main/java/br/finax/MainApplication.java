@@ -7,16 +7,12 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.core.SpringVersion;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.logging.Logger;
-
 @EnableScheduling
 @SpringBootApplication
 public class MainApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        final Logger logger = Logger.getLogger("MainApplicationLogger");
-
-        logger.info("Spring version: " + SpringVersion.getVersion());
+        System.out.println("Spring version: " + SpringVersion.getVersion());
         SpringApplication.run(MainApplication.class, args);
     }
 
