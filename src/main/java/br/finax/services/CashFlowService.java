@@ -15,8 +15,6 @@ import br.finax.repository.CategoryRepository;
 import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,9 +68,9 @@ public class CashFlowService {
         );
     }
 
-    public ResponseEntity<CashFlow> addRelease(final CashFlow release, final int repeatFor) {
+    public CashFlow addRelease(final CashFlow release, final int repeatFor) {
         if (release.getRepeat().isBlank())
-            return ResponseEntity.status(HttpStatus.CREATED).body(cashFlowRepository.save(release));
+            return cashFlowRepository.save(release);
 
         final boolean isFixedRepeat = release.getRepeat().equals("fixed");
         BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
@@ -100,10 +98,10 @@ public class CashFlowService {
 
         cashFlowRepository.saveAll(releases);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedRelease);
+        return savedRelease;
     }
 
-    public ResponseEntity<CashFlow> editRelease(
+    public CashFlow editRelease(
             CashFlow release, final DuplicatedReleaseAction duplicatedReleaseAction
     ) {
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
@@ -154,10 +152,10 @@ public class CashFlowService {
             cashFlowRepository.saveAll(duplicatedReleases);
         }
 
-        return ResponseEntity.ok().body(release);
+        return release;
     }
 
-    public ResponseEntity<CashFlow> addAttachment(long id, final MultipartFile attachment) {
+    public CashFlow addAttachment(long id, final MultipartFile attachment) {
         final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
 
@@ -183,40 +181,37 @@ public class CashFlowService {
 
         release.setAttachmentName(attachment.getOriginalFilename());
 
-        return ResponseEntity.ok().body(cashFlowRepository.save(release));
+        return cashFlowRepository.save(release);
     }
 
-    public ResponseEntity<CashFlow> removeAttachment(long id) {
+    public CashFlow removeAttachment(long id) {
         final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
 
         release.setAttachment(null);
         release.setAttachmentName(null);
 
-        return ResponseEntity.ok().body(cashFlowRepository.save(release));
+        return cashFlowRepository.save(release);
     }
 
-    public ResponseEntity<byte[]> getAttachment(long id) {
-        return ResponseEntity.ok().body(
-                cashFlowRepository.findById(id)
-                        .orElseThrow(NotFoundException::new)
-                        .getAttachment()
-        );
+    public byte[] getAttachment(long id) {
+        return cashFlowRepository.findById(id)
+                .orElseThrow(NotFoundException::new)
+                .getAttachment();
     }
 
-    public ResponseEntity<Void> delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
+    public void delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
         final CashFlow release = cashFlowRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
 
-        if (duplicatedReleasesAction == DuplicatedReleaseAction.NEXTS) {
-            cashFlowRepository.deleteAll(
+        switch (duplicatedReleasesAction) {
+            case NEXTS -> cashFlowRepository.deleteAll(
                     cashFlowRepository.getNextDuplicatedReleases(
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
                             release.getDate()
                     )
             );
-        } else if (duplicatedReleasesAction == DuplicatedReleaseAction.ALL) {
-            cashFlowRepository.deleteAll(
+            case ALL -> cashFlowRepository.deleteAll(
                     cashFlowRepository.getAllDuplicatedReleases(
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
                     )
@@ -225,8 +220,6 @@ public class CashFlowService {
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
             cashFlowRepository.deleteById(id);
-
-        return ResponseEntity.ok().build();
     }
 
     private CashFlow createDuplicatedRelease(final CashFlow original, BigDecimal newAmount, final LocalDate newDate) {

@@ -19,27 +19,37 @@ public class AccountController {
     public final AccountService accountService;
 
     @GetMapping("/get-by-user")
-    public List<Account> getByUser() {
-        return accountService.getByUser();
+    public ResponseEntity<List<Account>> getByUser() {
+        return ResponseEntity.ok(
+                accountService.getByUser()
+        );
     }
 
     @GetMapping("/{id}")
-    public Account getById(@PathVariable long id) {
-        return accountService.getById(id);
+    public ResponseEntity<Account> getById(@PathVariable long id) {
+        return ResponseEntity.ok(
+                accountService.getById(id)
+        );
+    }
+
+    @GetMapping("/basic-list")
+    public ResponseEntity<List<AccountBasicList>> getBasicList() {
+        return ResponseEntity.ok(
+                accountService.getBasicList()
+        );
     }
 
     @PostMapping
     public ResponseEntity<Account> save(@RequestBody @Valid Account account) {
-        return accountService.save(account);
+        return ResponseEntity.ok(
+                accountService.save(account)
+        );
     }
 
-    @GetMapping("/adjust-balance/{id}")
+    @PostMapping("/adjust-balance/{id}")
     public ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam BigDecimal newBalance) {
-        return accountService.adjustBalance(id, newBalance);
-    }
-
-    @GetMapping("/basic-list")
-    public List<AccountBasicList> getBasicList() {
-        return accountService.getBasicList();
+        return ResponseEntity.ok(
+                accountService.adjustBalance(id, newBalance)
+        );
     }
 }

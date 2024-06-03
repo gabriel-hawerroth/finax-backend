@@ -15,10 +15,10 @@ public class CreditCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
-    private long user_id;
+    private Long user_id;
 
     @NotBlank
     @Column(nullable = false, length = 40)

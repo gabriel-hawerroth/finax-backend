@@ -5,6 +5,7 @@ import br.finax.dto.EmailDTO;
 import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.BadCredentialsException;
+import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.exceptions.UnsendedEmailException;
 import br.finax.models.AccessLog;
 import br.finax.models.Token;
@@ -14,6 +15,7 @@ import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
 import br.finax.security.TokenService;
 import br.finax.services.EmailService;
+import br.finax.services.UserTokenService;
 import br.finax.utils.UtilsService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class AuthController {
 
     private final EmailService emailService;
     private final TokenService tokenService;
+    private final UserTokenService userTokenService;
     private final UtilsService utils;
 
     private final UserRepository userRepository;
@@ -78,7 +81,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody @Valid User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent())
-            return ResponseEntity.status(406).build();
+            throw new EmailAlreadyExistsException();
 
         user.setPassword(bCrypt.encode(user.getPassword()));
         user.setActive(false);
@@ -86,10 +89,7 @@ public class AuthController {
         user.setCanChangePassword(false);
         user.setSignature("month");
 
-        final Token token = new Token();
-        token.setUserId(user.getId());
-        token.setToken(utils.generateHash(user.getEmail()));
-        tokenRepository.save(token);
+        final Token token = userTokenService.generateToken(user);
 
         sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());
 

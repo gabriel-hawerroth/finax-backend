@@ -9,29 +9,22 @@ import br.finax.models.User;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.TokenRepository;
 import br.finax.repository.UserRepository;
-import br.finax.utils.UtilsService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.net.URI;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class LoginService {
 
     private final EmailService emailService;
-    private final UtilsService utils;
+    private final UserTokenService userTokenService;
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final CategoryRepository categoryRepository;
 
-    public ResponseEntity<Void> activateUser(Long userId, String token) {
+    public void activateUser(Long userId, String token) {
         final String savedToken = tokenRepository.findByUserId(userId)
                 .orElseThrow(NotFoundException::new).getToken();
 
@@ -44,30 +37,28 @@ public class LoginService {
         }
 
         categoryRepository.insertNewUserCategories(userId);
-
-        final URI uri = URI.create("https://finax.hawetec.com.br/ativacao-da-conta");
-
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(uri)
-                .build();
     }
 
     public void sendChangePasswordMail(String email) {
         final User user = userRepository.findByEmail(email)
                 .orElseThrow(NotFoundException::new);
 
-        final Optional<Token> tok = tokenRepository.findByUserId(user.getId());
+        final Token token = userTokenService.generateToken(user);
 
-        final Token token = new Token();
-        tok.ifPresent(value -> token.setId(value.getId()));
-        token.setUserId(user.getId());
-        token.setToken(utils.generateHash(user.getEmail()));
-        tokenRepository.save(token);
-
-        sendChangePasswordEmail(user.getEmail(), user.getId(), token.getToken());
+        try {
+            emailService.sendMail(
+                    new EmailDTO(
+                            email,
+                            "Alteração da senha Finax",
+                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
+                    )
+            );
+        } catch (MessagingException messagingException) {
+            throw new UnsendedEmailException();
+        }
     }
 
-    public ResponseEntity<Void> permitChangePassword(Long userId, String token) {
+    public void permitChangePassword(Long userId, String token) {
         final String savedToken = tokenRepository.findByUserId(userId)
                 .orElseThrow(NotFoundException::new).getToken();
 
@@ -77,27 +68,6 @@ public class LoginService {
         if (savedToken.equals(token)) {
             user.setCanChangePassword(true);
             userRepository.save(user);
-        }
-
-        final URI uri = URI.create(UriComponentsBuilder
-                .fromUriString("https://finax.hawetec.com.br/recuperacao-da-senha/" + user.getId()).build().toUriString());
-
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(uri)
-                .build();
-    }
-
-    private void sendChangePasswordEmail(String userMail, Long userId, String token) {
-        try {
-            emailService.sendMail(
-                    new EmailDTO(
-                            userMail,
-                            "Alteração da senha Finax",
-                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, userId, token)
-                    )
-            );
-        } catch (MessagingException messagingException) {
-            throw new UnsendedEmailException();
         }
     }
 }

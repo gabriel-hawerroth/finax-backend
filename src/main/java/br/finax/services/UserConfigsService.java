@@ -5,7 +5,6 @@ import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +19,7 @@ public class UserConfigsService {
                 .orElseThrow(NotFoundException::new);
     }
 
-    public ResponseEntity<UserConfigs> save(UserConfigs userConfigs) {
-        return ResponseEntity.ok().body(userConfigsRepository.save(userConfigs));
+    public UserConfigs save(UserConfigs userConfigs) {
+        return userConfigsRepository.save(userConfigs);
     }
 }

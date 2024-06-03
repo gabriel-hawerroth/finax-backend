@@ -1,12 +1,12 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL;
+import br.finax.dto.InterfacesSQL.CardBasicList;
+import br.finax.dto.InterfacesSQL.UserCreditCards;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.CreditCard;
 import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public class CreditCardService {
     private final CreditCardRepository creditCardRepository;
     private final UtilsService utilsService;
 
-    public List<InterfacesSQL.UserCreditCards> getByUser() {
+    public List<UserCreditCards> getByUser() {
         return creditCardRepository.getAllByUser(utilsService.getAuthUser().getId());
     }
 
@@ -26,11 +26,11 @@ public class CreditCardService {
         return creditCardRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
-    public ResponseEntity<CreditCard> save(CreditCard card) {
-        return ResponseEntity.ok().body(creditCardRepository.save(card));
+    public CreditCard save(CreditCard card) {
+        return creditCardRepository.save(card);
     }
 
-    public List<InterfacesSQL.CardBasicList> getBasicList() {
+    public List<CardBasicList> getBasicList() {
         return creditCardRepository.getBasicList(utilsService.getAuthUser().getId());
     }
 }

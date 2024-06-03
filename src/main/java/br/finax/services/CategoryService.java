@@ -6,7 +6,6 @@ import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,7 +32,7 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public ResponseEntity<Void> deleteById(long id) {
+    public void deleteById(long id) {
         try {
             categoryRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
@@ -44,7 +43,5 @@ public class CategoryService {
 
             categoryRepository.save(category);
         }
-
-        return ResponseEntity.ok().build();
     }
 }

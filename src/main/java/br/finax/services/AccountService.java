@@ -8,7 +8,6 @@ import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,14 +30,28 @@ public class AccountService {
         return accountRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
-    public ResponseEntity<Account> save(Account account) {
-        return ResponseEntity.ok().body(accountRepository.save(account));
+    public List<AccountBasicList> getBasicList() {
+        return accountRepository.getBasicList(utilsService.getAuthUser().getId());
     }
 
-    public ResponseEntity<Account> adjustBalance(long accountId, BigDecimal newBalance) {
-        final Account account = accountRepository.findById(accountId)
+    public Account save(Account account) {
+        return accountRepository.save(account);
+    }
+
+    public Account adjustBalance(long accountId, BigDecimal newBalance) {
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(NotFoundException::new);
 
+        account.setBalance(newBalance);
+
+        account = accountRepository.save(account);
+
+        createNewCashFlowRelease(account, newBalance);
+
+        return account;
+    }
+
+    private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
         final CashFlow release = new CashFlow();
         release.setUserId(account.getUserId());
         release.setDescription("");
@@ -54,13 +67,5 @@ public class AccountService {
         release.setDate(LocalDate.now());
 
         cashFlowRepository.save(release);
-
-        account.setBalance(newBalance);
-
-        return ResponseEntity.ok().body(accountRepository.save(account));
-    }
-
-    public List<AccountBasicList> getBasicList() {
-        return accountRepository.getBasicList(utilsService.getAuthUser().getId());
     }
 }

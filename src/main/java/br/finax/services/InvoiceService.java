@@ -8,7 +8,6 @@ import br.finax.models.InvoicePayment;
 import br.finax.repository.*;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,9 +63,8 @@ public class InvoiceService {
         return invoicePaymentRepository.save(payment);
     }
 
-    public ResponseEntity<Void> deletePayment(long invoicePaymentId) {
+    public void deletePayment(long invoicePaymentId) {
         invoicePaymentRepository.deleteById(invoicePaymentId);
-        return ResponseEntity.ok().build();
     }
 
     public InvoicePayment saveInvoiceAttachment(long invoiceId, MultipartFile attachment) {
@@ -108,11 +106,9 @@ public class InvoiceService {
         return invoicePaymentRepository.save(payment);
     }
 
-    public ResponseEntity<byte[]> getPaymentAttachment(long invoicePaymentId) {
-        return ResponseEntity.ok().body(
-                invoicePaymentRepository.findById(invoicePaymentId)
-                        .orElseThrow(NotFoundException::new)
-                        .getAttachment()
-        );
+    public byte[] getPaymentAttachment(long invoicePaymentId) {
+        return invoicePaymentRepository.findById(invoicePaymentId)
+                .orElseThrow(NotFoundException::new)
+                .getAttachment();
     }
 }

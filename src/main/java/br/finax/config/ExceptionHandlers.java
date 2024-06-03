@@ -21,6 +21,13 @@ public class ExceptionHandlers {
         return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
     }
 
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ResponseError> emailAlreadyExistsException(EmailAlreadyExistsException ex) {
+        return ResponseEntity.badRequest().body(
+                new ResponseError("this email is already in use")
+        );
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ResponseError> unauthorizedException(UnauthorizedException ex) {
         return ResponseEntity.status(401).build();
@@ -40,7 +47,9 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ResponseError> notFoundException(NotFoundException ex) {
-        return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
+        return ResponseEntity.badRequest().body(
+                new ResponseError("entity not found")
+        );
     }
 
     @ExceptionHandler(UnsendedEmailException.class)

@@ -9,30 +9,38 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/category")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @GetMapping("/get-by-user")
-    public List<Category> getByUser() {
-        return categoryService.getByUser();
+    public ResponseEntity<List<Category>> getByUser() {
+        return ResponseEntity.ok(
+                categoryService.getByUser()
+        );
     }
 
     @GetMapping("/{id}")
-    public Category getById(@PathVariable long id) {
-        return categoryService.getById(id);
+    public ResponseEntity<Category> getById(@PathVariable long id) {
+        return ResponseEntity.ok(
+                categoryService.getById(id)
+        );
     }
 
     @PostMapping
-    public Category save(@RequestBody @Valid Category category) {
-        return categoryService.save(category);
+    public ResponseEntity<Category> save(@RequestBody @Valid Category category) {
+        return ResponseEntity.ok(
+                categoryService.save(category)
+        );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable long id) {
-        return categoryService.deleteById(id);
+        categoryService.deleteById(id);
+
+        return ResponseEntity.ok().build();
     }
 }

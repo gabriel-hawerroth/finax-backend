@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.Date;
 
 @RestController
@@ -22,19 +23,23 @@ public class CashFlowController {
     public final CashFlowService cashFlowService;
 
     @GetMapping
-    public MonthlyCashFlow getMonthlyFlow(
+    public ResponseEntity<MonthlyCashFlow> getMonthlyFlow(
             @RequestParam Date firstDt, @RequestParam Date lastDt,
             @RequestParam String viewMode, @RequestParam Date firstDtCurrentMonth,
             @RequestParam Date firstDtInvoice, @RequestParam Date lastDtInvoice
     ) {
-        return cashFlowService.getMonthlyFlow(
-                firstDt, lastDt, ReleasesViewMode.valueOf(viewMode), firstDtCurrentMonth, firstDtInvoice, lastDtInvoice
+        return ResponseEntity.ok(
+                cashFlowService.getMonthlyFlow(
+                        firstDt, lastDt, ReleasesViewMode.valueOf(viewMode), firstDtCurrentMonth, firstDtInvoice, lastDtInvoice
+                )
         );
     }
 
     @GetMapping("/get-values")
-    public CashFlowValues getValues() {
-        return cashFlowService.getValues();
+    public ResponseEntity<CashFlowValues> getValues() {
+        return ResponseEntity.ok(
+                cashFlowService.getValues()
+        );
     }
 
     @PostMapping
@@ -42,7 +47,13 @@ public class CashFlowController {
             @RequestBody @Valid CashFlow release,
             @RequestParam int repeatFor
     ) {
-        return cashFlowService.addRelease(release, repeatFor);
+        final CashFlow cashFlow = cashFlowService.addRelease(release, repeatFor);
+
+        final URI uri = URI.create("/cash-flow/" + cashFlow.getId());
+
+        return ResponseEntity.created(uri).body(
+                cashFlow
+        );
     }
 
     @PutMapping
@@ -50,27 +61,38 @@ public class CashFlowController {
             @RequestBody @Valid CashFlow release,
             @RequestParam String duplicatedReleaseAction
     ) {
-        return cashFlowService.editRelease(
-                release, DuplicatedReleaseAction.valueOf(duplicatedReleaseAction));
+        return ResponseEntity.ok(
+                cashFlowService.editRelease(
+                        release, DuplicatedReleaseAction.valueOf(duplicatedReleaseAction)
+                )
+        );
     }
 
-    @PutMapping("/add-attachment/{id}")
+    @PatchMapping("/add-attachment/{id}")
     public ResponseEntity<CashFlow> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
-        return cashFlowService.addAttachment(id, file);
+        return ResponseEntity.ok(
+                cashFlowService.addAttachment(id, file)
+        );
     }
 
-    @DeleteMapping("/remove-attachment/{id}")
+    @PatchMapping("/remove-attachment/{id}")
     public ResponseEntity<CashFlow> removeAttachment(@PathVariable long id) {
-        return cashFlowService.removeAttachment(id);
+        return ResponseEntity.ok(
+                cashFlowService.removeAttachment(id)
+        );
     }
 
     @GetMapping("/get-attachment/{id}")
     public ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
-        return cashFlowService.getAttachment(id);
+        return ResponseEntity.ok(
+                cashFlowService.getAttachment(id)
+        );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
-        return cashFlowService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
+        cashFlowService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
+
+        return ResponseEntity.ok().build();
     }
 }
