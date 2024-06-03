@@ -4,9 +4,6 @@ import br.finax.dto.HomeValues;
 import br.finax.dto.SpendByCategory;
 import br.finax.models.CashFlow;
 import br.finax.models.Category;
-import br.finax.repository.AccountsRepository;
-import br.finax.repository.CashFlowRepository;
-import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,23 +18,24 @@ import static br.finax.utils.DateUtils.dateToLocalDate;
 @RequiredArgsConstructor
 public class HomeService {
 
-    private final AccountsRepository accountsRepository;
-    private final CashFlowRepository cashFlowRepository;
-    private final CategoryRepository categoryRepository;
+    private final CashFlowService cashFlowService;
+    private final AccountService accountService;
+    private final CategoryService categoryService;
+
     private final UtilsService utilsService;
 
     public HomeValues getHomeValues(Date firstDt, Date lastDt) {
         final long userId = utilsService.getAuthUser().getId();
 
         return new HomeValues(
-                cashFlowRepository.getHomeBalances(userId, firstDt, lastDt),
-                accountsRepository.getHomeAccountsList(userId),
-                cashFlowRepository.getUpcomingReleasesExpected(userId)
+                cashFlowService.getHomeBalances(userId, firstDt, lastDt),
+                accountService.getHomeAccountsList(userId),
+                cashFlowService.getUpcomingReleasesExpected(userId)
         );
     }
 
     public List<SpendByCategory> getSpendsByCategory(Date firstDt, Date lastDt) {
-        final List<CashFlow> expenses = cashFlowRepository.findByUserIdAndDateBetweenAndTypeAndDone(
+        final List<CashFlow> expenses = cashFlowService.findByUserIdAndDateBetweenAndTypeAndDone(
                 utilsService.getAuthUser().getId(),
                 dateToLocalDate(firstDt),
                 dateToLocalDate(lastDt),
@@ -47,7 +45,7 @@ public class HomeService {
 
         final Map<Long, Category> categoryMap = new HashMap<>();
         final List<Long> categoryIds = expenses.stream().map(CashFlow::getCategoryId).toList();
-        final List<Category> categories = categoryRepository.findByIdIn(categoryIds);
+        final List<Category> categories = categoryService.findByIdIn(categoryIds);
         categories.forEach(category -> categoryMap.put(category.getId(), category));
 
         final BigDecimal totalExpense = expenses.stream()

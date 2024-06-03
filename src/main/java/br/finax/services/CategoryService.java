@@ -15,6 +15,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+
     private final UtilsService utilsService;
 
     public List<Category> getByUser() {
@@ -43,5 +44,13 @@ public class CategoryService {
 
             categoryRepository.save(category);
         }
+    }
+
+    public List<Category> findByIdIn(List<Long> categoryIds) {
+        return categoryRepository.findByIdIn(categoryIds);
+    }
+
+    public void insertNewUserCategories(long userId) {
+        categoryRepository.insertNewUserCategories(userId);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class UserConfigsService {
 
     private final UserConfigsRepository userConfigsRepository;
+
     private final UtilsService utilsService;
 
     public UserConfigs getByUser() {

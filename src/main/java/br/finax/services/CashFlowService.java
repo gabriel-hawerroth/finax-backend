@@ -1,6 +1,7 @@
 package br.finax.services;
 
 import br.finax.dto.CashFlowValues;
+import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
@@ -9,12 +10,9 @@ import br.finax.exceptions.EmptyFileException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
-import br.finax.repository.AccountsRepository;
 import br.finax.repository.CashFlowRepository;
-import br.finax.repository.CategoryRepository;
-import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,15 +26,24 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-@RequiredArgsConstructor
 public class CashFlowService {
 
     private final CashFlowRepository cashFlowRepository;
-    private final CreditCardRepository creditCardRepository;
-    private final AccountsRepository accountsRepository;
-    private final CategoryRepository categoryRepository;
+
+    private final CreditCardService creditCardService;
+    private final AccountService accountService;
+    private final CategoryService categoryService;
 
     private final UtilsService utils;
+
+    @Lazy
+    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, UtilsService utils) {
+        this.cashFlowRepository = cashFlowRepository;
+        this.creditCardService = creditCardService;
+        this.accountService = accountService;
+        this.categoryService = categoryService;
+        this.utils = utils;
+    }
 
     public MonthlyCashFlow getMonthlyFlow(
             final Date firstDt, final Date lastDt,
@@ -59,17 +66,15 @@ public class CashFlowService {
     }
 
     public CashFlowValues getValues() {
-        final long userId = utils.getAuthUser().getId();
-
         return new CashFlowValues(
-                accountsRepository.getBasicList(userId),
-                categoryRepository.findByUser(userId),
-                creditCardRepository.getBasicList(userId)
+                accountService.getBasicList(),
+                categoryService.getByUser(),
+                creditCardService.getBasicList()
         );
     }
 
     public CashFlow addRelease(final CashFlow release, final int repeatFor) {
-        if (release.getRepeat().isBlank())
+        if (release.getRepeat() != null && release.getRepeat().isBlank())
             return cashFlowRepository.save(release);
 
         final boolean isFixedRepeat = release.getRepeat().equals("fixed");
@@ -240,5 +245,21 @@ public class CashFlowService {
             case "annual" -> dt.plusYears(1);
             default -> dt;
         };
+    }
+
+    public InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt) {
+        return cashFlowRepository.getHomeBalances(userId, firstDt, lastDt);
+    }
+
+    public List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId) {
+        return cashFlowRepository.getUpcomingReleasesExpected(userId);
+    }
+
+    public List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long id, LocalDate startDate, LocalDate endDate, String type, boolean done) {
+        return cashFlowRepository.findByUserIdAndDateBetweenAndTypeAndDone(id, startDate, endDate, type, done);
+    }
+
+    public List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, Date firstDt, Date lastDt) {
+        return cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
     }
 }

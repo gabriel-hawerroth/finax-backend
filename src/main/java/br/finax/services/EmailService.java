@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+    
     private final JavaMailSender javaMailSender;
 
     public void sendMail(EmailDTO email) throws MessagingException {

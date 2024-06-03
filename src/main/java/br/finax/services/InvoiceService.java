@@ -3,9 +3,7 @@ package br.finax.services;
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
 import br.finax.exceptions.CompressionErrorException;
-import br.finax.exceptions.NotFoundException;
 import br.finax.models.InvoicePayment;
-import br.finax.repository.*;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,12 +17,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class InvoiceService {
 
-    private final InvoicePaymentRepository invoicePaymentRepository;
-    private final CashFlowRepository cashFlowRepository;
+    private final InvoicePaymentService invoicePaymentService;
+    private final CashFlowService cashFlowService;
 
-    private final AccountsRepository accountsRepository;
-    private final CategoryRepository categoryRepository;
-    private final CreditCardRepository creditCardRepository;
+    private final AccountService accountService;
+    private final CategoryService categoryService;
+    private final CreditCardService creditCardService;
 
     private final UtilsService utils;
 
@@ -35,44 +33,40 @@ public class InvoiceService {
         final long userId = utils.getAuthUser().getId();
 
         return new InvoiceMonthValues(
-                invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth),
-                cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt),
-                invoicePaymentRepository.getInvoicePreviousBalance(userId, creditCardId, firstDt)
+                invoicePaymentService.getInvoicePayments(creditCardId, selectedMonth),
+                cashFlowService.getByInvoice(userId, creditCardId, firstDt, lastDt),
+                invoicePaymentService.getInvoicePreviousBalance(userId, creditCardId, firstDt)
         );
     }
 
     public InvoiceValues getValues() {
-        final long userId = utils.getAuthUser().getId();
-
         return new InvoiceValues(
-                accountsRepository.getBasicList(userId),
-                categoryRepository.findByUser(userId),
-                creditCardRepository.getBasicList(userId)
+                accountService.getBasicList(),
+                categoryService.getByUser(),
+                creditCardService.getBasicList()
         );
     }
 
     public InvoicePayment savePayment(InvoicePayment payment) {
         if (payment.getId() != null) {
-            final InvoicePayment invoicePayment = invoicePaymentRepository.findById(payment.getId())
-                    .orElseThrow(NotFoundException::new);
+            final InvoicePayment invoicePayment = invoicePaymentService.findById(payment.getId());
 
             payment.setAttachment(invoicePayment.getAttachment());
             payment.setAttachment_name(invoicePayment.getAttachment_name());
         }
 
-        return invoicePaymentRepository.save(payment);
+        return invoicePaymentService.save(payment);
     }
 
     public void deletePayment(long invoicePaymentId) {
-        invoicePaymentRepository.deleteById(invoicePaymentId);
+        invoicePaymentService.deleteById(invoicePaymentId);
     }
 
     public InvoicePayment saveInvoiceAttachment(long invoiceId, MultipartFile attachment) {
         if (attachment == null || attachment.isEmpty())
             throw new IllegalArgumentException("invalid attachment");
 
-        final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
-                .orElseThrow(NotFoundException::new);
+        final InvoicePayment payment = invoicePaymentService.findById(invoiceId);
 
         final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
 
@@ -93,22 +87,20 @@ public class InvoiceService {
             throw new CompressionErrorException();
         }
 
-        return invoicePaymentRepository.save(payment);
+        return invoicePaymentService.save(payment);
     }
 
     public InvoicePayment removeAttachment(long invoiceId) {
-        final InvoicePayment payment = invoicePaymentRepository.findById(invoiceId)
-                .orElseThrow(NotFoundException::new);
+        final InvoicePayment payment = invoicePaymentService.findById(invoiceId);
 
         payment.setAttachment(null);
         payment.setAttachment_name(null);
 
-        return invoicePaymentRepository.save(payment);
+        return invoicePaymentService.save(payment);
     }
 
     public byte[] getPaymentAttachment(long invoicePaymentId) {
-        return invoicePaymentRepository.findById(invoicePaymentId)
-                .orElseThrow(NotFoundException::new)
+        return invoicePaymentService.findById(invoicePaymentId)
                 .getAttachment();
     }
 }

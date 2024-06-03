@@ -2,13 +2,9 @@ package br.finax.services;
 
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
-import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.UnsendedEmailException;
 import br.finax.models.Token;
 import br.finax.models.User;
-import br.finax.repository.CategoryRepository;
-import br.finax.repository.TokenRepository;
-import br.finax.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,29 +15,24 @@ public class LoginService {
 
     private final EmailService emailService;
     private final UserTokenService userTokenService;
-
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final CategoryRepository categoryRepository;
+    private final UserService userService;
+    private final CategoryService categoryService;
 
     public void activateUser(Long userId, String token) {
-        final String savedToken = tokenRepository.findByUserId(userId)
-                .orElseThrow(NotFoundException::new).getToken();
+        final String savedToken = userTokenService.findByUserId(userId).getToken();
 
-        final User user = userRepository.findById(userId)
-                .orElseThrow(NotFoundException::new);
+        final User user = userService.findById(userId);
 
         if (savedToken.equals(token)) {
             user.setActive(true);
-            userRepository.save(user);
+            userService.save(user);
         }
 
-        categoryRepository.insertNewUserCategories(userId);
+        categoryService.insertNewUserCategories(userId);
     }
 
     public void sendChangePasswordMail(String email) {
-        final User user = userRepository.findByEmail(email)
-                .orElseThrow(NotFoundException::new);
+        final User user = userService.findByEmail(email);
 
         final Token token = userTokenService.generateToken(user);
 
@@ -59,15 +50,13 @@ public class LoginService {
     }
 
     public void permitChangePassword(Long userId, String token) {
-        final String savedToken = tokenRepository.findByUserId(userId)
-                .orElseThrow(NotFoundException::new).getToken();
+        final String savedToken = userTokenService.findByUserId(userId).getToken();
 
-        final User user = userRepository.findById(userId)
-                .orElseThrow(NotFoundException::new);
+        final User user = userService.findById(userId);
 
         if (savedToken.equals(token)) {
             user.setCanChangePassword(true);
-            userRepository.save(user);
+            userService.save(user);
         }
     }
 }
