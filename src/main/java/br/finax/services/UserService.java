@@ -3,7 +3,9 @@ package br.finax.services;
 import br.finax.exceptions.*;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
+import br.finax.security.SecurityFilter;
 import br.finax.utils.UtilsService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final UtilsService utils;
+    private final SecurityFilter securityFilter;
     private final PasswordEncoder passwordEncoder;
 
     public User findByEmail(@NotNull String email) {
@@ -46,34 +49,38 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setCanChangePassword(false);
 
+        securityFilter.updateCachedUser(user);
+
         return userRepository.save(user);
     }
 
     public User changePassword(String newPassword, String currentPassword) {
         final User user = utils.getAuthUser();
 
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(currentPassword, user.getPassword()))
             throw new InvalidPasswordException();
-        }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        newPassword = passwordEncoder.encode(newPassword);
 
+        userRepository.updatePassword(user.getId(), newPassword);
+
+        return findById(user.getId());
+    }
+
+    public User editUser(User userDTO) {
+        final User user = userRepository.findById(userDTO.getId())
+                .orElseThrow(NotFoundException::new);
+
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+
+        securityFilter.updateCachedUser(user);
         return userRepository.save(user);
     }
 
-    public User editUser(User user) {
-        final User existentUser = userRepository.findById(user.getId())
-                .orElseThrow(NotFoundException::new);
-
-        existentUser.setFirstName(user.getFirstName());
-        existentUser.setLastName(user.getLastName());
-
-        return userRepository.save(existentUser);
-    }
-
+    @Transactional
     public User changeUserImage(MultipartFile file) throws IOException {
-        final User user = userRepository.findById(utils.getAuthUser().getId())
-                .orElseThrow(NotFoundException::new);
+        final long userId = utils.getAuthUser().getId();
 
         if (file.isEmpty())
             throw new EmptyFileException();
@@ -90,9 +97,12 @@ public class UserService {
             }
         }
 
-        user.setProfileImage(image);
+        userRepository.updateProfileImage(userId, image);
 
-        return userRepository.save(user);
+        final User user = findById(userId);
+
+        securityFilter.updateCachedUser(user);
+        return user;
     }
 
     public byte[] getUserImage() {
@@ -100,6 +110,7 @@ public class UserService {
     }
 
     public User save(User user) {
+        securityFilter.updateCachedUser(user);
         return userRepository.save(user);
     }
 }
