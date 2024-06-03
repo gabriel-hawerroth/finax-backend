@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-update_prod.cmd
+updateProd.cmd
 
 ### STS ###
 .apt_generated

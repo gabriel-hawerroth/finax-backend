@@ -45,7 +45,7 @@ public class LoginService {
 
         categoryRepository.insertNewUserCategories(userId);
 
-        final URI uri = URI.create("https://hawetec.com.br/finax/ativacao-da-conta");
+        final URI uri = URI.create("https://finax.hawetec.com.br/ativacao-da-conta");
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)
@@ -80,7 +80,7 @@ public class LoginService {
         }
 
         final URI uri = URI.create(UriComponentsBuilder
-                .fromUriString("https://hawetec.com.br/finax/recuperacao-da-senha/" + user.getId()).build().toUriString());
+                .fromUriString("https://finax.hawetec.com.br/recuperacao-da-senha/" + user.getId()).build().toUriString());
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)
