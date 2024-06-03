@@ -30,6 +30,7 @@ public class SecurityConfigurations {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/login/**").permitAll()
                         .requestMatchers("/user/{id}").permitAll()
+                        .requestMatchers("/user-configs/save").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

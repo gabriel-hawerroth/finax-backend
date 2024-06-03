@@ -1,6 +1,7 @@
 package br.finax.services;
 
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
 import br.finax.utils.UtilsService;
@@ -21,6 +22,10 @@ public class UserConfigsService {
     }
 
     public ResponseEntity<UserConfigs> save(UserConfigs userConfigs) {
+        if (userConfigs.getUserId() != utilsService.getAuthUser().getId()) {
+            throw new WithoutPermissionException();
+        }
+
         return ResponseEntity.ok().body(userConfigsRepository.save(userConfigs));
     }
 }

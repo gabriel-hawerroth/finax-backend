@@ -31,6 +31,13 @@ public class ExceptionHandlers {
         return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
     }
 
+    @ExceptionHandler(WithoutPermissionException.class)
+    public ResponseEntity<ResponseError> withoutPermissionException(WithoutPermissionException ex) {
+        return ResponseEntity.badRequest().body(
+                new ResponseError("whitout permission to perform this action")
+        );
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ResponseError> notFoundException(NotFoundException ex) {
         return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
