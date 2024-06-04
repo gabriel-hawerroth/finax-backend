@@ -5,25 +5,23 @@ import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
-import br.finax.exceptions.CompressionErrorException;
-import br.finax.exceptions.EmptyFileException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.repository.CashFlowRepository;
+import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
+import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class CashFlowService {
@@ -35,14 +33,21 @@ public class CashFlowService {
     private final AccountService accountService;
 
     private final UtilsService utils;
+    private final FileUtils fileUtils;
 
     @Lazy
-    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, UtilsService utils) {
+    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, UtilsService utils, FileUtils fileUtils) {
         this.cashFlowRepository = cashFlowRepository;
         this.creditCardService = creditCardService;
         this.accountService = accountService;
         this.categoryService = categoryService;
         this.utils = utils;
+        this.fileUtils = fileUtils;
+    }
+
+    public CashFlow findById(@NonNull Long id) {
+        return cashFlowRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
     }
 
     public MonthlyCashFlow getMonthlyFlow(
@@ -76,6 +81,9 @@ public class CashFlowService {
     public CashFlow addRelease(final CashFlow release, final int repeatFor) {
         if (release.getRepeat() != null && release.getRepeat().isBlank())
             return cashFlowRepository.save(release);
+
+        if (release.getRepeat() == null)
+            release.setRepeat("");
 
         final boolean isFixedRepeat = release.getRepeat().equals("fixed");
         BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
@@ -112,8 +120,7 @@ public class CashFlowService {
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
-        final CashFlow existingRelease = cashFlowRepository.findById(release.getId())
-                .orElseThrow(NotFoundException::new);
+        final CashFlow existingRelease = findById(release.getId());
 
         // things that can't change
         release.setUserId(existingRelease.getUserId());
@@ -161,37 +168,16 @@ public class CashFlowService {
     }
 
     public CashFlow addAttachment(long id, final MultipartFile attachment) {
-        final CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+        final CashFlow release = findById(id);
 
-        if (attachment.isEmpty())
-            throw new EmptyFileException();
-
-        final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
-
-        try {
-            switch (fileExtension) {
-                case "pdf":
-                    release.setAttachment(utils.compressPdf(attachment.getBytes()));
-                    break;
-                case "png", "webp":
-                    release.setAttachment(attachment.getBytes());
-                    break;
-                default:
-                    release.setAttachment(utils.compressImage(attachment.getBytes(), true));
-            }
-        } catch (IOException e) {
-            throw new CompressionErrorException();
-        }
-
+        release.setAttachment(fileUtils.compressFile(attachment, true));
         release.setAttachmentName(attachment.getOriginalFilename());
 
         return cashFlowRepository.save(release);
     }
 
     public CashFlow removeAttachment(long id) {
-        final CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+        final CashFlow release = findById(id);
 
         release.setAttachment(null);
         release.setAttachmentName(null);
@@ -200,14 +186,11 @@ public class CashFlowService {
     }
 
     public byte[] getAttachment(long id) {
-        return cashFlowRepository.findById(id)
-                .orElseThrow(NotFoundException::new)
-                .getAttachment();
+        return findById(id).getAttachment();
     }
 
     public void delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
-        final CashFlow release = cashFlowRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+        final CashFlow release = findById(id);
 
         switch (duplicatedReleasesAction) {
             case NEXTS -> cashFlowRepository.deleteAll(

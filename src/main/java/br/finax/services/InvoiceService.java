@@ -2,16 +2,14 @@ package br.finax.services;
 
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
-import br.finax.exceptions.CompressionErrorException;
 import br.finax.models.InvoicePayment;
+import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.Date;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +23,7 @@ public class InvoiceService {
     private final AccountService accountService;
 
     private final UtilsService utils;
+    private final FileUtils fileUtils;
 
     public InvoiceMonthValues getInvoiceAndReleases(
             long creditCardId, String selectedMonth,
@@ -63,29 +62,10 @@ public class InvoiceService {
     }
 
     public InvoicePayment saveInvoiceAttachment(long invoiceId, MultipartFile attachment) {
-        if (attachment == null || attachment.isEmpty())
-            throw new IllegalArgumentException("invalid attachment");
-
         final InvoicePayment payment = invoicePaymentService.findById(invoiceId);
 
-        final String fileExtension = Objects.requireNonNull(attachment.getOriginalFilename()).split("\\.")[1];
-
+        payment.setAttachment(fileUtils.compressFile(attachment, true));
         payment.setAttachment_name(attachment.getOriginalFilename());
-
-        try {
-            switch (fileExtension) {
-                case "pdf":
-                    payment.setAttachment(utils.compressPdf(attachment.getBytes()));
-                    break;
-                case "png", "webp":
-                    payment.setAttachment(attachment.getBytes());
-                    break;
-                default:
-                    payment.setAttachment(utils.compressImage(attachment.getBytes(), true));
-            }
-        } catch (IOException ioException) {
-            throw new CompressionErrorException();
-        }
 
         return invoicePaymentService.save(payment);
     }

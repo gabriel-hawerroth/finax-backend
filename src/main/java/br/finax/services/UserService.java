@@ -1,9 +1,12 @@
 package br.finax.services;
 
-import br.finax.exceptions.*;
+import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.InvalidPasswordException;
+import br.finax.exceptions.NotFoundException;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
+import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
@@ -11,9 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,8 @@ public class UserService {
 
     private final SecurityFilter securityFilter;
     private final UtilsService utils;
-    
+    private final FileUtils fileUtils;
+
     private final PasswordEncoder passwordEncoder;
 
     public User findByEmail(@NotNull String email) {
@@ -80,29 +81,15 @@ public class UserService {
     }
 
     @Transactional
-    public User changeUserImage(MultipartFile file) throws IOException {
+    public User changeUserImage(MultipartFile file) {
         final long userId = utils.getAuthUser().getId();
 
-        if (file.isEmpty())
-            throw new EmptyFileException();
-
-        byte[] image = file.getBytes();
-
-        final String imgExtension = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[1];
-
-        if (!imgExtension.equals("png") && !imgExtension.equals("webp")) {
-            try {
-                image = utils.compressImage(image, false);
-            } catch (IOException e) {
-                throw new CompressionErrorException();
-            }
-        }
-
-        userRepository.updateProfileImage(userId, image);
+        final byte[] compressedFile = fileUtils.compressFile(file);
+        userRepository.updateProfileImage(userId, compressedFile);
 
         final User user = findById(userId);
-
         securityFilter.updateCachedUser(user);
+
         return user;
     }
 

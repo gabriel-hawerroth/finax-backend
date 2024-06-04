@@ -57,11 +57,6 @@ public class ExceptionHandlers {
         return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
     }
 
-    @ExceptionHandler(CompressionErrorException.class)
-    public ResponseEntity<ResponseError> compressionErroException(CompressionErrorException ex) {
-        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
-    }
-
     @ExceptionHandler(InvalidHashAlgorithmException.class)
     public ResponseEntity<ResponseError> invalidHashAlgorithmException(InvalidHashAlgorithmException ex) {
         return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
@@ -74,7 +69,21 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(EmptyFileException.class)
     public ResponseEntity<ResponseError> emptyFileException(EmptyFileException ex) {
-        return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
+        return ResponseEntity.badRequest().body(
+                new ResponseError("the file is empty")
+        );
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ResponseError> invalidFileException(InvalidFileException ex) {
+        return ResponseEntity.badRequest().body(
+                new ResponseError(ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(FileCompressionErrorException.class)
+    public ResponseEntity<ResponseError> compressionErroException(FileCompressionErrorException ex) {
+        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
     }
 
     @ExceptionHandler(CannotChangePasswordException.class)
