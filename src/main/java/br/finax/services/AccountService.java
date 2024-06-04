@@ -19,17 +19,17 @@ public class AccountService {
     private final AccountsRepository accountsRepository;
 
     private final CashFlowService cashFlowService;
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     @Lazy
-    public AccountService(AccountsRepository accountsRepository, CashFlowService cashFlowService, UtilsService utilsService) {
+    public AccountService(AccountsRepository accountsRepository, CashFlowService cashFlowService, UtilsService utils) {
         this.accountsRepository = accountsRepository;
         this.cashFlowService = cashFlowService;
-        this.utilsService = utilsService;
+        this.utils = utils;
     }
 
     public List<Account> getByUser() {
-        return accountsRepository.findAllByUserIdOrderByIdAsc(utilsService.getAuthUser().getId());
+        return accountsRepository.findAllByUserIdOrderByIdAsc(utils.getAuthUser().getId());
     }
 
     public Account getById(long id) {
@@ -37,7 +37,7 @@ public class AccountService {
     }
 
     public List<AccountBasicList> getBasicList() {
-        return accountsRepository.getBasicList(utilsService.getAuthUser().getId());
+        return accountsRepository.getBasicList(utils.getAuthUser().getId());
     }
 
     public Account save(Account account) {

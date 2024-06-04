@@ -31,8 +31,8 @@ public class CashFlowService {
     private final CashFlowRepository cashFlowRepository;
 
     private final CreditCardService creditCardService;
-    private final AccountService accountService;
     private final CategoryService categoryService;
+    private final AccountService accountService;
 
     private final UtilsService utils;
 

@@ -11,8 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-@RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController {
 

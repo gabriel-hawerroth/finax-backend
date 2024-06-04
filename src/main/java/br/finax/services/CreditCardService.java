@@ -16,11 +16,11 @@ import java.util.List;
 public class CreditCardService {
 
     private final CreditCardRepository creditCardRepository;
-    
-    private final UtilsService utilsService;
+
+    private final UtilsService utils;
 
     public List<UserCreditCards> getByUser() {
-        return creditCardRepository.getAllByUser(utilsService.getAuthUser().getId());
+        return creditCardRepository.getAllByUser(utils.getAuthUser().getId());
     }
 
     public CreditCard getById(long id) {
@@ -32,6 +32,6 @@ public class CreditCardService {
     }
 
     public List<CardBasicList> getBasicList() {
-        return creditCardRepository.getBasicList(utilsService.getAuthUser().getId());
+        return creditCardRepository.getBasicList(utils.getAuthUser().getId());
     }
 }

@@ -13,10 +13,10 @@ public class UserConfigsService {
 
     private final UserConfigsRepository userConfigsRepository;
 
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public UserConfigs getByUser() {
-        return userConfigsRepository.findByUserId(utilsService.getAuthUser().getId())
+        return userConfigsRepository.findByUserId(utils.getAuthUser().getId())
                 .orElseThrow(NotFoundException::new);
     }
 

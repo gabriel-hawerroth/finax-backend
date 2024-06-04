@@ -18,11 +18,11 @@ import java.util.Objects;
 public class InvoiceService {
 
     private final InvoicePaymentService invoicePaymentService;
-    private final CashFlowService cashFlowService;
 
-    private final AccountService accountService;
-    private final CategoryService categoryService;
     private final CreditCardService creditCardService;
+    private final CashFlowService cashFlowService;
+    private final CategoryService categoryService;
+    private final AccountService accountService;
 
     private final UtilsService utils;
 

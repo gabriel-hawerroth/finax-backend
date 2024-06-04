@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
-@RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/login")
 public class LoginController {
 

@@ -19,13 +19,13 @@ import static br.finax.utils.DateUtils.dateToLocalDate;
 public class HomeService {
 
     private final CashFlowService cashFlowService;
-    private final AccountService accountService;
     private final CategoryService categoryService;
+    private final AccountService accountService;
 
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public HomeValues getHomeValues(Date firstDt, Date lastDt) {
-        final long userId = utilsService.getAuthUser().getId();
+        final long userId = utils.getAuthUser().getId();
 
         return new HomeValues(
                 cashFlowService.getHomeBalances(userId, firstDt, lastDt),
@@ -36,7 +36,7 @@ public class HomeService {
 
     public List<SpendByCategory> getSpendsByCategory(Date firstDt, Date lastDt) {
         final List<CashFlow> expenses = cashFlowService.findByUserIdAndDateBetweenAndTypeAndDone(
-                utilsService.getAuthUser().getId(),
+                utils.getAuthUser().getId(),
                 dateToLocalDate(firstDt),
                 dateToLocalDate(lastDt),
                 "E",

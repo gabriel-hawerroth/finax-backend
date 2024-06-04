@@ -16,11 +16,11 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    private final UtilsService utilsService;
+    private final UtilsService utils;
 
     public List<Category> getByUser() {
         return categoryRepository.findByUser(
-                utilsService.getAuthUser().getId()
+                utils.getAuthUser().getId()
         );
     }
 

@@ -11,7 +11,6 @@ public class AccessLogService {
 
     private final AccessLogRepository accessLogRepository;
 
-
     public void save(AccessLog accessLog) {
         accessLogRepository.save(accessLog);
     }

@@ -71,8 +71,6 @@ public class SecurityFilter extends OncePerRequestFilter {
     public void updateCachedUser(@NonNull User user) {
         if (usersCache.containsKey(user.getEmail())) {
             usersCache.replace(user.getEmail(), user);
-        } else {
-            throw new NotFoundException();
         }
     }
 }

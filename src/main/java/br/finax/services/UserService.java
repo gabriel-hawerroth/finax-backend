@@ -21,8 +21,9 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final UtilsService utils;
     private final SecurityFilter securityFilter;
+    private final UtilsService utils;
+    
     private final PasswordEncoder passwordEncoder;
 
     public User findByEmail(@NotNull String email) {

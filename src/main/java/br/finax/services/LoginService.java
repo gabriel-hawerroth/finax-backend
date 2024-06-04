@@ -13,10 +13,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LoginService {
 
-    private final EmailService emailService;
     private final UserTokenService userTokenService;
-    private final UserService userService;
     private final CategoryService categoryService;
+    private final EmailService emailService;
+    private final UserService userService;
 
     public void activateUser(Long userId, String token) {
         final String savedToken = userTokenService.findByUserId(userId).getToken();

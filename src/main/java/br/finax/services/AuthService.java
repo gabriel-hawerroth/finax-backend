@@ -28,10 +28,10 @@ public class AuthService {
 
     private final UserService userService;
 
-    private final TokenService tokenService;
-    private final UserTokenService userTokenService;
-    private final EmailService emailService;
     private final AccessLogService accessLogService;
+    private final UserTokenService userTokenService;
+    private final TokenService tokenService;
+    private final EmailService emailService;
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
