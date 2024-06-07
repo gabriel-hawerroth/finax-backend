@@ -16,7 +16,7 @@ public class InvoicePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private long credit_card_id;
 
     @NotBlank

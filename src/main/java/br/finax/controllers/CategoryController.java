@@ -16,17 +16,17 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Category> findById(@PathVariable long id) {
+        return ResponseEntity.ok(
+                categoryService.findById(id)
+        );
+    }
+
     @GetMapping("/get-by-user")
     public ResponseEntity<List<Category>> getByUser() {
         return ResponseEntity.ok(
                 categoryService.getByUser()
-        );
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Category> getById(@PathVariable long id) {
-        return ResponseEntity.ok(
-                categoryService.getById(id)
         );
     }
 

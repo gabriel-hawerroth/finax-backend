@@ -7,6 +7,7 @@ import br.finax.repository.TokenRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ public class UserTokenService {
 
     private final UtilsService utils;
 
+    @Transactional
     public Token generateToken(final User user) {
         final Optional<Token> existentToken = tokenRepository.findByUserId(user.getId());
 
@@ -35,6 +37,7 @@ public class UserTokenService {
         return tokenRepository.save(token);
     }
 
+    @Transactional(readOnly = true)
     public Token findByUserId(Long userId) {
         return tokenRepository.findByUserId(userId)
                 .orElseThrow(NotFoundException::new);

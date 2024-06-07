@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -54,7 +52,7 @@ public class UserController {
     }
 
     @PatchMapping("/change-profile-image")
-    public ResponseEntity<User> changeUserImage(@RequestParam @NotNull MultipartFile file) throws IOException {
+    public ResponseEntity<User> changeUserImage(@RequestParam @NotNull MultipartFile file) {
         return ResponseEntity.ok(
                 userService.changeUserImage(file)
         );

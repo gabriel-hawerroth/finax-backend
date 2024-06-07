@@ -8,6 +8,7 @@ import br.finax.repository.CreditCardRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,18 +20,23 @@ public class CreditCardService {
 
     private final UtilsService utils;
 
+    @Transactional(readOnly = true)
+    public CreditCard findById(long id) {
+        return creditCardRepository.findById(id).orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
     public List<UserCreditCards> getByUser() {
         return creditCardRepository.getAllByUser(utils.getAuthUser().getId());
     }
 
-    public CreditCard getById(long id) {
-        return creditCardRepository.findById(id).orElseThrow(NotFoundException::new);
-    }
-
+    @Transactional
     public CreditCard save(CreditCard card) {
+        card.setUser_id(utils.getAuthUser().getId());
         return creditCardRepository.save(card);
     }
 
+    @Transactional(readOnly = true)
     public List<CardBasicList> getBasicList() {
         return creditCardRepository.getBasicList(utils.getAuthUser().getId());
     }

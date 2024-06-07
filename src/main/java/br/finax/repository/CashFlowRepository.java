@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
+
     @Query(value = """
             SELECT
                 cf.id,
@@ -54,7 +55,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id asc
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
+    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
@@ -142,7 +143,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 date, time, id
             """, nativeQuery = true)
     List<InterfacesSQL.MonthlyReleases> getMonthlyReleasesInvoiceMode(
-            long userId, @NonNull Date firstDt, @NonNull Date lastDt, @NonNull Date firstDtInvoice, @NonNull Date lastDtInvoice
+            long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, @NonNull Date firstDtInvoice, @NonNull Date lastDtInvoice
     );
 
     @Query(value = """
@@ -177,7 +178,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.done IS FALSE
                 AND cf.account_id IS NOT NULL
             """, nativeQuery = true)
-    double getExpectedBalance(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
+    double getExpectedBalance(long userId, @NonNull Date firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
@@ -303,7 +304,19 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
     List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull Date firstDt, @NonNull Date lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
-    List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(
-            long userId, @NonNull LocalDate startDate, @NonNull LocalDate endDate, @NonNull String type, boolean done
+    @Query(value = """
+            SELECT
+                *
+            FROM
+                cash_flow cf
+            WHERE
+                cf.user_id = :userId
+                AND cf.date between :firstDt AND :lastDt
+                AND cf.type = 'E'
+                AND cf.done IS TRUE
+                AND cf.category_id <> 1
+            """, nativeQuery = true)
+    List<CashFlow> findReleasesForHomeSpendsCategory(
+            long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt
     );
 }

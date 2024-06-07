@@ -24,8 +24,7 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 AND ip.invoice_month_year = :monthYear
             ORDER BY
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
-            """, nativeQuery = true
-    )
+            """, nativeQuery = true)
     List<InvoicePaymentsPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
 
     @Query(value = """
@@ -45,7 +44,6 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 AND cf.creditCardId = :creditCardId
                 AND cf.date < :firstDt
                 AND cf.done is true
-            """, nativeQuery = true
-    )
+            """, nativeQuery = true)
     double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull Date firstDt);
 }

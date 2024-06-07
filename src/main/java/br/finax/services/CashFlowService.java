@@ -5,7 +5,9 @@ import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
+import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.repository.CashFlowRepository;
@@ -14,11 +16,13 @@ import br.finax.utils.UtilsService;
 import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,17 +49,22 @@ public class CashFlowService {
         this.fileUtils = fileUtils;
     }
 
+    @Transactional(readOnly = true)
     public CashFlow findById(@NonNull Long id) {
         return cashFlowRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
     public MonthlyCashFlow getMonthlyFlow(
-            final Date firstDt, final Date lastDt,
+            final LocalDate firstDt, final LocalDate lastDt,
             final ReleasesViewMode viewMode, final Date firstDtCurrentMonth,
             final Date firstDtInvoice, final Date lastDtInvoice
     ) {
         final long userId = utils.getAuthUser().getId();
+
+        if (ChronoUnit.DAYS.between(firstDt, lastDt) > 31)
+            throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
 
         return switch (viewMode) {
             case releases -> new MonthlyCashFlow(
@@ -70,6 +79,7 @@ public class CashFlowService {
         };
     }
 
+    @Transactional(readOnly = true)
     public CashFlowValues getValues() {
         return new CashFlowValues(
                 accountService.getBasicList(),
@@ -78,14 +88,14 @@ public class CashFlowService {
         );
     }
 
-    public CashFlow addRelease(final CashFlow release, final int repeatFor) {
+    @Transactional
+    public CashFlow addRelease(final @NonNull CashFlow release, final int repeatFor) {
+        release.setUserId(utils.getAuthUser().getId());
+
         if (release.getRepeat() != null && release.getRepeat().isBlank())
             return cashFlowRepository.save(release);
 
-        if (release.getRepeat() == null)
-            release.setRepeat("");
-
-        final boolean isFixedRepeat = release.getRepeat().equals("fixed");
+        final boolean isFixedRepeat = release.getRepeat() != null && release.getRepeat().equals("fixed");
         BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
 
         if (!isFixedRepeat) {
@@ -114,8 +124,9 @@ public class CashFlowService {
         return savedRelease;
     }
 
+    @Transactional
     public CashFlow editRelease(
-            CashFlow release, final DuplicatedReleaseAction duplicatedReleaseAction
+            @NonNull CashFlow release, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
     ) {
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
@@ -131,9 +142,8 @@ public class CashFlowService {
         release.setRepeat(existingRelease.getRepeat());
         release.setFixedBy(existingRelease.getFixedBy());
 
-        if (!updatingAll) {
+        if (!updatingAll)
             release = cashFlowRepository.save(release);
-        }
 
         if (updatingNexts || updatingAll) {
             final List<CashFlow> duplicatedReleases;
@@ -167,8 +177,11 @@ public class CashFlowService {
         return release;
     }
 
-    public CashFlow addAttachment(long id, final @NonNull MultipartFile attachment) {
-        final CashFlow release = findById(id);
+    @Transactional
+    public CashFlow addAttachment(long releaseId, final @NonNull MultipartFile attachment) {
+        final CashFlow release = findById(releaseId);
+
+        checkPermission(release);
 
         release.setAttachment(fileUtils.compressFile(attachment, true));
         release.setAttachmentName(attachment.getOriginalFilename());
@@ -176,8 +189,11 @@ public class CashFlowService {
         return cashFlowRepository.save(release);
     }
 
-    public CashFlow removeAttachment(long id) {
-        final CashFlow release = findById(id);
+    @Transactional
+    public CashFlow removeAttachment(long releaseId) {
+        final CashFlow release = findById(releaseId);
+
+        checkPermission(release);
 
         release.setAttachment(null);
         release.setAttachmentName(null);
@@ -185,29 +201,37 @@ public class CashFlowService {
         return cashFlowRepository.save(release);
     }
 
-    public byte[] getAttachment(long id) {
-        return findById(id).getAttachment();
+    @Transactional(readOnly = true)
+    public byte[] getAttachment(long releaseId) {
+        final CashFlow release = findById(releaseId);
+
+        checkPermission(release);
+
+        return release.getAttachment();
     }
 
-    public void delete(long id, DuplicatedReleaseAction duplicatedReleasesAction) {
-        final CashFlow release = findById(id);
+    @Transactional
+    public void delete(long releaseId, DuplicatedReleaseAction duplicatedReleasesAction) {
+        final CashFlow release = findById(releaseId);
+
+        checkPermission(release);
 
         switch (duplicatedReleasesAction) {
             case NEXTS -> cashFlowRepository.deleteAll(
                     cashFlowRepository.getNextDuplicatedReleases(
-                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id,
+                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId,
                             release.getDate()
                     )
             );
             case ALL -> cashFlowRepository.deleteAll(
                     cashFlowRepository.getAllDuplicatedReleases(
-                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : id
+                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
                     )
             );
         }
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
-            cashFlowRepository.deleteById(id);
+            cashFlowRepository.deleteById(releaseId);
     }
 
     private CashFlow createDuplicatedRelease(final CashFlow original, BigDecimal newAmount, final LocalDate newDate) {
@@ -230,19 +254,28 @@ public class CashFlowService {
         };
     }
 
+    @Transactional(readOnly = true)
     public InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt) {
         return cashFlowRepository.getHomeBalances(userId, firstDt, lastDt);
     }
 
+    @Transactional(readOnly = true)
     public List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId) {
         return cashFlowRepository.getUpcomingReleasesExpected(userId);
     }
 
-    public List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long id, LocalDate startDate, LocalDate endDate, String type, boolean done) {
-        return cashFlowRepository.findByUserIdAndDateBetweenAndTypeAndDone(id, startDate, endDate, type, done);
+    @Transactional(readOnly = true)
+    public List<CashFlow> findReleasesForHomeSpendsCategory(long id, LocalDate startDate, LocalDate endDate) {
+        return cashFlowRepository.findReleasesForHomeSpendsCategory(id, startDate, endDate);
     }
 
+    @Transactional(readOnly = true)
     public List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, Date firstDt, Date lastDt) {
         return cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
+    }
+
+    private void checkPermission(final CashFlow release) {
+        if (release.getUserId() != utils.getAuthUser().getId())
+            throw new WithoutPermissionException();
     }
 }

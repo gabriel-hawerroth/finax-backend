@@ -15,7 +15,7 @@ public class CashFlow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
 
     @Column(length = 50)
@@ -27,7 +27,7 @@ public class CashFlow {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 1)
+    @Column(nullable = false, length = 1, updatable = false)
     private String type;
 
     @Column(nullable = false)
@@ -56,10 +56,10 @@ public class CashFlow {
     @Column(name = "duplicated_release_id")
     private Long duplicatedReleaseId;
 
-    @Column(length = 12)
+    @Column(length = 12, updatable = false)
     private String repeat;
 
-    @Column(name = "fixed_by", length = 10)
+    @Column(name = "fixed_by", length = 10, updatable = false)
     private String fixedBy;
 
     private Long credit_card_id;

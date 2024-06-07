@@ -18,17 +18,17 @@ public class AccountController {
 
     public final AccountService accountService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Account> findById(@PathVariable long id) {
+        return ResponseEntity.ok(
+                accountService.findById(id)
+        );
+    }
+
     @GetMapping("/get-by-user")
     public ResponseEntity<List<Account>> getByUser() {
         return ResponseEntity.ok(
                 accountService.getByUser()
-        );
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Account> getById(@PathVariable long id) {
-        return ResponseEntity.ok(
-                accountService.getById(id)
         );
     }
 

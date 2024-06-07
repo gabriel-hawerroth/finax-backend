@@ -1,7 +1,6 @@
 package br.finax.repository;
 
 import br.finax.models.Category;
-import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,7 +25,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByUser(long userId);
 
     @Modifying
-    @Transactional
     @Query(value = """
             INSERT INTO CATEGORY (name, color, icon, type, user_id)
             SELECT name, color, icon, type, :userId

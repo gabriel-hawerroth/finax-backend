@@ -2,12 +2,15 @@ package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.AccountBasicList;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Account;
 import br.finax.models.CashFlow;
 import br.finax.repository.AccountsRepository;
 import br.finax.utils.UtilsService;
+import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,35 +31,42 @@ public class AccountService {
         this.utils = utils;
     }
 
+    @Transactional(readOnly = true)
+    public Account findById(long id) {
+        return accountsRepository.findById(id).orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
     public List<Account> getByUser() {
         return accountsRepository.findAllByUserIdOrderByIdAsc(utils.getAuthUser().getId());
     }
 
-    public Account getById(long id) {
-        return accountsRepository.findById(id).orElseThrow(NotFoundException::new);
-    }
-
+    @Transactional(readOnly = true)
     public List<AccountBasicList> getBasicList() {
         return accountsRepository.getBasicList(utils.getAuthUser().getId());
     }
 
+    @Transactional
     public Account save(Account account) {
+        account.setUserId(utils.getAuthUser().getId());
         return accountsRepository.save(account);
     }
 
-    public Account adjustBalance(long accountId, BigDecimal newBalance) {
-        Account account = accountsRepository.findById(accountId)
-                .orElseThrow(NotFoundException::new);
+    @Transactional
+    public Account adjustBalance(long accountId, @NonNull BigDecimal newBalance) {
+        final Account account = findById(accountId);
 
-        account.setBalance(newBalance);
-
-        account = accountsRepository.save(account);
+        if (account.getUserId() != utils.getAuthUser().getId())
+            throw new WithoutPermissionException();
 
         createNewCashFlowRelease(account, newBalance);
 
-        return account;
+        account.setBalance(newBalance);
+
+        return accountsRepository.save(account);
     }
 
+    @Transactional
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
         final CashFlow release = new CashFlow();
         release.setUserId(account.getUserId());
@@ -76,6 +86,7 @@ public class AccountService {
         cashFlowService.addRelease(release, 0);
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getHomeAccountsList(long userId) {
         return accountsRepository.getHomeAccountsList(userId);
     }

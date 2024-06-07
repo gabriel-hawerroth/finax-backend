@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Date;
 
 @RestController
@@ -24,7 +25,7 @@ public class CashFlowController {
 
     @GetMapping
     public ResponseEntity<MonthlyCashFlow> getMonthlyFlow(
-            @RequestParam Date firstDt, @RequestParam Date lastDt,
+            @RequestParam LocalDate firstDt, @RequestParam LocalDate lastDt,
             @RequestParam String viewMode, @RequestParam Date firstDtCurrentMonth,
             @RequestParam Date firstDtInvoice, @RequestParam Date lastDtInvoice
     ) {

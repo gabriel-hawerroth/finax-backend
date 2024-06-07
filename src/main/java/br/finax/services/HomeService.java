@@ -7,6 +7,7 @@ import br.finax.models.Category;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -24,6 +25,7 @@ public class HomeService {
 
     private final UtilsService utils;
 
+    @Transactional(readOnly = true)
     public HomeValues getHomeValues(Date firstDt, Date lastDt) {
         final long userId = utils.getAuthUser().getId();
 
@@ -34,13 +36,12 @@ public class HomeService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<SpendByCategory> getSpendsByCategory(Date firstDt, Date lastDt) {
-        final List<CashFlow> expenses = cashFlowService.findByUserIdAndDateBetweenAndTypeAndDone(
+        final List<CashFlow> expenses = cashFlowService.findReleasesForHomeSpendsCategory(
                 utils.getAuthUser().getId(),
                 dateToLocalDate(firstDt),
-                dateToLocalDate(lastDt),
-                "E",
-                true
+                dateToLocalDate(lastDt)
         );
 
         final Map<Long, Category> categoryMap = new HashMap<>();

@@ -27,9 +27,9 @@ public class CreditCardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CreditCard> getById(@PathVariable long id) {
+    public ResponseEntity<CreditCard> findById(@PathVariable long id) {
         return ResponseEntity.ok(
-                creditCardService.getById(id)
+                creditCardService.findById(id)
         );
     }
 

@@ -13,7 +13,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
 
     @NotBlank
@@ -29,7 +29,7 @@ public class Category {
     private String icon;
 
     @NotBlank
-    @Column(nullable = false, length = 1)
+    @Column(nullable = false, length = 1, updatable = false)
     private String type;
 
     @Column(nullable = false)

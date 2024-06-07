@@ -1,12 +1,14 @@
 package br.finax.services;
 
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;
 import br.finax.repository.CategoryRepository;
 import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,27 +20,34 @@ public class CategoryService {
 
     private final UtilsService utils;
 
+    @Transactional(readOnly = true)
+    public Category findById(long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
     public List<Category> getByUser() {
         return categoryRepository.findByUser(
                 utils.getAuthUser().getId()
         );
     }
 
-    public Category getById(long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
-    }
-
+    @Transactional
     public Category save(Category category) {
+        category.setUserId(utils.getAuthUser().getId());
         return categoryRepository.save(category);
     }
 
+    @Transactional
     public void deleteById(long id) {
         try {
+            if (findById(id).getUserId() != utils.getAuthUser().getId())
+                throw new WithoutPermissionException();
+
             categoryRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            final Category category = categoryRepository.findById(id)
-                    .orElseThrow(NotFoundException::new);
+            final Category category = findById(id);
 
             category.setActive(false);
 
@@ -46,10 +55,12 @@ public class CategoryService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Category> findByIdIn(List<Long> categoryIds) {
         return categoryRepository.findByIdIn(categoryIds);
     }
 
+    @Transactional
     public void insertNewUserCategories(long userId) {
         categoryRepository.insertNewUserCategories(userId);
     }

@@ -3,11 +3,13 @@ package br.finax.services;
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.UnsendedEmailException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Token;
 import br.finax.models.User;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class LoginService {
     private final EmailService emailService;
     private final UserService userService;
 
+    @Transactional
     public void activateUser(Long userId, String token) {
         final String savedToken = userTokenService.findByUserId(userId).getToken();
 
@@ -31,6 +34,7 @@ public class LoginService {
         categoryService.insertNewUserCategories(userId);
     }
 
+    @Transactional
     public void sendChangePasswordMail(String email) {
         final User user = userService.findByEmail(email);
 
@@ -49,6 +53,7 @@ public class LoginService {
         }
     }
 
+    @Transactional
     public void permitChangePassword(Long userId, String token) {
         final String savedToken = userTokenService.findByUserId(userId).getToken();
 
@@ -57,6 +62,8 @@ public class LoginService {
         if (savedToken.equals(token)) {
             user.setCanChangePassword(true);
             userService.save(user);
+        } else {
+            throw new WithoutPermissionException();
         }
     }
 }

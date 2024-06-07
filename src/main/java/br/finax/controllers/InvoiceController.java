@@ -60,14 +60,14 @@ public class InvoiceController {
     @PutMapping("/save-payment-attachment/{invoicePaymentId}")
     public ResponseEntity<InvoicePayment> saveInvoiceAttachment(@PathVariable long invoicePaymentId, @RequestParam MultipartFile attachment) {
         return ResponseEntity.ok(
-                invoiceService.saveInvoiceAttachment(invoicePaymentId, attachment)
+                invoiceService.savePaymentAttachment(invoicePaymentId, attachment)
         );
     }
 
     @DeleteMapping("/remove-payment-attachment/{invoicePaymentId}")
     public ResponseEntity<InvoicePayment> removeAttachment(@PathVariable long invoicePaymentId) {
         return ResponseEntity.ok(
-                invoiceService.removeAttachment(invoicePaymentId)
+                invoiceService.removePaymentAttachment(invoicePaymentId)
         );
     }
 

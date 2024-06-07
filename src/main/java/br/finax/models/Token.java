@@ -12,7 +12,7 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
 
     @Column(nullable = false, length = 64)

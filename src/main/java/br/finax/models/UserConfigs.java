@@ -13,7 +13,7 @@ public class UserConfigs {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
 
     @NotBlank

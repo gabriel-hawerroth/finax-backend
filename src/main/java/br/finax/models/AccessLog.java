@@ -17,11 +17,11 @@ public class AccessLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
 
     @PastOrPresent
-    @Column(name = "login_dt", nullable = false)
+    @Column(name = "login_dt", nullable = false, updatable = false)
     private LocalDateTime loginDt;
 
     public AccessLog(long userId, LocalDateTime loginDt) {

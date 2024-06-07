@@ -20,7 +20,7 @@ public class User implements UserDetails {
     private long id;
 
     @Email
-    @Column(nullable = false, length = 40)
+    @Column(nullable = false, length = 40, updatable = false)
     private String email;
 
     @Column(nullable = false)
