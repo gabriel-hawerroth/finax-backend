@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 
 updateProd.cmd
+updateProd.sh
 
 ### STS ###
 .apt_generated
