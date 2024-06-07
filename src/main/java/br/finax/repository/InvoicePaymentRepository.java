@@ -2,6 +2,7 @@ package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
 import br.finax.models.InvoicePayment;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -25,7 +26,7 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true
     )
-    List<InvoicePaymentsPerson> getInvoicePayments(long creditCardId, String monthYear);
+    List<InvoicePaymentsPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
 
     @Query(value = """
             SELECT
@@ -46,5 +47,5 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 AND cf.done is true
             """, nativeQuery = true
     )
-    double getInvoicePreviousBalance(long userId, long creditCardId, Date firstDt);
+    double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull Date firstDt);
 }

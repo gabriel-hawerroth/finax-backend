@@ -2,6 +2,7 @@ package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL;
 import br.finax.models.CashFlow;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -53,7 +54,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id asc
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, Date firstDt, Date lastDt);
+    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
 
     @Query(value = """
             SELECT
@@ -140,7 +141,9 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 date, time, id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getMonthlyReleasesInvoiceMode(long userId, Date firstDt, Date lastDt, Date firstDtInvoice, Date lastDtInvoice);
+    List<InterfacesSQL.MonthlyReleases> getMonthlyReleasesInvoiceMode(
+            long userId, @NonNull Date firstDt, @NonNull Date lastDt, @NonNull Date firstDtInvoice, @NonNull Date lastDtInvoice
+    );
 
     @Query(value = """
             SELECT
@@ -174,7 +177,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.done IS FALSE
                 AND cf.account_id IS NOT NULL
             """, nativeQuery = true)
-    double getExpectedBalance(long userId, Date firstDt, Date lastDt);
+    double getExpectedBalance(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
 
     @Query(value = """
             SELECT
@@ -188,7 +191,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.date between :firstDt and :lastDt
             LIMIT 1
             """, nativeQuery = true)
-    InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt);
+    InterfacesSQL.HomeBalances getHomeBalances(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
 
     @Query(value = """
             SELECT
@@ -241,7 +244,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.date > :date
             ORDER BY cf.id
             """, nativeQuery = true)
-    List<CashFlow> getNextDuplicatedReleases(long duplicatedReleaseId, LocalDate date);
+    List<CashFlow> getNextDuplicatedReleases(long duplicatedReleaseId, @NonNull LocalDate date);
 
     @Query(value = """
             SELECT
@@ -297,8 +300,10 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, Date firstDt, Date lastDt);
+    List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull Date firstDt, @NonNull Date lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
-    List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(long userId, LocalDate startDate, LocalDate endDate, String type, boolean done);
+    List<CashFlow> findByUserIdAndDateBetweenAndTypeAndDone(
+            long userId, @NonNull LocalDate startDate, @NonNull LocalDate endDate, @NonNull String type, boolean done
+    );
 }

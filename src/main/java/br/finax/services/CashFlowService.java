@@ -167,7 +167,7 @@ public class CashFlowService {
         return release;
     }
 
-    public CashFlow addAttachment(long id, final MultipartFile attachment) {
+    public CashFlow addAttachment(long id, final @NonNull MultipartFile attachment) {
         final CashFlow release = findById(id);
 
         release.setAttachment(fileUtils.compressFile(attachment, true));

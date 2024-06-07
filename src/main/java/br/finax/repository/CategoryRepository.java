@@ -2,6 +2,7 @@ package br.finax.repository;
 
 import br.finax.models.Category;
 import jakarta.transaction.Transactional;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -34,5 +35,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             """, nativeQuery = true)
     void insertNewUserCategories(long userId);
 
-    List<Category> findByIdIn(List<Long> id);
+    List<Category> findByIdIn(@NonNull List<Long> id);
 }
