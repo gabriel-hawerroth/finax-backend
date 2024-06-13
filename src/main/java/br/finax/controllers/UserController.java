@@ -59,7 +59,7 @@ public class UserController {
     }
 
     @GetMapping("/get-user-image")
-    public ResponseEntity<byte[]> getUserImage() {
+    public ResponseEntity<String> getUserImage() {
         return ResponseEntity.ok(
                 userService.getUserImage()
         );

@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.CannotChangePasswordException;
 import br.finax.exceptions.InvalidPasswordException;
 import br.finax.exceptions.NotFoundException;
@@ -16,12 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
 
+    private final AwsS3Service awsS3Service;
     private final SecurityFilter securityFilter;
     private final UtilsService utils;
     private final FileUtils fileUtils;
@@ -89,14 +93,24 @@ public class UserService {
     public User changeUserImage(MultipartFile file) {
         final User user = utils.getAuthUser();
 
-        user.setProfileImage(fileUtils.compressFile(file));
+        final String fileExtension = fileUtils.getFileExtension(file);
+        final String fileName = awsS3Service.getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
+
+        final byte[] compressedFile = fileUtils.compressFile(file);
+        final File tempFile = FileUtils.convertByteArrayToFile(compressedFile, fileName);
+
+        awsS3Service.uploadS3File(fileName, tempFile);
+
+        tempFile.delete();
+
+        user.setProfileImage(fileName);
 
         securityFilter.updateCachedUser(user);
 
         return userRepository.save(user);
     }
 
-    public byte[] getUserImage() {
+    public String getUserImage() {
         return utils.getAuthUser().getProfileImage();
     }
 

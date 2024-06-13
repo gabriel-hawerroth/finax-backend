@@ -48,7 +48,7 @@ public class User implements UserDetails {
     private Date signatureExpiration;
 
     @Column(name = "profile_image")
-    private byte[] profileImage;
+    private String profileImage;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -2,6 +2,7 @@ package br.finax.utils;
 
 import br.finax.exceptions.EmptyFileException;
 import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
 import br.finax.exceptions.InvalidFileException;
 import lombok.NonNull;
 import net.coobird.thumbnailator.Thumbnails;
@@ -11,9 +12,7 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalA
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,18 @@ public class FileUtils {
 
     private final Logger logger = Logger.getLogger(getClass().getName());
 
+    public static File convertByteArrayToFile(byte[] compressedFile, String fileName) {
+        try {
+            File tempFile = File.createTempFile(fileName, null);
+            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                fos.write(compressedFile);
+            }
+            return tempFile;
+        } catch (IOException e) {
+            throw new FileIOException("Error to create the temp file when uploading to s3");
+        }
+    }
+
     private static int getImageSize(byte[] file, boolean isAttachment) {
         int size = 1500;
 
@@ -58,20 +69,14 @@ public class FileUtils {
         return size;
     }
 
-    private static String checkFileValidity(MultipartFile file) {
+    private String checkFileValidity(MultipartFile file) {
         if (file == null || file.isEmpty() || file.getSize() == 0)
             throw new EmptyFileException();
 
         if (file.getSize() > MAX_FILE_SIZE)
             throw new InvalidFileException("the file is too large");
 
-        final String fileName = Objects.requireNonNull(file.getOriginalFilename());
-        final int pointIndex = fileName.lastIndexOf('.');
-
-        if (pointIndex <= 0)
-            throw new InvalidFileException("invalid file name");
-
-        final String fileExtension = fileName.substring(pointIndex + 1).toLowerCase();
+        final String fileExtension = getFileExtension(file);
         if (!fileExtension.equals("pdf") && !VALID_IMAGE_EXTENSIONS.contains(fileExtension))
             throw new InvalidFileException("invalid file extension");
 
@@ -139,5 +144,15 @@ public class FileUtils {
         } catch (IOException e) {
             throw new FileCompressionErrorException();
         }
+    }
+
+    public String getFileExtension(MultipartFile file) {
+        final String fileName = Objects.requireNonNull(file.getOriginalFilename());
+        final int pointIndex = fileName.lastIndexOf('.');
+
+        if (pointIndex <= 0)
+            throw new InvalidFileException("invalid file name");
+
+        return fileName.substring(pointIndex + 1).toLowerCase();
     }
 }
