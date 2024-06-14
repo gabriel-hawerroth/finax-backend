@@ -222,12 +222,12 @@ public class CashFlowService {
     }
 
     @Transactional(readOnly = true)
-    public String getAttachment(long releaseId) {
+    public byte[] getAttachment(long releaseId) {
         final CashFlow release = findById(releaseId);
 
         checkPermission(release);
 
-        return release.getAttachment();
+        return awsS3Service.getS3File(release.getAttachment());
     }
 
     @Transactional

@@ -53,6 +53,8 @@ public class InterfacesSQL {
 
         String getObservation();
 
+        String getAttachment();
+
         String getAttachmentName();
 
         Long getDuplicatedReleaseId();

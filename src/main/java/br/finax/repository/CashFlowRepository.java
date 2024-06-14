@@ -34,6 +34,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.date,
                 cf.time,
                 cf.observation,
+                cf.attachment,
                 cf.attachment_name AS attachmentName,
                 cf.duplicated_release_id AS duplicatedReleaseId,
                 (CASE WHEN

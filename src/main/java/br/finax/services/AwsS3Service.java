@@ -7,10 +7,14 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 
 @Service
@@ -31,6 +35,26 @@ public class AwsS3Service {
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials()))
                 .withRegion(Regions.SA_EAST_1)
                 .build();
+    }
+
+    public byte[] getS3File(String filename) {
+        final AmazonS3 s3Client = awsS3ClientBuilder();
+
+        final GetObjectRequest getObjectRequest = new GetObjectRequest(BUCKET, filename);
+
+        try (InputStream inputStream = s3Client.getObject(getObjectRequest).getObjectContent();
+             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            // Trate a exceção conforme necessário
+            throw new RuntimeException();
+        }
     }
 
     public void uploadS3File(String filename, File file) {
