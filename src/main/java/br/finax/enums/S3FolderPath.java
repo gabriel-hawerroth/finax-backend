@@ -8,7 +8,7 @@ public enum S3FolderPath {
     IMGS("imgs/"),
     BANK_IMGS("imgs/banks/"),
     USER_PROFILE_IMG("user/profile-image/"),
-    USER_ATTACHMENTS("user/attachments");
+    USER_ATTACHMENTS("user/attachments/");
 
     private final String path;
 

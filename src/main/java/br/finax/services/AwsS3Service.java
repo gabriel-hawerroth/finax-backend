@@ -56,6 +56,6 @@ public class AwsS3Service {
         final String folderPath = s3FolderPath.getPath();
         final long unixTimestamp = Instant.now().getEpochSecond();
 
-        return STR."\{folderPath}\{recordId}_\{unixTimestamp}.\{fileExtension}";
+        return folderPath.concat(String.valueOf(recordId)).concat(String.valueOf(unixTimestamp)).concat(fileExtension);
     }
 }

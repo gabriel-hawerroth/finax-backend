@@ -84,7 +84,7 @@ public class CashFlowController {
     }
 
     @GetMapping("/get-attachment/{id}")
-    public ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
+    public ResponseEntity<String> getAttachment(@PathVariable long id) {
         return ResponseEntity.ok(
                 cashFlowService.getAttachment(id)
         );

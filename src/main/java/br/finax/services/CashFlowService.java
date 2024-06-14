@@ -5,6 +5,7 @@ import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ReleasesViewMode;
+import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -35,16 +37,18 @@ public class CashFlowService {
     private final CreditCardService creditCardService;
     private final CategoryService categoryService;
     private final AccountService accountService;
+    private final AwsS3Service awsS3Service;
 
     private final UtilsService utils;
     private final FileUtils fileUtils;
 
     @Lazy
-    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, UtilsService utils, FileUtils fileUtils) {
+    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, UtilsService utils, FileUtils fileUtils) {
         this.cashFlowRepository = cashFlowRepository;
         this.creditCardService = creditCardService;
         this.accountService = accountService;
         this.categoryService = categoryService;
+        this.awsS3Service = awsS3Service;
         this.utils = utils;
         this.fileUtils = fileUtils;
     }
@@ -183,7 +187,21 @@ public class CashFlowService {
 
         checkPermission(release);
 
-        release.setAttachment(fileUtils.compressFile(attachment, true));
+        if (release.getAttachment() != null) {
+            awsS3Service.deleteS3File(release.getAttachment());
+        }
+
+        final String fileExtension = fileUtils.getFileExtension(attachment);
+        final String fileName = awsS3Service.getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
+
+        final byte[] compressedFile = fileUtils.compressFile(attachment);
+        final File tempFile = FileUtils.convertByteArrayToFile(compressedFile, fileName);
+
+        awsS3Service.uploadS3File(fileName, tempFile);
+
+        var _ = tempFile.delete();
+
+        release.setAttachment(fileName);
         release.setAttachmentName(attachment.getOriginalFilename());
 
         return cashFlowRepository.save(release);
@@ -195,6 +213,8 @@ public class CashFlowService {
 
         checkPermission(release);
 
+        awsS3Service.deleteS3File(release.getAttachment());
+
         release.setAttachment(null);
         release.setAttachmentName(null);
 
@@ -202,7 +222,7 @@ public class CashFlowService {
     }
 
     @Transactional(readOnly = true)
-    public byte[] getAttachment(long releaseId) {
+    public String getAttachment(long releaseId) {
         final CashFlow release = findById(releaseId);
 
         checkPermission(release);

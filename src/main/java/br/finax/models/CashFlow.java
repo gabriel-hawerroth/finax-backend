@@ -48,7 +48,7 @@ public class CashFlow {
     @Column(length = 100)
     private String observation;
 
-    private byte[] attachment;
+    private String attachment;
 
     @Column(name = "attachment_name")
     private String attachmentName;

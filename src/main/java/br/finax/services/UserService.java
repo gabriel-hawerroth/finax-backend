@@ -101,7 +101,7 @@ public class UserService {
 
         awsS3Service.uploadS3File(fileName, tempFile);
 
-        tempFile.delete();
+        var _ = tempFile.delete();
 
         user.setProfileImage(fileName);
 
