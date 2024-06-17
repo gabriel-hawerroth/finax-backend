@@ -28,6 +28,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
 
 @Service
 public class CashFlowService {
@@ -187,24 +193,30 @@ public class CashFlowService {
 
         checkPermission(release);
 
-        if (release.getAttachment() != null) {
-            awsS3Service.deleteS3File(release.getAttachment());
-        }
-
-        final String fileExtension = fileUtils.getFileExtension(attachment);
+        final String fileExtension = getFileExtension(attachment);
         final String fileName = awsS3Service.getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
 
-        final byte[] compressedFile = fileUtils.compressFile(attachment);
-        final File tempFile = FileUtils.convertByteArrayToFile(compressedFile, fileName);
+        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            final Future<byte[]> compressedFileFuture = executor.submit(() -> fileUtils.compressFile(attachment));
+            final byte[] compressedFile = compressedFileFuture.get();
 
-        awsS3Service.uploadS3File(fileName, tempFile);
+            final Future<File> tempFileFuture = executor.submit(() -> convertByteArrayToFile(compressedFile, fileName));
+            final File tempFile = tempFileFuture.get();
 
-        var _ = tempFile.delete();
+            if (release.getAttachment() != null)
+                executor.submit(() -> awsS3Service.updateS3File(release.getAttachment(), fileName, tempFile)).get();
+            else
+                executor.submit(() -> awsS3Service.uploadS3File(fileName, tempFile)).get();
 
-        release.setAttachment(fileName);
-        release.setAttachmentName(attachment.getOriginalFilename());
+            var _ = tempFile.delete();
 
-        return cashFlowRepository.save(release);
+            release.setAttachment(fileName);
+            release.setAttachmentName(attachment.getOriginalFilename());
+
+            return cashFlowRepository.save(release);
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing image", e);
+        }
     }
 
     @Transactional
@@ -213,7 +225,9 @@ public class CashFlowService {
 
         checkPermission(release);
 
-        awsS3Service.deleteS3File(release.getAttachment());
+        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            executor.submit(() -> awsS3Service.deleteS3File(release.getAttachment()));
+        }
 
         release.setAttachment(null);
         release.setAttachmentName(null);
@@ -227,7 +241,12 @@ public class CashFlowService {
 
         checkPermission(release);
 
-        return awsS3Service.getS3File(release.getAttachment());
+        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            final Future<byte[]> fileFuture = executor.submit(() -> awsS3Service.getS3File(release.getAttachment()));
+            return fileFuture.get();
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing image", e);
+        }
     }
 
     @Transactional

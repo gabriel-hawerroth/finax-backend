@@ -52,8 +52,8 @@ public class ExceptionHandlers {
         );
     }
 
-    @ExceptionHandler(UnsendedEmailException.class)
-    public ResponseEntity<ResponseError> unsendedEmailException(UnsendedEmailException ex) {
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<ResponseError> emailSendingException(EmailSendingException ex) {
         return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
     }
 

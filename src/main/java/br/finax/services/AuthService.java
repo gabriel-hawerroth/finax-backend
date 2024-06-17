@@ -6,12 +6,11 @@ import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
-import br.finax.exceptions.UnsendedEmailException;
 import br.finax.models.AccessLog;
 import br.finax.models.Token;
 import br.finax.models.User;
+import br.finax.security.SecurityFilter;
 import br.finax.security.TokenService;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
@@ -29,6 +28,7 @@ public class AuthService {
 
     private final UserService userService;
 
+    private final SecurityFilter securityFilter;
     private final AccessLogService accessLogService;
     private final UserTokenService userTokenService;
     private final TokenService tokenService;
@@ -50,7 +50,8 @@ public class AuthService {
             throw new BadCredentialsException("Inactive user");
         }
 
-        final User user = (User) auth.getPrincipal();
+        final User user = userService.findById(((User) auth.getPrincipal()).getId());
+        securityFilter.updateCachedUser(user);
 
         final String token = tokenService.generateToken(user);
 
@@ -82,16 +83,12 @@ public class AuthService {
     }
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
-        try {
-            emailService.sendMail(
-                    new EmailDTO(
-                            userMail,
-                            "Ativação da conta Finax",
-                            emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
-                    )
-            );
-        } catch (MessagingException messagingException) {
-            throw new UnsendedEmailException();
-        }
+        emailService.sendMail(
+                new EmailDTO(
+                        userMail,
+                        "Ativação da conta Finax",
+                        emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
+                )
+        );
     }
 }

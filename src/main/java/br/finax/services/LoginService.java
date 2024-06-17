@@ -2,11 +2,9 @@ package br.finax.services;
 
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
-import br.finax.exceptions.UnsendedEmailException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Token;
 import br.finax.models.User;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,17 +38,13 @@ public class LoginService {
 
         final Token token = userTokenService.generateToken(user);
 
-        try {
-            emailService.sendMail(
-                    new EmailDTO(
-                            email,
-                            "Alteração da senha Finax",
-                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
-                    )
-            );
-        } catch (MessagingException messagingException) {
-            throw new UnsendedEmailException();
-        }
+        emailService.sendMail(
+                new EmailDTO(
+                        email,
+                        "Alteração da senha Finax",
+                        emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
+                )
+        );
     }
 
     @Transactional

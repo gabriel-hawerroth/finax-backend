@@ -2,6 +2,7 @@ package br.finax.services;
 
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
+import br.finax.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -9,21 +10,45 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-    
+
     private final JavaMailSender javaMailSender;
 
-    public void sendMail(EmailDTO email) throws MessagingException {
-        final MimeMessage message = javaMailSender.createMimeMessage();
-        final MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    public void sendMail(EmailDTO email) {
+        try (final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+            final Future<?> future = executorService.submit(() -> {
+                try {
+                    final MimeMessage message = createMimeMessage(email);
+
+                    javaMailSender.send(message);
+                } catch (MessagingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            try {
+                future.get();
+            } catch (Exception e) {
+                throw new EmailSendingException(e.getCause());
+            }
+        }
+    }
+
+    private MimeMessage createMimeMessage(EmailDTO email) throws MessagingException {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(email.addressee());
         helper.setSubject(email.subject());
         helper.setText(email.content(), true);
 
-        javaMailSender.send(message);
+        return message;
     }
 
     public String buildEmailTemplate(EmailType emailType, Long userId, String token) {

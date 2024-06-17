@@ -2,9 +2,7 @@ package br.finax;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.core.SpringVersion;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
@@ -12,12 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MainApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        System.out.println("Spring version: " + SpringVersion.getVersion());
+//        System.out.println("Spring version: " + SpringVersion.getVersion());
         SpringApplication.run(MainApplication.class, args);
-    }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(MainApplication.class);
     }
 }

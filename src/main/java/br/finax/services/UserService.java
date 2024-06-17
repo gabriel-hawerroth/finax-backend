@@ -18,6 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
 
 @Service
 @RequiredArgsConstructor
@@ -93,21 +99,30 @@ public class UserService {
     public User changeUserImage(MultipartFile file) {
         final User user = utils.getAuthUser();
 
-        final String fileExtension = fileUtils.getFileExtension(file);
+        final String fileExtension = getFileExtension(file);
         final String fileName = awsS3Service.getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
 
-        final byte[] compressedFile = fileUtils.compressFile(file);
-        final File tempFile = FileUtils.convertByteArrayToFile(compressedFile, fileName);
+        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            final Future<byte[]> compressedFileFuture = executor.submit(() -> fileUtils.compressFile(file));
+            final byte[] compressedFile = compressedFileFuture.get();
 
-        awsS3Service.uploadS3File(fileName, tempFile);
+            final Future<File> tempFileFuture = executor.submit(() -> convertByteArrayToFile(compressedFile, fileName));
+            final File tempFile = tempFileFuture.get();
 
-        var _ = tempFile.delete();
+            if (user.getProfileImage() != null && !user.getProfileImage().isBlank())
+                executor.submit(() -> awsS3Service.updateS3File(user.getProfileImage(), fileName, tempFile)).get();
+            else
+                executor.submit(() -> awsS3Service.uploadS3File(fileName, tempFile)).get();
 
-        user.setProfileImage(fileName);
+            var _ = tempFile.delete();
 
-        securityFilter.updateCachedUser(user);
+            user.setProfileImage(fileName);
+            securityFilter.updateCachedUser(user);
 
-        return userRepository.save(user);
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing image", e);
+        }
     }
 
     public String getUserImage() {

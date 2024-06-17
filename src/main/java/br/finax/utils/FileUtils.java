@@ -43,7 +43,7 @@ public class FileUtils {
 
     public static File convertByteArrayToFile(byte[] compressedFile, String fileName) {
         try {
-            File tempFile = File.createTempFile(fileName, null);
+            final File tempFile = File.createTempFile(fileName, null);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 fos.write(compressedFile);
             }
@@ -51,6 +51,16 @@ public class FileUtils {
         } catch (IOException e) {
             throw new FileIOException("Error to create the temp file when uploading to s3");
         }
+    }
+
+    public static String getFileExtension(MultipartFile file) {
+        final String fileName = Objects.requireNonNull(file.getOriginalFilename());
+        final int pointIndex = fileName.lastIndexOf('.');
+
+        if (pointIndex <= 0)
+            throw new InvalidFileException("invalid file name");
+
+        return fileName.substring(pointIndex + 1).toLowerCase();
     }
 
     private static int getImageSize(byte[] file, boolean isAttachment) {
@@ -67,20 +77,6 @@ public class FileUtils {
         }
 
         return size;
-    }
-
-    private String checkFileValidity(MultipartFile file) {
-        if (file == null || file.isEmpty() || file.getSize() == 0)
-            throw new EmptyFileException();
-
-        if (file.getSize() > MAX_FILE_SIZE)
-            throw new InvalidFileException("the file is too large");
-
-        final String fileExtension = getFileExtension(file);
-        if (!fileExtension.equals("pdf") && !VALID_IMAGE_EXTENSIONS.contains(fileExtension))
-            throw new InvalidFileException("invalid file extension");
-
-        return fileExtension;
     }
 
     public byte[] compressFile(MultipartFile file) {
@@ -101,21 +97,35 @@ public class FileUtils {
         }
     }
 
+    private String checkFileValidity(MultipartFile file) {
+        if (file == null || file.isEmpty() || file.getSize() == 0)
+            throw new EmptyFileException();
+
+        if (file.getSize() > MAX_FILE_SIZE)
+            throw new InvalidFileException("the file is too large");
+
+        final String fileExtension = getFileExtension(file);
+        if (!fileExtension.equals("pdf") && !VALID_IMAGE_EXTENSIONS.contains(fileExtension))
+            throw new InvalidFileException("invalid file extension");
+
+        return fileExtension;
+    }
+
     private byte[] compressImage(byte[] data, boolean isAttachment) {
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+            final ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
-            int imageSize = getImageSize(data, isAttachment);
+            final int imageSize = getImageSize(data, isAttachment);
 
             // Resize and compress the image
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             Thumbnails.of(inputStream)
                     .size(imageSize, imageSize)  // Desired size in px
                     .outputFormat("jpg")
                     .outputQuality(0.5)
                     .toOutputStream(outputStream);
 
-            byte[] response = outputStream.toByteArray();
+            final byte[] response = outputStream.toByteArray();
 
             logger.info(() -> "IMG - Original size: " + data.length);
             logger.info(() -> "IMG - Compressed size: " + response.length);
@@ -128,12 +138,12 @@ public class FileUtils {
 
     private byte[] compressPdf(byte[] pdfData) {
         try {
-            try (PDDocument document = Loader.loadPDF(pdfData)) {
+            try (final PDDocument document = Loader.loadPDF(pdfData)) {
                 document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
 
                 try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                     document.save(outputStream);
-                    byte[] response = outputStream.toByteArray();
+                    final byte[] response = outputStream.toByteArray();
 
                     logger.info(() -> "PDF - Original size: " + pdfData.length);
                     logger.info(() -> "PDF - Compressed size: " + response.length);
@@ -144,15 +154,5 @@ public class FileUtils {
         } catch (IOException e) {
             throw new FileCompressionErrorException();
         }
-    }
-
-    public String getFileExtension(MultipartFile file) {
-        final String fileName = Objects.requireNonNull(file.getOriginalFilename());
-        final int pointIndex = fileName.lastIndexOf('.');
-
-        if (pointIndex <= 0)
-            throw new InvalidFileException("invalid file name");
-
-        return fileName.substring(pointIndex + 1).toLowerCase();
     }
 }
