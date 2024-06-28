@@ -272,7 +272,7 @@ public class CashFlowService {
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
                     )
             );
-            default -> throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid duplicatedReleasesAction");
+            default -> { /* do nothing */ }
         }
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
