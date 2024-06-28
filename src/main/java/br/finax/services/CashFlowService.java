@@ -4,10 +4,12 @@ import br.finax.dto.CashFlowValues;
 import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
+import br.finax.enums.ErrorCategory;
 import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
@@ -28,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -214,8 +217,9 @@ public class CashFlowService {
             release.setAttachmentName(attachment.getOriginalFilename());
 
             return cashFlowRepository.save(release);
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing image", e);
+        } catch (ExecutionException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
         }
     }
 
@@ -244,8 +248,9 @@ public class CashFlowService {
         try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             final Future<byte[]> fileFuture = executor.submit(() -> awsS3Service.getS3File(release.getAttachment()));
             return fileFuture.get();
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing image", e);
+        } catch (ExecutionException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
         }
     }
 
@@ -267,6 +272,7 @@ public class CashFlowService {
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
                     )
             );
+            default -> throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid duplicatedReleasesAction");
         }
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)

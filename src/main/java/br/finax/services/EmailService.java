@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -28,14 +29,16 @@ public class EmailService {
 
                     javaMailSender.send(message);
                 } catch (MessagingException e) {
-                    throw new RuntimeException(e);
+                    throw new EmailSendingException(e);
                 }
             });
 
             try {
                 future.get();
-            } catch (Exception e) {
-                throw new EmailSendingException(e.getCause());
+            } catch (EmailSendingException | ExecutionException | InterruptedException e) {
+                future.cancel(true);
+                Thread.currentThread().interrupt();
+                throw new EmailSendingException(e);
             }
         }
     }

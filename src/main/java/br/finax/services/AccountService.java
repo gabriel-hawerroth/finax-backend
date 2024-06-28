@@ -66,7 +66,6 @@ public class AccountService {
         return accountsRepository.save(account);
     }
 
-    @Transactional
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
         final CashFlow release = new CashFlow();
         release.setUserId(account.getUserId());

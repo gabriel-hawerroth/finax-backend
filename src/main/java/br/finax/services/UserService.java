@@ -1,9 +1,11 @@
 package br.finax.services;
 
+import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.CannotChangePasswordException;
 import br.finax.exceptions.InvalidPasswordException;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -120,8 +123,9 @@ public class UserService {
             securityFilter.updateCachedUser(user);
 
             return userRepository.save(user);
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing image", e);
+        } catch (ExecutionException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
         }
     }
 

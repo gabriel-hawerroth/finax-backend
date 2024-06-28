@@ -1,7 +1,22 @@
 package br.finax.config;
 
 import br.finax.dto.ResponseError;
-import br.finax.exceptions.*;
+import br.finax.enums.ErrorCategory;
+import br.finax.exceptions.BadCredentialsException;
+import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.EmailAlreadyExistsException;
+import br.finax.exceptions.EmailSendingException;
+import br.finax.exceptions.EmptyFileException;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidFileException;
+import br.finax.exceptions.InvalidHashAlgorithmException;
+import br.finax.exceptions.InvalidParametersException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.TokenCreationException;
+import br.finax.exceptions.UnauthorizedException;
+import br.finax.exceptions.WithoutPermissionException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,9 +24,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ExceptionHandlers {
 
+    private static final String INTERNAL_ERROR = "An internal error has occurred";
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResponseError> generalExceptionHandler(Exception ex) {
-        return ResponseEntity.internalServerError().body(
+    public ResponseEntity<ResponseError> generalException(Exception ex) {
+        return internalError();
+    }
+
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<ResponseError> serviceExceptionHandler(ServiceException ex) {
+        if (ex.getErrorCategory() == ErrorCategory.INTERNAL_ERROR) {
+            return internalError();
+        }
+
+        return ResponseEntity.status(ex.getErrorCategory().getHttpStatusCode()).body(
                 new ResponseError(ex.getMessage())
         );
     }
@@ -30,7 +56,9 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ResponseError> unauthorizedException(UnauthorizedException ex) {
-        return ResponseEntity.status(401).build();
+        return ResponseEntity
+                .status(ErrorCategory.UNAUTHORIZED.getHttpStatusCode())
+                .build();
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -40,37 +68,37 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(WithoutPermissionException.class)
     public ResponseEntity<ResponseError> withoutPermissionException(WithoutPermissionException ex) {
-        return ResponseEntity.badRequest().body(
-                new ResponseError("whitout permission to perform this action")
+        return ResponseEntity.status(ErrorCategory.FORBIDDEN.getHttpStatusCode()).body(
+                new ResponseError("Whitout permission to perform this action")
         );
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ResponseError> notFoundException(NotFoundException ex) {
         return ResponseEntity.badRequest().body(
-                new ResponseError("entity not found")
+                new ResponseError("Entity not found")
         );
     }
 
     @ExceptionHandler(EmailSendingException.class)
     public ResponseEntity<ResponseError> emailSendingException(EmailSendingException ex) {
-        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
+        return internalError();
     }
 
     @ExceptionHandler(InvalidHashAlgorithmException.class)
     public ResponseEntity<ResponseError> invalidHashAlgorithmException(InvalidHashAlgorithmException ex) {
-        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
+        return internalError();
     }
 
     @ExceptionHandler(TokenCreationException.class)
     public ResponseEntity<ResponseError> tokenCreationException(TokenCreationException ex) {
-        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
+        return internalError();
     }
 
     @ExceptionHandler(EmptyFileException.class)
     public ResponseEntity<ResponseError> emptyFileException(EmptyFileException ex) {
         return ResponseEntity.badRequest().body(
-                new ResponseError("the file is empty")
+                new ResponseError("The file is empty")
         );
     }
 
@@ -83,7 +111,7 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(FileCompressionErrorException.class)
     public ResponseEntity<ResponseError> compressionErroException(FileCompressionErrorException ex) {
-        return ResponseEntity.internalServerError().body(new ResponseError(ex.getMessage()));
+        return internalError();
     }
 
     @ExceptionHandler(CannotChangePasswordException.class)
@@ -94,5 +122,16 @@ public class ExceptionHandlers {
     @ExceptionHandler(InvalidParametersException.class)
     public ResponseEntity<ResponseError> invalidParametersException(InvalidParametersException ex) {
         return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
+    }
+
+    @ExceptionHandler(FileIOException.class)
+    public ResponseEntity<ResponseError> fileIOException(FileIOException ex) {
+        return internalError();
+    }
+
+    private ResponseEntity<ResponseError> internalError() {
+        return ResponseEntity.internalServerError().body(
+                new ResponseError(INTERNAL_ERROR)
+        );
     }
 }

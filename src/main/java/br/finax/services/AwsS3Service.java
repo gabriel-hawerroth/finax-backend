@@ -1,6 +1,8 @@
 package br.finax.services;
 
+import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
+import br.finax.exceptions.ServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -22,16 +24,14 @@ public class AwsS3Service {
 
     private static final String BUCKET = "finax";
 
-    private final String ACCESS_KEY;
-    private final String SECRET_KEY;
+    @Value("${aws.s3.access-key}")
+    private String accessKey;
 
-    public AwsS3Service(@Value("${aws.s3.access-key}") String accessKey, @Value("${aws.s3.secret-key}") String secretKey) {
-        ACCESS_KEY = accessKey;
-        SECRET_KEY = secretKey;
-    }
+    @Value("${aws.s3.secret-key}")
+    private String secretKey;
 
     private AWSCredentials awsCredentials() {
-        return new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
+        return new BasicAWSCredentials(accessKey, secretKey);
     }
 
     private AmazonS3 awsS3ClientBuilder() {
@@ -49,7 +49,7 @@ public class AwsS3Service {
         try (S3ObjectInputStream objectInputStream = s3Object.getObjectContent()) {
             return IOUtils.toByteArray(objectInputStream);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to download file from S3", e);
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to download file from S3", e);
         }
     }
 
