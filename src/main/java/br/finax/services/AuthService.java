@@ -55,18 +55,14 @@ public class AuthService {
 
         final String token = tokenService.generateToken(user);
 
-        if (user.getId() != 1) {
-            accessLogService.save(
-                    new AccessLog(user.getId(), LocalDateTime.now())
-            );
-        }
+        Thread.ofVirtual().start(() -> saveAccessLog(user.getId()));
 
         return new LoginResponseDTO(user, token);
     }
 
     @Transactional
     public User registerNewUser(User user) {
-        if (userService.findByEmail(user.getEmail()) != null)
+        if (userService.existsByEmail(user.getEmail()))
             throw new EmailAlreadyExistsException();
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -90,5 +86,13 @@ public class AuthService {
                         emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
                 )
         );
+    }
+
+    private void saveAccessLog(long userId) {
+        if (userId != 1) {
+            accessLogService.save(
+                    new AccessLog(userId, LocalDateTime.now())
+            );
+        }
     }
 }

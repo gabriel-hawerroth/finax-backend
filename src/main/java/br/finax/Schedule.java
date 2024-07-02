@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -26,7 +24,6 @@ public class Schedule {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     @Value("${spring.datasource.url}")
@@ -50,18 +47,14 @@ public class Schedule {
         entityManager.createNativeQuery("commit; vacuum full analyze; commit;").executeUpdate();
         entityManager.createNativeQuery("commit; reindex database " + dbName + "; commit;").executeUpdate();
 
-        logger.info("Database optimized: " + getNow());
+        logger.info("Database optimized");
     }
 
     @Scheduled(cron = "0 40 3 * * *")
     public void clearUsersCache() { //every day at 3:40AM
         securityFilter.clearUsersCache();
 
-        logger.info("Cleared user cache in security filter: " + getNow());
-    }
-
-    private String getNow() {
-        return LocalDateTime.now().format(dateFormat);
+        logger.info("Cleared user cache in security filter");
     }
 
 //    @Scheduled(cron = "0 0 3 * * *") //every day at 3:00 AM

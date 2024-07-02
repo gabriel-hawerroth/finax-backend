@@ -138,4 +138,9 @@ public class UserService {
         securityFilter.updateCachedUser(user);
         return userRepository.save(user);
     }
+
+    @Transactional
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }
