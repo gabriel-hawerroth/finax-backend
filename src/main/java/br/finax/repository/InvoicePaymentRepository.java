@@ -20,7 +20,7 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 invoice_payment ip
                 JOIN bank_account ba ON ip.payment_account_id = ba.id
             WHERE
-                ip.creditCardId = :creditCardId
+                ip.credit_card_id = :creditCardId
                 AND ip.invoice_month_year = :monthYear
             ORDER BY
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
@@ -34,14 +34,14 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                     SUM(cf.amount) -
                     (SELECT SUM(ip.payment_amount)
                     FROM invoice_payment ip
-                    WHERE ip.creditCardId = :creditCardId)
+                    WHERE ip.credit_card_id = :creditCardId)
                     , 0)
                 , 0) AS previousBalance
             FROM
                 cash_flow cf
             WHERE
-                cf.userId = :userId
-                AND cf.creditCardId = :creditCardId
+                cf.user_id = :userId
+                AND cf.credit_card_id = :creditCardId
                 AND cf.date < :firstDt
                 AND cf.done is true
             """, nativeQuery = true)

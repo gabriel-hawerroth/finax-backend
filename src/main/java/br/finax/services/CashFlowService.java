@@ -84,10 +84,8 @@ public class CashFlowService {
                     cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
             );
             case invoice -> new MonthlyCashFlow(
-                    cashFlowRepository.getMonthlyReleasesInvoiceMode(
-                            userId, firstDt, lastDt, firstDtInvoice, lastDtInvoice
-                    ),
-                    cashFlowRepository.getExpectedBalance(userId, firstDtCurrentMonth, lastDt)
+                    List.of(),
+                    0
             );
         };
     }
