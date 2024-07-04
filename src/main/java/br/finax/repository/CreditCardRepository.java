@@ -39,4 +39,14 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 cc.id
             """, nativeQuery = true)
     List<CardBasicList> getBasicList(long userId);
+
+    @Query(value = """
+            SELECT
+                cc.user_id
+            FROM
+                credit_card cc
+            WHERE
+                cc.id = :id
+            """, nativeQuery = true)
+    long findUserIdById(long id);
 }

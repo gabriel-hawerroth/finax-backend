@@ -18,8 +18,10 @@ import br.finax.exceptions.TokenCreationException;
 import br.finax.exceptions.UnauthorizedException;
 import br.finax.exceptions.WithoutPermissionException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class ExceptionHandlers {
@@ -29,6 +31,20 @@ public class ExceptionHandlers {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseError> generalException(Exception ex) {
         return internalError();
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ResponseError> missingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest().body(
+                new ResponseError(ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ResponseError> methodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.badRequest().body(
+                new ResponseError(ex.getMessage())
+        );
     }
 
     @ExceptionHandler(ServiceException.class)

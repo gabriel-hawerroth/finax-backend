@@ -40,4 +40,9 @@ public class CreditCardService {
     public List<CardBasicList> getBasicList() {
         return creditCardRepository.getBasicList(utils.getAuthUser().getId());
     }
+
+    @Transactional(readOnly = true)
+    public long findUserIdById(long id) {
+        return creditCardRepository.findUserIdById(id);
+    }
 }

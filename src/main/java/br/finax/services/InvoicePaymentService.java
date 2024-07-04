@@ -1,11 +1,10 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL;
+import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.InvoicePayment;
 import br.finax.repository.InvoicePaymentRepository;
-import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ public class InvoicePaymentService {
     private final InvoicePaymentRepository invoicePaymentRepository;
 
     private final CreditCardService creditCardService;
-    private final UtilsService utils;
 
     @Transactional(readOnly = true)
     public InvoicePayment findById(Long id) {
@@ -39,8 +37,8 @@ public class InvoicePaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.InvoicePaymentsPerson> getInvoicePayments(long creditCardId, String selectedMonth) {
-        if (creditCardService.findById(creditCardId).getUser_id() != utils.getAuthUser().getId())
+    public List<InvoicePaymentsPerson> getInvoicePayments(long userId, long creditCardId, String selectedMonth) {
+        if (creditCardService.findUserIdById(creditCardId) != userId)
             throw new WithoutPermissionException();
 
         return invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth);
