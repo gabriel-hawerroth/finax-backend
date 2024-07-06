@@ -194,26 +194,14 @@ CREATE TABLE public.invoice_payment
     attachment         bytea          NULL,
     attachment_name    text           NULL,
     credit_card_id     int4           NOT NULL,
-    invoice_month_year varchar(7)     NOT NULL,
+    month_year         varchar(7)     NOT NULL,
     CONSTRAINT invoice_payment_pkey PRIMARY KEY (id),
     CONSTRAINT invoice_payment_credit_card_id_fk FOREIGN KEY (credit_card_id) REFERENCES public.credit_card (id),
     CONSTRAINT invoice_payment_payment_account_fkey FOREIGN KEY (payment_account_id) REFERENCES public.bank_account (id)
 );
 CREATE INDEX invoice_payment_credit_card_id_idx ON public.invoice_payment USING btree (credit_card_id);
-
--- Table Triggers
-
-create trigger tr_after_events_invoice_payment
-    after
-        insert
-        or
-        delete
-        or
-        update
-    on
-        public.invoice_payment
-    for each row
-execute function fu_after_events_invoice_payment();
+CREATE INDEX invoice_payment_payment_account_id_idx ON public.invoice_payment USING btree (payment_account_id);
+CREATE INDEX invoice_payment_month_year_idx ON public.invoice_payment USING btree (month_year);
 
 -- public."token" definition
 
@@ -293,24 +281,11 @@ CREATE INDEX cash_flow_duplicated_release_id_idx ON public.cash_flow USING btree
 CREATE INDEX cash_flow_target_account_id_idx ON public.cash_flow USING btree (target_account_id);
 CREATE INDEX cash_flow_user_id_idx ON public.cash_flow USING btree (user_id);
 
--- Table Triggers
-
-create trigger tr_after_events_cash_flow
-    after
-        insert
-        or
-        delete
-        or
-        update
-    on
-        public.cash_flow
-    for each row
-execute function fu_after_events_cash_flow();
-
 -- DROP FUNCTION public.fu_after_events_cash_flow();
 
 CREATE OR REPLACE FUNCTION public.fu_after_events_cash_flow()
     RETURNS trigger
+    LANGUAGE plpgsql
 AS
 $function$
 BEGIN
@@ -497,6 +472,7 @@ $function$
 
 CREATE OR REPLACE FUNCTION public.fu_after_events_invoice_payment()
     RETURNS trigger
+    LANGUAGE plpgsql
 AS
 $function$
 BEGIN
@@ -548,3 +524,31 @@ BEGIN
 END;
 $function$
 ;
+
+-- Table cash_flow Triggers
+
+create trigger tr_after_events_cash_flow
+    after
+        insert
+        or
+        delete
+        or
+        update
+    on
+        public.cash_flow
+    for each row
+execute function fu_after_events_cash_flow();
+
+-- Table invoice_payment Triggers
+
+create trigger tr_after_events_invoice_payment
+    after
+        insert
+        or
+        delete
+        or
+        update
+    on
+        public.invoice_payment
+    for each row
+execute function fu_after_events_invoice_payment();

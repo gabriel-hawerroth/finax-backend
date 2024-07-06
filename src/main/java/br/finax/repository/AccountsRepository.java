@@ -18,8 +18,8 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
                 bank_account ba
             WHERE
                 ba.user_id = :userId
-                AND ba.active = true
-                AND ba.add_overall_balance = true
+                AND ba.active is true
+                AND ba.add_overall_balance is true
             ORDER BY
                 ba.id
             """, nativeQuery = true)
@@ -35,7 +35,7 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
                 bank_account ba
             WHERE
                 ba.user_id = :userId
-                AND ba.active = true
+                AND ba.active is true
             ORDER BY
                 ba.id
             """, nativeQuery = true)

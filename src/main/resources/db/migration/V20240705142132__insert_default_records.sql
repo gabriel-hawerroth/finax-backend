@@ -1,7 +1,7 @@
 -- Default user
-INSERT INTO users (email, "password", first_name, last_name, "access", active, can_change_password, signature,
+INSERT INTO users (id, email, "password", first_name, last_name, "access", active, can_change_password, signature,
                    signature_expiration, profile_image)
-VALUES ('default@gmail.com', '123', 'default', NULL, 'free',
+VALUES (0, 'default@gmail.com', '123', 'default', NULL, 'free',
         false, false, 'month', NULL, NULL);
 
 -- Default categories

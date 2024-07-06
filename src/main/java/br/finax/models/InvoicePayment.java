@@ -21,7 +21,7 @@ public class InvoicePayment {
 
     @NotBlank
     @Column(nullable = false, length = 7)
-    private String invoice_month_year;
+    private String month_year;
 
     @Column(nullable = false)
     private Long payment_account_id;
