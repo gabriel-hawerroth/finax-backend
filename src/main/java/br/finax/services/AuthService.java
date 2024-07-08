@@ -55,7 +55,7 @@ public class AuthService {
 
         final String token = tokenService.generateToken(user);
 
-        Thread.ofVirtual().start(() -> saveAccessLog(user.getId()));
+        Thread.ofVirtual().start(() -> saveAccessLog(user));
 
         return new LoginResponseDTO(user, token);
     }
@@ -71,11 +71,23 @@ public class AuthService {
         user.setCanChangePassword(false);
         user.setSignature("month");
 
+        user = userService.save(user);
+
         final Token token = userTokenService.generateToken(user);
 
         sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());
 
-        return userService.save(user);
+        return user;
+    }
+
+    private void saveAccessLog(User user) {
+        if (user.getAccess().equals("adm")) {
+            return;
+        }
+
+        accessLogService.save(
+                new AccessLog(user.getId(), LocalDateTime.now())
+        );
     }
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
@@ -86,13 +98,5 @@ public class AuthService {
                         emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
                 )
         );
-    }
-
-    private void saveAccessLog(long userId) {
-        if (userId != 1) {
-            accessLogService.save(
-                    new AccessLog(userId, LocalDateTime.now())
-            );
-        }
     }
 }
