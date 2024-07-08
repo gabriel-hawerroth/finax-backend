@@ -26,8 +26,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Modifying
     @Query(value = """
-            INSERT INTO CATEGORY (name, color, icon, type, user_id)
-            SELECT name, color, icon, type, :userId
+            INSERT INTO CATEGORY (name, color, icon, type, user_id, essential)
+            SELECT name, color, icon, type, :userId, essential
             FROM Category c
             WHERE c.user_id = 0 AND c.id <> 1
             """, nativeQuery = true)

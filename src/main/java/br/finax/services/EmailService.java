@@ -5,21 +5,33 @@ import br.finax.enums.EmailType;
 import br.finax.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
+    private final String API_URL;
+
     private final JavaMailSender javaMailSender;
+
+    public EmailService(JavaMailSender javaMailSender, Environment environment) {
+        this.javaMailSender = javaMailSender;
+
+        if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
+            API_URL = "http://localhost:8080";
+        } else {
+            API_URL = "https://apifinax.hawetec.com.br";
+        }
+    }
 
     public void sendMail(EmailDTO email) {
         try (final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -55,7 +67,7 @@ public class EmailService {
     }
 
     public String buildEmailTemplate(EmailType emailType, Long userId, String token) {
-        final String url = "https://apifinax.hawetec.com.br/login/" + emailType.getValue() + "/" + userId + "/" + token;
+        final String url = API_URL + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
 
         final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> " ativar sua conta.";
