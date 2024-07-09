@@ -41,7 +41,7 @@ public class EmailService {
 
                     javaMailSender.send(message);
                 } catch (MessagingException e) {
-                    throw new EmailSendingException(e);
+                    throw new EmailSendingException();
                 }
             });
 
@@ -49,8 +49,7 @@ public class EmailService {
                 future.get();
             } catch (EmailSendingException | ExecutionException | InterruptedException e) {
                 future.cancel(true);
-                Thread.currentThread().interrupt();
-                throw new EmailSendingException(e);
+                throw new EmailSendingException();
             }
         }
     }
