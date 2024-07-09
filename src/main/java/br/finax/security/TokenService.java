@@ -16,11 +16,11 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
-    private String secret;
+    @Value("${finax.security.secret-token}")
+    private String secretToken;
 
     public String generateToken(User user) {
-        final Algorithm algorithm = Algorithm.HMAC256(secret);
+        final Algorithm algorithm = Algorithm.HMAC256(secretToken);
 
         try {
             return JWT.create()
@@ -34,7 +34,7 @@ public class TokenService {
     }
 
     public String validateToken(String token) {
-        final Algorithm algorithm = Algorithm.HMAC256(secret);
+        final Algorithm algorithm = Algorithm.HMAC256(secretToken);
 
         try {
             return JWT.require(algorithm)

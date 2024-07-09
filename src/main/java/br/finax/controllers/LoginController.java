@@ -19,7 +19,7 @@ import java.util.Arrays;
 @RequestMapping("/login")
 public class LoginController {
 
-    private final String SITE_URL;
+    private final String siteUrl;
 
     private final LoginService loginService;
 
@@ -27,9 +27,9 @@ public class LoginController {
         this.loginService = loginService;
 
         if (Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-            SITE_URL = "http://localhost:4200";
+            siteUrl = "http://localhost:4200";
         } else {
-            SITE_URL = "https://finax.hawetec.com.br";
+            siteUrl = "https://finax.hawetec.com.br";
         }
     }
 
@@ -37,7 +37,7 @@ public class LoginController {
     public ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable @NotNull String token) {
         loginService.activateUser(userId, token);
 
-        final URI uri = URI.create(SITE_URL + "/ativacao-da-conta");
+        final URI uri = URI.create(siteUrl + "/ativacao-da-conta");
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)
@@ -54,7 +54,7 @@ public class LoginController {
     public ResponseEntity<Void> permitChangePassword(@PathVariable long userId, @PathVariable @NotNull String token) {
         loginService.permitChangePassword(userId, token);
 
-        final URI uri = URI.create(SITE_URL + "/recuperacao-da-senha/" + userId);
+        final URI uri = URI.create(siteUrl + "/recuperacao-da-senha/" + userId);
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)

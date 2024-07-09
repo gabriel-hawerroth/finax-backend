@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 @Service
 public class EmailService {
 
-    private final String API_URL;
+    private final String apiUrl;
 
     private final JavaMailSender javaMailSender;
 
@@ -27,9 +27,9 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
 
         if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-            API_URL = "http://localhost:8080";
+            apiUrl = "http://localhost:8080";
         } else {
-            API_URL = "https://apifinax.hawetec.com.br";
+            apiUrl = "https://apifinax.hawetec.com.br";
         }
     }
 
@@ -66,7 +66,7 @@ public class EmailService {
     }
 
     public String buildEmailTemplate(EmailType emailType, Long userId, String token) {
-        final String url = API_URL + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
+        final String url = apiUrl + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
 
         final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> " ativar sua conta.";
