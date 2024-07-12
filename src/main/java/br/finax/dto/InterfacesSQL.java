@@ -1,5 +1,7 @@
 package br.finax.dto;
 
+import br.finax.enums.release.ReleaseType;
+
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -31,7 +33,7 @@ public class InterfacesSQL {
 
         double getAmount();
 
-        String getType();
+        ReleaseType getType();
 
         boolean getDone();
 
@@ -53,7 +55,7 @@ public class InterfacesSQL {
 
         String getObservation();
 
-        String getAttachment();
+        String getAttachmentS3FileName();
 
         String getAttachmentName();
 
@@ -73,25 +75,25 @@ public class InterfacesSQL {
     public interface UserCreditCards {
         long getId();
 
-        long getUser_id();
+        long getUserId();
 
         String getName();
 
-        double getCard_limit();
+        double getCardLimit();
 
-        int getClose_day();
+        int getCloseDay();
 
-        int getExpires_day();
+        int getExpiresDay();
 
         String getImage();
 
-        long getStandard_payment_account_id();
+        long getStandardPaymentAccountId();
 
         boolean getActive();
 
-        String getAccount_name();
+        String getAccountName();
 
-        String getAccount_image();
+        String getAccountImage();
     }
 
     public interface AccountBasicList {
@@ -115,22 +117,22 @@ public class InterfacesSQL {
     public interface InvoicePaymentsPerson {
         long getId();
 
-        long getCredit_card_id();
+        long getCreditCardId();
 
-        String getInvoice_month_year();
+        String getMonthYear();
 
-        long getPayment_account_id();
+        double getPaymentAmount();
 
-        String getPayment_account_name();
+        LocalDate getPaymentDate();
 
-        String getPayment_account_image();
+        String getPaymentHour();
 
-        double getPayment_amount();
+        String getAttachmentName();
 
-        LocalDate getPayment_date();
+        long getPaymentAccountId();
 
-        String getPayment_hour();
+        String getPaymentAccountName();
 
-        String getAttachment_name();
+        String getPaymentAccountImage();
     }
 }

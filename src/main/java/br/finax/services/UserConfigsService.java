@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.enums.user.UserTheme;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
@@ -25,5 +26,19 @@ public class UserConfigsService {
     @Transactional
     public UserConfigs save(UserConfigs userConfigs) {
         return userConfigsRepository.save(userConfigs);
+    }
+
+    @Transactional
+    public void insertNewUserConfigs(long userId) {
+        final var userConfigs = new UserConfigs();
+
+        userConfigs.setUserId(userId);
+        userConfigs.setTheme(UserTheme.light);
+        userConfigs.setAddingMaterialGoodsToPatrimony(false);
+        userConfigs.setLanguage("pt-BR");
+        userConfigs.setCurrency("R$");
+        userConfigs.setReleasesViewMode("releases");
+
+        userConfigsRepository.save(userConfigs);
     }
 }

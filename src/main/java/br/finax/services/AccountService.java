@@ -1,10 +1,11 @@
 package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.AccountBasicList;
+import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Account;
-import br.finax.models.CashFlow;
+import br.finax.models.Release;
 import br.finax.repository.AccountRepository;
 import br.finax.utils.UtilsService;
 import lombok.NonNull;
@@ -21,13 +22,13 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    private final CashFlowService cashFlowService;
+    private final ReleaseService releaseService;
     private final UtilsService utils;
 
     @Lazy
-    public AccountService(AccountRepository accountRepository, CashFlowService cashFlowService, UtilsService utils) {
+    public AccountService(AccountRepository accountRepository, ReleaseService releaseService, UtilsService utils) {
         this.accountRepository = accountRepository;
-        this.cashFlowService = cashFlowService;
+        this.releaseService = releaseService;
         this.utils = utils;
     }
 
@@ -67,7 +68,7 @@ public class AccountService {
     }
 
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
-        final CashFlow release = new CashFlow();
+        final Release release = new Release();
         release.setBalanceAdjustment(true);
         release.setUserId(account.getUserId());
         release.setDescription("");
@@ -77,13 +78,13 @@ public class AccountService {
                         ? newBalance.subtract(account.getBalance())
                         : account.getBalance().subtract(newBalance)
         );
-        release.setType(newBalance.compareTo(account.getBalance()) > 0 ? "R" : "E");
+        release.setType(newBalance.compareTo(account.getBalance()) > 0 ? ReleaseType.R : ReleaseType.E);
         release.setDone(true);
         release.setCategoryId(null);
         release.setDate(LocalDate.now());
-        release.setRepeat("");
+        release.setRepeat(null);
 
-        cashFlowService.addRelease(release, 0);
+        releaseService.addRelease(release, 0);
     }
 
     @Transactional(readOnly = true)

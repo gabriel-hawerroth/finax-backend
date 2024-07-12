@@ -13,15 +13,22 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
 
     @Query(value = """
             SELECT
-                ip.*,
-                ba.name AS payment_account_name,
-                ba.image AS payment_account_image
+                ip.id,
+                ip.credit_card_id AS creditCardId,
+                ip.month_year AS monthYear,
+                ip.payment_amount AS paymentAmount,
+                ip.payment_date AS paymentDate,
+                ip.payment_hour AS paymentHour,
+                ip.attachment_name AS attachmentName,
+                ip.payment_account_id AS paymentAccountId,
+                ac.name AS payment_account_name,
+                ac.image AS payment_account_image
             FROM
                 invoice_payment ip
-                JOIN bank_account ba ON ip.payment_account_id = ba.id
+                JOIN account ac ON ip.payment_account_id = ac.id
             WHERE
                 ip.credit_card_id = :creditCardId
-                AND ip.invoice_month_year = :monthYear
+                AND ip.month_year = :monthYear
             ORDER BY
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true)
@@ -31,19 +38,19 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
             SELECT
                 COALESCE(
                     GREATEST(
-                    SUM(cf.amount) -
+                    SUM(rls.amount) -
                     (SELECT SUM(ip.payment_amount)
                     FROM invoice_payment ip
                     WHERE ip.credit_card_id = :creditCardId)
                     , 0)
                 , 0) AS previousBalance
             FROM
-                cash_flow cf
+                release rls
             WHERE
-                cf.user_id = :userId
-                AND cf.credit_card_id = :creditCardId
-                AND cf.date < :firstDt
-                AND cf.done is true
+                rls.user_id = :userId
+                AND rls.credit_card_id = :creditCardId
+                AND rls.date < :firstDt
+                AND rls.done is true
             """, nativeQuery = true)
     double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull Date firstDt);
 }

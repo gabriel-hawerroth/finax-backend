@@ -21,7 +21,7 @@ public class InvoiceService {
     private final InvoicePaymentService invoicePaymentService;
 
     private final CreditCardService creditCardService;
-    private final CashFlowService cashFlowService;
+    private final ReleaseService releaseService;
     private final CategoryService categoryService;
     private final AccountService accountService;
 
@@ -37,7 +37,7 @@ public class InvoiceService {
 
         return new InvoiceMonthValues(
                 invoicePaymentService.getInvoicePayments(userId, creditCardId, selectedMonth),
-                cashFlowService.getByInvoice(userId, creditCardId, firstDt, lastDt),
+                releaseService.getByInvoice(userId, creditCardId, firstDt, lastDt),
                 invoicePaymentService.getInvoicePreviousBalance(userId, creditCardId, firstDt)
         );
     }

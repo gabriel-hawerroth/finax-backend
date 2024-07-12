@@ -13,12 +13,12 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             SELECT
                 *
             FROM
-                category c
+                category ctg
             WHERE
-                c.user_id = :userId
-                AND c.active = true
+                ctg.user_id = :userId
+                AND ctg.active = true
             ORDER BY
-                id
+                ctg.id
             """, nativeQuery = true
     )
     List<Category> findByUser(long userId);

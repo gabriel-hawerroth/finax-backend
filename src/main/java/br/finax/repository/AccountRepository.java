@@ -15,29 +15,29 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             SELECT
                 *
             FROM
-                bank_account ba
+                account ac
             WHERE
-                ba.user_id = :userId
-                AND ba.active is true
-                AND ba.add_overall_balance is true
+                ac.user_id = :userId
+                AND ac.active is true
+                AND ac.add_overall_balance is true
             ORDER BY
-                ba.id
+                ac.id
             """, nativeQuery = true)
     List<Account> getHomeAccountsList(long userId);
 
     @Query(value = """
             SELECT
-                ba.id,
-                ba.name,
-                ba.image,
-                ba.balance
+                ac.id,
+                ac.name,
+                ac.image,
+                ac.balance
             FROM
-                bank_account ba
+                account ac
             WHERE
-                ba.user_id = :userId
-                AND ba.active is true
+                ac.user_id = :userId
+                AND ac.active is true
             ORDER BY
-                ba.id
+                ac.id
             """, nativeQuery = true)
     List<AccountBasicList> getBasicList(long userId);
 }

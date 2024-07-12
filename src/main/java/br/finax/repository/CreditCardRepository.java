@@ -12,12 +12,20 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
     @Query(value = """
             SELECT
-                cc.*,
-                ba.name AS account_name,
-                ba.image AS account_image
+                cc.id,
+                cc.user_id AS userId,
+                cc.name,
+                cc.card_limit AS cardLimit,
+                cc.close_day AS closeDay,
+                cc.expires_day AS expiresDay,
+                cc.image,
+                cc.standard_payment_account_id AS standardPaymentAccountId,
+                cc.active,
+                ac.name AS accountName,
+                ac.image AS accountImage
             FROM
                 credit_card cc
-                JOIN bank_account ba ON cc.standard_payment_account_id = ba.id
+                JOIN account ac ON cc.standard_payment_account_id = ac.id
             WHERE
                 cc.user_id = :userId
             ORDER BY

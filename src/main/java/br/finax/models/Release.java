@@ -1,7 +1,12 @@
 package br.finax.models;
 
+import br.finax.enums.release.ReleaseFixedby;
+import br.finax.enums.release.ReleaseRepeat;
+import br.finax.enums.release.ReleaseType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,8 +18,8 @@ import java.time.LocalDate;
 
 @Data
 @Entity
-@Table(name = "cash_flow")
-public class CashFlow {
+@Table(name = "release")
+public class Release {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,8 +37,9 @@ public class CashFlow {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 1, updatable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private ReleaseType type;
 
     @Column(nullable = false)
     private boolean done;
@@ -53,7 +59,8 @@ public class CashFlow {
     @Column(length = 100)
     private String observation;
 
-    private String attachment;
+    @Column(name = "attachment_s3_file_name")
+    private String attachmentS3FileName;
 
     @Column(name = "attachment_name")
     private String attachmentName;
@@ -61,14 +68,17 @@ public class CashFlow {
     @Column(name = "duplicated_release_id")
     private Long duplicatedReleaseId;
 
-    @Column(length = 12, updatable = false)
-    private String repeat;
+    @Enumerated(EnumType.STRING)
+    @Column(updatable = false)
+    private ReleaseRepeat repeat;
 
-    @Column(name = "fixed_by", length = 10, updatable = false)
-    private String fixedBy;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fixed_by", updatable = false)
+    private ReleaseFixedby fixedBy;
 
-    private Long credit_card_id;
+    @Column(name = "credit_card_id")
+    private Long creditCardId;
 
-    @Column(name = "is_balance_adjustment")
+    @Column(name = "is_balance_adjustment", nullable = false)
     private boolean isBalanceAdjustment;
 }

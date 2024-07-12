@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class DuplicatedReleaseBuilder {
-    private final CashFlow duplicatedRelease;
+    private final Release duplicatedRelease;
 
-    public DuplicatedReleaseBuilder(CashFlow original) {
+    public DuplicatedReleaseBuilder(Release original) {
         // Copies the relevant properties from the original to the duplicate
-        this.duplicatedRelease = new CashFlow();
+        this.duplicatedRelease = new Release();
         duplicatedRelease.setUserId(original.getUserId());
         duplicatedRelease.setDescription(original.getDescription());
         duplicatedRelease.setAccountId(original.getAccountId());
@@ -20,12 +20,12 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setDate(null);
         duplicatedRelease.setTime(original.getTime());
         duplicatedRelease.setObservation(original.getObservation());
-        duplicatedRelease.setAttachment(null);
+        duplicatedRelease.setAttachmentS3FileName(null);
         duplicatedRelease.setAttachmentName(null);
         duplicatedRelease.setDuplicatedReleaseId(original.getId());
         duplicatedRelease.setRepeat(original.getRepeat());
         duplicatedRelease.setFixedBy(original.getFixedBy());
-        duplicatedRelease.setCredit_card_id(original.getCredit_card_id());
+        duplicatedRelease.setCreditCardId(original.getCreditCardId());
         duplicatedRelease.setBalanceAdjustment(original.isBalanceAdjustment());
     }
 
@@ -39,7 +39,7 @@ public class DuplicatedReleaseBuilder {
         return this;
     }
 
-    public CashFlow build() {
+    public Release build() {
         return duplicatedRelease;
     }
 }

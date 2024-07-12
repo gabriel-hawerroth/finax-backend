@@ -2,9 +2,9 @@ package br.finax.controllers;
 
 import br.finax.dto.CashFlowValues;
 import br.finax.dto.MonthlyCashFlow;
-import br.finax.enums.DuplicatedReleaseAction;
-import br.finax.models.CashFlow;
-import br.finax.services.CashFlowService;
+import br.finax.enums.release.DuplicatedReleaseAction;
+import br.finax.models.Release;
+import br.finax.services.ReleaseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,30 +28,30 @@ import java.time.LocalDate;
 @RequestMapping("/cash-flow")
 public class CashFlowController {
 
-    public final CashFlowService cashFlowService;
+    public final ReleaseService releaseService;
 
     @GetMapping
     public ResponseEntity<MonthlyCashFlow> getMonthlyFlow(
             @RequestParam LocalDate firstDt, @RequestParam LocalDate lastDt
     ) {
         return ResponseEntity.ok(
-                cashFlowService.getMonthlyFlow(firstDt, lastDt)
+                releaseService.getMonthlyFlow(firstDt, lastDt)
         );
     }
 
     @GetMapping("/get-values")
     public ResponseEntity<CashFlowValues> getValues() {
         return ResponseEntity.ok(
-                cashFlowService.getValues()
+                releaseService.getValues()
         );
     }
 
     @PostMapping
-    public ResponseEntity<CashFlow> addRelease(
-            @RequestBody @Valid CashFlow release,
+    public ResponseEntity<Release> addRelease(
+            @RequestBody @Valid Release release,
             @RequestParam int repeatFor
     ) {
-        final CashFlow cashFlow = cashFlowService.addRelease(release, repeatFor);
+        final Release cashFlow = releaseService.addRelease(release, repeatFor);
 
         final URI uri = URI.create("/cash-flow/" + cashFlow.getId());
 
@@ -61,41 +61,41 @@ public class CashFlowController {
     }
 
     @PutMapping
-    public ResponseEntity<CashFlow> editRelease(
-            @RequestBody @Valid CashFlow release,
+    public ResponseEntity<Release> editRelease(
+            @RequestBody @Valid Release release,
             @RequestParam String duplicatedReleaseAction
     ) {
         return ResponseEntity.ok(
-                cashFlowService.editRelease(
+                releaseService.editRelease(
                         release, DuplicatedReleaseAction.valueOf(duplicatedReleaseAction)
                 )
         );
     }
 
     @PatchMapping("/add-attachment/{id}")
-    public ResponseEntity<CashFlow> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
+    public ResponseEntity<Release> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
         return ResponseEntity.ok(
-                cashFlowService.addAttachment(id, file)
+                releaseService.addAttachment(id, file)
         );
     }
 
     @PatchMapping("/remove-attachment/{id}")
-    public ResponseEntity<CashFlow> removeAttachment(@PathVariable long id) {
+    public ResponseEntity<Release> removeAttachment(@PathVariable long id) {
         return ResponseEntity.ok(
-                cashFlowService.removeAttachment(id)
+                releaseService.removeAttachment(id)
         );
     }
 
     @GetMapping("/get-attachment/{id}")
     public ResponseEntity<byte[]> getAttachment(@PathVariable long id) {
         return ResponseEntity.ok(
-                cashFlowService.getAttachment(id)
+                releaseService.getAttachment(id)
         );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
-        cashFlowService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
+        releaseService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
 
         return ResponseEntity.ok().build();
     }

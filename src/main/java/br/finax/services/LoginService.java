@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LoginService {
 
+    private final UserConfigsService userConfigsService;
     private final UserTokenService userTokenService;
     private final CategoryService categoryService;
     private final EmailService emailService;
@@ -28,7 +29,10 @@ public class LoginService {
             userService.activeUser(user.getId());
         }
 
-        Thread.ofVirtual().start(() -> categoryService.insertNewUserCategories(userId));
+        Thread.ofVirtual().start(() -> {
+            categoryService.insertNewUserCategories(userId);
+            userConfigsService.insertNewUserConfigs(userId);
+        });
     }
 
     @Transactional

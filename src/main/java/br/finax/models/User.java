@@ -1,6 +1,7 @@
 package br.finax.models;
 
-import br.finax.enums.UserAccess;
+import br.finax.enums.user.UserAccess;
+import br.finax.enums.user.UserSignature;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,7 +30,7 @@ public class User implements UserDetails {
     private long id;
 
     @Email
-    @Column(nullable = false, length = 40, updatable = false)
+    @Column(nullable = false, updatable = false)
     private String email;
 
     @Column(nullable = false)
@@ -42,7 +43,7 @@ public class User implements UserDetails {
     private String lastName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, columnDefinition = "user_access")
     private UserAccess access;
 
     @Column(nullable = false)
@@ -51,10 +52,11 @@ public class User implements UserDetails {
     @Column(name = "can_change_password", nullable = false)
     private boolean canChangePassword;
 
-    @Column(nullable = false, length = 5)
-    private String signature;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserSignature signature;
 
-    @Column(name = "signature_expiration")
+    @Column(name = "signature_expiration", columnDefinition = "user_signature")
     private Date signatureExpiration;
 
     @Column(name = "profile_image")

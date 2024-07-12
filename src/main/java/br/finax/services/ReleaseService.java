@@ -3,16 +3,18 @@ package br.finax.services;
 import br.finax.dto.CashFlowValues;
 import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
-import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
+import br.finax.enums.release.DuplicatedReleaseAction;
+import br.finax.enums.release.ReleaseFixedby;
+import br.finax.enums.release.ReleaseRepeat;
 import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
-import br.finax.models.CashFlow;
 import br.finax.models.DuplicatedReleaseBuilder;
-import br.finax.repository.CashFlowRepository;
+import br.finax.models.Release;
+import br.finax.repository.ReleaseRepository;
 import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
 import lombok.NonNull;
@@ -38,9 +40,9 @@ import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 
 @Service
-public class CashFlowService {
+public class ReleaseService {
 
-    private final CashFlowRepository cashFlowRepository;
+    private final ReleaseRepository releaseRepository;
 
     private final CreditCardService creditCardService;
     private final CategoryService categoryService;
@@ -51,8 +53,8 @@ public class CashFlowService {
     private final FileUtils fileUtils;
 
     @Lazy
-    public CashFlowService(CashFlowRepository cashFlowRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, UtilsService utils, FileUtils fileUtils) {
-        this.cashFlowRepository = cashFlowRepository;
+    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, UtilsService utils, FileUtils fileUtils) {
+        this.releaseRepository = releaseRepository;
         this.creditCardService = creditCardService;
         this.accountService = accountService;
         this.categoryService = categoryService;
@@ -62,8 +64,8 @@ public class CashFlowService {
     }
 
     @Transactional(readOnly = true)
-    public CashFlow findById(@NonNull Long id) {
-        return cashFlowRepository.findById(id)
+    public Release findById(@NonNull Long id) {
+        return releaseRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
     }
 
@@ -77,7 +79,7 @@ public class CashFlowService {
             throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
 
         return new MonthlyCashFlow(
-                cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
+                releaseRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
         );
     }
 
@@ -91,27 +93,27 @@ public class CashFlowService {
     }
 
     @Transactional
-    public CashFlow addRelease(final @NonNull CashFlow release, final int repeatFor) {
+    public Release addRelease(final @NonNull Release release, final int repeatFor) {
         release.setUserId(utils.getAuthUser().getId());
 
-        if (release.getRepeat() != null && release.getRepeat().isBlank())
-            return cashFlowRepository.save(release);
+        if (release.getRepeat() == null)
+            return releaseRepository.save(release);
 
-        final boolean isFixedRepeat = release.getRepeat() != null && release.getRepeat().equals("fixed");
+        final boolean isFixedRepeat = release.getRepeat().equals(ReleaseRepeat.FIXED);
         BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
 
         if (!isFixedRepeat) {
             release.setAmount(installmentsAmount);
-            release.setFixedBy("");
+            release.setFixedBy(null);
         }
 
-        final CashFlow savedRelease = cashFlowRepository.save(release);
+        final Release savedRelease = releaseRepository.save(release);
 
-        final List<CashFlow> releases = new LinkedList<>();
+        final List<Release> releases = new LinkedList<>();
         LocalDate dt = savedRelease.getDate();
 
         for (var i = 0; i < repeatFor - 1; i++) {
-            final CashFlow newRelease = createDuplicatedRelease(
+            final Release newRelease = createDuplicatedRelease(
                     savedRelease,
                     isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
                     isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
@@ -121,47 +123,47 @@ public class CashFlowService {
             dt = releases.get(i).getDate();
         }
 
-        cashFlowRepository.saveAll(releases);
+        releaseRepository.saveAll(releases);
 
         return savedRelease;
     }
 
     @Transactional
-    public CashFlow editRelease(
-            @NonNull CashFlow release, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
+    public Release editRelease(
+            @NonNull Release release, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
     ) {
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
-        final CashFlow existingRelease = findById(release.getId());
+        final Release existingRelease = findById(release.getId());
 
         // things that can't change
         release.setUserId(existingRelease.getUserId());
         release.setType(existingRelease.getType());
-        release.setAttachment(existingRelease.getAttachment());
+        release.setAttachmentS3FileName(existingRelease.getAttachmentS3FileName());
         release.setAttachmentName(existingRelease.getAttachmentName());
         release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
         release.setRepeat(existingRelease.getRepeat());
         release.setFixedBy(existingRelease.getFixedBy());
 
         if (!updatingAll)
-            release = cashFlowRepository.save(release);
+            release = releaseRepository.save(release);
 
         if (updatingNexts || updatingAll) {
-            final List<CashFlow> duplicatedReleases;
+            final List<Release> duplicatedReleases;
 
             if (updatingNexts) {
-                duplicatedReleases = cashFlowRepository.getNextDuplicatedReleases(
+                duplicatedReleases = releaseRepository.getNextDuplicatedReleases(
                         release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId(),
                         existingRelease.getDate()
                 );
             } else {
-                duplicatedReleases = cashFlowRepository.getAllDuplicatedReleases(
+                duplicatedReleases = releaseRepository.getAllDuplicatedReleases(
                         release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId()
                 );
             }
 
-            for (CashFlow item : duplicatedReleases) {
+            for (Release item : duplicatedReleases) {
                 item.setDescription(release.getDescription());
                 item.setAccountId(release.getAccountId());
                 item.setAmount(release.getAmount());
@@ -173,15 +175,15 @@ public class CashFlowService {
                 item.setDone(release.isDone());
             }
 
-            cashFlowRepository.saveAll(duplicatedReleases);
+            releaseRepository.saveAll(duplicatedReleases);
         }
 
         return release;
     }
 
     @Transactional
-    public CashFlow addAttachment(long releaseId, final @NonNull MultipartFile attachment) {
-        final CashFlow release = findById(releaseId);
+    public Release addAttachment(long releaseId, final @NonNull MultipartFile attachment) {
+        final Release release = findById(releaseId);
 
         checkPermission(release);
 
@@ -195,17 +197,17 @@ public class CashFlowService {
             final Future<File> tempFileFuture = executor.submit(() -> convertByteArrayToFile(compressedFile, fileName));
             final File tempFile = tempFileFuture.get();
 
-            if (release.getAttachment() != null)
-                executor.submit(() -> awsS3Service.updateS3File(release.getAttachment(), fileName, tempFile)).get();
+            if (release.getAttachmentS3FileName() != null)
+                executor.submit(() -> awsS3Service.updateS3File(release.getAttachmentS3FileName(), fileName, tempFile)).get();
             else
                 executor.submit(() -> awsS3Service.uploadS3File(fileName, tempFile)).get();
 
             var _ = tempFile.delete();
 
-            release.setAttachment(fileName);
+            release.setAttachmentS3FileName(fileName);
             release.setAttachmentName(attachment.getOriginalFilename());
 
-            return cashFlowRepository.save(release);
+            return releaseRepository.save(release);
         } catch (ExecutionException | InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
@@ -213,29 +215,29 @@ public class CashFlowService {
     }
 
     @Transactional
-    public CashFlow removeAttachment(long releaseId) {
-        final CashFlow release = findById(releaseId);
+    public Release removeAttachment(long releaseId) {
+        final Release release = findById(releaseId);
 
         checkPermission(release);
 
         try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            executor.submit(() -> awsS3Service.deleteS3File(release.getAttachment()));
+            executor.submit(() -> awsS3Service.deleteS3File(release.getAttachmentS3FileName()));
         }
 
-        release.setAttachment(null);
+        release.setAttachmentS3FileName(null);
         release.setAttachmentName(null);
 
-        return cashFlowRepository.save(release);
+        return releaseRepository.save(release);
     }
 
     @Transactional(readOnly = true)
     public byte[] getAttachment(long releaseId) {
-        final CashFlow release = findById(releaseId);
+        final Release release = findById(releaseId);
 
         checkPermission(release);
 
         try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            final Future<byte[]> fileFuture = executor.submit(() -> awsS3Service.getS3File(release.getAttachment()));
+            final Future<byte[]> fileFuture = executor.submit(() -> awsS3Service.getS3File(release.getAttachmentS3FileName()));
             return fileFuture.get();
         } catch (ExecutionException | InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -245,19 +247,19 @@ public class CashFlowService {
 
     @Transactional
     public void delete(long releaseId, DuplicatedReleaseAction duplicatedReleasesAction) {
-        final CashFlow release = findById(releaseId);
+        final Release release = findById(releaseId);
 
         checkPermission(release);
 
         switch (duplicatedReleasesAction) {
-            case NEXTS -> cashFlowRepository.deleteAll(
-                    cashFlowRepository.getNextDuplicatedReleases(
+            case NEXTS -> releaseRepository.deleteAll(
+                    releaseRepository.getNextDuplicatedReleases(
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId,
                             release.getDate()
                     )
             );
-            case ALL -> cashFlowRepository.deleteAll(
-                    cashFlowRepository.getAllDuplicatedReleases(
+            case ALL -> releaseRepository.deleteAll(
+                    releaseRepository.getAllDuplicatedReleases(
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
                     )
             );
@@ -265,50 +267,49 @@ public class CashFlowService {
         }
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
-            cashFlowRepository.deleteById(releaseId);
+            releaseRepository.deleteById(releaseId);
     }
 
-    private CashFlow createDuplicatedRelease(final CashFlow original, BigDecimal newAmount, final LocalDate newDate) {
+    private Release createDuplicatedRelease(final Release original, BigDecimal newAmount, final LocalDate newDate) {
         return new DuplicatedReleaseBuilder(original)
                 .amount(newAmount)
                 .date(newDate)
                 .build();
     }
 
-    private LocalDate getNewDate(final LocalDate dt, final String fixedBy) {
+    private LocalDate getNewDate(final LocalDate dt, final ReleaseFixedby fixedBy) {
         return switch (fixedBy) {
-            case "daily" -> dt.plusDays(1);
-            case "weekly" -> dt.plusWeeks(1);
-            case "monthly" -> dt.plusMonths(1);
-            case "bimonthly" -> dt.plusMonths(2);
-            case "quarterly" -> dt.plusMonths(3);
-            case "biannual" -> dt.plusMonths(6);
-            case "annual" -> dt.plusYears(1);
-            default -> dt;
+            case DAILY -> dt.plusDays(1);
+            case WEEKLY -> dt.plusWeeks(1);
+            case MONTHLY -> dt.plusMonths(1);
+            case BIMONTHLY -> dt.plusMonths(2);
+            case QUARTERLY -> dt.plusMonths(3);
+            case BIANNUAL -> dt.plusMonths(6);
+            case ANNUAL -> dt.plusYears(1);
         };
     }
 
     @Transactional(readOnly = true)
     public InterfacesSQL.HomeBalances getHomeBalances(long userId, Date firstDt, Date lastDt) {
-        return cashFlowRepository.getHomeBalances(userId, firstDt, lastDt);
+        return releaseRepository.getHomeBalances(userId, firstDt, lastDt);
     }
 
     @Transactional(readOnly = true)
     public List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId) {
-        return cashFlowRepository.getUpcomingReleasesExpected(userId);
+        return releaseRepository.getUpcomingReleasesExpected(userId);
     }
 
     @Transactional(readOnly = true)
-    public List<CashFlow> findReleasesForHomeSpendsCategory(long id, LocalDate startDate, LocalDate endDate) {
-        return cashFlowRepository.findReleasesForHomeSpendsCategory(id, startDate, endDate);
+    public List<Release> findReleasesForHomeSpendsCategory(long id, LocalDate startDate, LocalDate endDate) {
+        return releaseRepository.findReleasesForHomeSpendsCategory(id, startDate, endDate);
     }
 
     @Transactional(readOnly = true)
     public List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, Date firstDt, Date lastDt) {
-        return cashFlowRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
+        return releaseRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
     }
 
-    private void checkPermission(final CashFlow release) {
+    private void checkPermission(final Release release) {
         if (release.getUserId() != utils.getAuthUser().getId())
             throw new WithoutPermissionException();
     }

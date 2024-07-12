@@ -1,4 +1,4 @@
-package br.finax.enums;
+package br.finax.enums.user;
 
 public enum UserAccess {
 

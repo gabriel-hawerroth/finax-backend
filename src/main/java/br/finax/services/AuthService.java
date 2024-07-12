@@ -4,7 +4,8 @@ import br.finax.dto.AuthenticationDTO;
 import br.finax.dto.EmailDTO;
 import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
-import br.finax.enums.UserAccess;
+import br.finax.enums.user.UserAccess;
+import br.finax.enums.user.UserSignature;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.models.AccessLog;
@@ -70,7 +71,7 @@ public class AuthService {
         user.setActive(false);
         user.setAccess(UserAccess.PREMIUM);
         user.setCanChangePassword(false);
-        user.setSignature("month");
+        user.setSignature(UserSignature.MONTH);
         user.setCreatedAt(LocalDateTime.now());
 
         user = userService.save(user);

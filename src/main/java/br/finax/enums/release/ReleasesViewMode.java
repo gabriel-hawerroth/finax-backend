@@ -1,4 +1,4 @@
-package br.finax.enums;
+package br.finax.enums.release;
 
 import lombok.Getter;
 

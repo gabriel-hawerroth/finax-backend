@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "bank_account")
+@Table(name = "account")
 public class Account {
 
     @Id
@@ -56,6 +56,5 @@ public class Account {
     private Integer code;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 2)
     private AccountType type;
 }
