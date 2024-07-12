@@ -97,6 +97,6 @@ public class CashFlowController {
     public ResponseEntity<Void> delete(@PathVariable long id, @RequestParam String duplicatedReleasesAction) {
         releaseService.delete(id, DuplicatedReleaseAction.valueOf(duplicatedReleasesAction));
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
