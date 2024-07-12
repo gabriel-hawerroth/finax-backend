@@ -1,20 +1,27 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @Entity
 @Table(name = "category")
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "user_id", nullable = false, updatable = false)
-    private long userId;
+    private Long userId;
 
     @NotBlank
     @Column(nullable = false, length = 40)
@@ -37,4 +44,15 @@ public class Category {
 
     @Column(nullable = false)
     private boolean essential;
+
+    public Category(String name, String color, String icon, String type, boolean essential) {
+        this.id = null;
+        this.userId = null;
+        this.name = name;
+        this.color = color;
+        this.icon = icon;
+        this.type = type;
+        this.active = true;
+        this.essential = essential;
+    }
 }

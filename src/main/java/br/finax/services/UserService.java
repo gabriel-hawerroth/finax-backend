@@ -143,4 +143,9 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+
+    @Transactional
+    public void activeUser(long userId) {
+        userRepository.activeUser(userId);
+    }
 }

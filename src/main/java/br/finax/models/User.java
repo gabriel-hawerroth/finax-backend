@@ -1,11 +1,20 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import br.finax.enums.UserAccess;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -32,8 +41,9 @@ public class User implements UserDetails {
     @Column(name = "last_name", length = 40)
     private String lastName;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private String access;
+    private UserAccess access;
 
     @Column(nullable = false)
     private boolean active;
@@ -49,6 +59,9 @@ public class User implements UserDetails {
 
     @Column(name = "profile_image")
     private String profileImage;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -12,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static br.finax.utils.DefaultCategories.DEFAULT_EXPENSE_CATEGORIES;
+import static br.finax.utils.DefaultCategories.DEFAULT_REVENUE_CATEGORIES;
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
     private final UtilsService utils;
 
     @Transactional(readOnly = true)
@@ -62,6 +64,15 @@ public class CategoryService {
 
     @Transactional
     public void insertNewUserCategories(long userId) {
-        categoryRepository.insertNewUserCategories(userId);
+        final var categories = getDefaultCategories();
+        categories.forEach(category -> category.setUserId(userId));
+
+        categoryRepository.saveAll(categories);
+    }
+
+    private List<Category> getDefaultCategories() {
+        final var categories = new java.util.ArrayList<>(DEFAULT_EXPENSE_CATEGORIES);
+        categories.addAll(DEFAULT_REVENUE_CATEGORIES);
+        return categories;
     }
 }

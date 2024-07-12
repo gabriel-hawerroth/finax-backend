@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface AccountsRepository extends JpaRepository<Account, Long> {
+public interface AccountRepository extends JpaRepository<Account, Long> {
 
     List<Account> findAllByUserIdOrderByIdAsc(long userId);
 

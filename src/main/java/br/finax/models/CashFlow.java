@@ -1,6 +1,11 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -63,4 +68,7 @@ public class CashFlow {
     private String fixedBy;
 
     private Long credit_card_id;
+
+    @Column(name = "is_balance_adjustment")
+    private boolean isBalanceAdjustment;
 }

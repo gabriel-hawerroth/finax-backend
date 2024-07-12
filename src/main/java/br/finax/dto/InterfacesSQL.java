@@ -60,6 +60,8 @@ public class InterfacesSQL {
         Long getDuplicatedReleaseId();
 
         boolean getIsDuplicatedRelease();
+
+        boolean getIsBalanceAdjustment();
     }
 
     public interface HomeBalances {

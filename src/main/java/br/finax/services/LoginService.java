@@ -25,11 +25,10 @@ public class LoginService {
         final User user = userService.findById(userId);
 
         if (savedToken.equals(token)) {
-            user.setActive(true);
-            userService.save(user);
+            userService.activeUser(user.getId());
         }
 
-        categoryService.insertNewUserCategories(userId);
+        Thread.ofVirtual().start(() -> categoryService.insertNewUserCategories(userId));
     }
 
     @Transactional

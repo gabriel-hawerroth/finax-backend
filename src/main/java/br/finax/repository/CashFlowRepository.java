@@ -1,6 +1,7 @@
 package br.finax.repository;
 
-import br.finax.dto.InterfacesSQL;
+import br.finax.dto.InterfacesSQL.HomeBalances;
+import br.finax.dto.InterfacesSQL.MonthlyReleases;
 import br.finax.models.CashFlow;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,7 +44,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
                     ELSE false
-                END) AS isDuplicatedRelease
+                END) AS isDuplicatedRelease,
+                cf.is_balance_adjustment AS isBalanceAdjustment
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
@@ -56,7 +58,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    List<MonthlyReleases> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
@@ -70,7 +72,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 AND cf.date between :firstDt and :lastDt
             LIMIT 1
             """, nativeQuery = true)
-    InterfacesSQL.HomeBalances getHomeBalances(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
+    HomeBalances getHomeBalances(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
 
     @Query(value = """
             SELECT
@@ -96,7 +98,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                 cf.observation,
                 cf.attachment_name AS attachmentName,
                 cf.duplicated_release_id AS duplicatedReleaseId,
-                false AS isDuplicatedRelease
+                false AS isDuplicatedRelease,
+                cf.is_balance_adjustment AS isBalanceAdjustment
             FROM
                 cash_flow cf
                 LEFT JOIN bank_account ba ON cf.account_id = ba.id
@@ -111,7 +114,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getUpcomingReleasesExpected(long userId);
+    List<MonthlyReleases> getUpcomingReleasesExpected(long userId);
 
     @Query(value = """
             SELECT
@@ -167,7 +170,8 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
                         cf.duplicated_release_id IS NOT NULL
                     THEN true
                     ELSE false
-                END) AS isDuplicatedRelease
+                END) AS isDuplicatedRelease,
+                cf.is_balance_adjustment AS isBalanceAdjustment
             FROM
                 cash_flow cf
                 JOIN credit_card cc ON cf.credit_card_id = cc.id
@@ -179,7 +183,7 @@ public interface CashFlowRepository extends JpaRepository<CashFlow, Long> {
             ORDER BY
                 cf.date, cf.time, cf.id
             """, nativeQuery = true)
-    List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull Date firstDt, @NonNull Date lastDt);
+    List<MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull Date firstDt, @NonNull Date lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
     @Query(value = """

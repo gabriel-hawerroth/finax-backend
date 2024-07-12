@@ -1,6 +1,14 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import br.finax.enums.AccountType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -47,6 +55,7 @@ public class Account {
     @Column(precision = 3)
     private Integer code;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 2)
-    private String type;
+    private AccountType type;
 }

@@ -74,19 +74,23 @@ CREATE SEQUENCE public.users_id_seq
 
 -- DROP TABLE public.users;
 
+CREATE TYPE user_access AS ENUM ('FREE', 'BASIC', 'PREMIUM', 'ADM');
+CREATE TYPE user_signature AS ENUM ('MONTH', 'YEAR');
+
 CREATE TABLE public.users
 (
-    id                   serial4                                       NOT NULL,
-    email                varchar(40)                                   NOT NULL,
-    "password"           bpchar(60)                                    NOT NULL,
-    first_name           varchar(30)                                   NOT NULL,
-    last_name            varchar(40)                                   NULL,
-    "access"             varchar(10)                                   NOT NULL,
-    active               bool       DEFAULT true                       NOT NULL,
-    can_change_password  bool       DEFAULT false                      NOT NULL,
-    signature            varchar(5) DEFAULT 'month'::character varying NOT NULL,
-    signature_expiration date                                          NULL,
-    profile_image        text                                          NULL,
+    id                   serial4                                  NOT NULL,
+    email                varchar(40)                              NOT NULL,
+    "password"           bpchar(60)                               NOT NULL,
+    first_name           varchar(30)                              NOT NULL,
+    last_name            varchar(40)                              NULL,
+    "access"             user_access                              NOT NULL,
+    active               bool           DEFAULT true              NOT NULL,
+    can_change_password  bool           DEFAULT false             NOT NULL,
+    signature            user_signature DEFAULT 'MONTH'           NOT NULL,
+    signature_expiration date                                     NULL,
+    profile_image        text                                     NULL,
+    created_at           timestamptz    DEFAULT current_timestamp NOT NULL,
     CONSTRAINT users_email_key UNIQUE (email),
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
@@ -113,6 +117,8 @@ CREATE INDEX access_log_user_id_idx ON public.access_log USING btree (user_id);
 
 -- DROP TABLE public.bank_account;
 
+CREATE TYPE account_type AS ENUM ('CHECKING', 'SAVING', 'SALARY', 'LEGAL', 'BROKERAGE');
+
 CREATE TABLE public.bank_account
 (
     id                  serial4                      NOT NULL,
@@ -127,7 +133,7 @@ CREATE TABLE public.bank_account
     account_number      varchar(15)                  NULL,
     agency              varchar(5)                   NULL,
     code                numeric(3)                   NULL,
-    "type"              varchar(2)                   NULL,
+    "type"              account_type                 NULL,
     CONSTRAINT accounts_pkey PRIMARY KEY (id),
     CONSTRAINT bank_accounts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
@@ -225,15 +231,17 @@ CREATE INDEX token_user_id_idx ON public.token USING btree (user_id);
 
 -- DROP TABLE public.user_configs;
 
+CREATE TYPE user_configs_theme AS ENUM ('light', 'dark');
+
 CREATE TABLE public.user_configs
 (
-    id                                 serial4                                           NOT NULL,
-    user_id                            int4                                              NOT NULL,
-    theme                              varchar(10) DEFAULT 'light'::character varying    NOT NULL,
-    adding_material_goods_to_patrimony bool        DEFAULT false                         NOT NULL,
-    "language"                         varchar(5)  DEFAULT 'pt-br'::character varying    NOT NULL,
-    currency                           varchar(3)  DEFAULT 'R$'::character varying       NOT NULL,
-    releases_view_mode                 varchar(8)  DEFAULT 'releases'::character varying NOT NULL,
+    id                                 serial4                                                  NOT NULL,
+    user_id                            int4                                                     NOT NULL,
+    theme                              user_configs_theme DEFAULT 'light'::character varying    NOT NULL,
+    adding_material_goods_to_patrimony bool               DEFAULT false                         NOT NULL,
+    "language"                         varchar(5)         DEFAULT 'pt-br'::character varying    NOT NULL,
+    currency                           varchar(3)         DEFAULT 'R$'::character varying       NOT NULL,
+    releases_view_mode                 varchar(8)         DEFAULT 'releases'::character varying NOT NULL,
     CONSTRAINT user_configs_pkey PRIMARY KEY (id),
     CONSTRAINT user_configs_user_id_key UNIQUE (user_id),
     CONSTRAINT user_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
@@ -265,6 +273,7 @@ CREATE TABLE public.cash_flow
     repeat                varchar(12) DEFAULT ''::character varying NULL,
     fixed_by              varchar(10) DEFAULT ''::character varying NULL,
     credit_card_id        int4                                      NULL,
+    is_balance_adjustment bool        DEFAULT false                 NOT NULL,
     CONSTRAINT cash_flow_pkey PRIMARY KEY (id),
     CONSTRAINT cash_flow_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.bank_account (id),
     CONSTRAINT cash_flow_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.category (id),
@@ -285,7 +294,6 @@ CREATE INDEX cash_flow_user_id_idx ON public.cash_flow USING btree (user_id);
 
 CREATE OR REPLACE FUNCTION public.fu_after_events_cash_flow()
     RETURNS trigger
-    LANGUAGE plpgsql
 AS
 $function$
 BEGIN

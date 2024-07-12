@@ -5,7 +5,6 @@ import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.DuplicatedReleaseAction;
 import br.finax.enums.ErrorCategory;
-import br.finax.enums.ReleasesViewMode;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
@@ -70,24 +69,16 @@ public class CashFlowService {
 
     @Transactional(readOnly = true)
     public MonthlyCashFlow getMonthlyFlow(
-            final LocalDate firstDt, final LocalDate lastDt,
-            final ReleasesViewMode viewMode, final Date firstDtCurrentMonth,
-            final Date firstDtInvoice, final Date lastDtInvoice
+            final LocalDate firstDt, final LocalDate lastDt
     ) {
         final long userId = utils.getAuthUser().getId();
 
         if (ChronoUnit.DAYS.between(firstDt, lastDt) > 31)
             throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
 
-        return switch (viewMode) {
-            case releases -> new MonthlyCashFlow(
-                    cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
-            );
-            case invoice -> new MonthlyCashFlow(
-                    List.of(),
-                    0
-            );
-        };
+        return new MonthlyCashFlow(
+                cashFlowRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
+        );
     }
 
     @Transactional(readOnly = true)

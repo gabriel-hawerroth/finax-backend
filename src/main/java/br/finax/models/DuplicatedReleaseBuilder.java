@@ -26,6 +26,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setRepeat(original.getRepeat());
         duplicatedRelease.setFixedBy(original.getFixedBy());
         duplicatedRelease.setCredit_card_id(original.getCredit_card_id());
+        duplicatedRelease.setBalanceAdjustment(original.isBalanceAdjustment());
     }
 
     public DuplicatedReleaseBuilder amount(BigDecimal amount) {
