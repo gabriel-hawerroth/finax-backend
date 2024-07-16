@@ -40,9 +40,9 @@ public class Schedule {
     }
 
     @Transactional
-    @Scheduled(cron = "25 30 3 * * *") //every day at 3:30AM
+    @Scheduled(cron = "20 30 3 * * *") //every day at 3:30AM
     public void optimizeDatabase() {
-        final String dbName = databaseUrl.split("//")[1].split("/")[1];
+        final String dbName = databaseUrl.split("//")[1].split("/")[1].split("\\?")[0];
 
         entityManager.createNativeQuery("commit; vacuum full analyze; commit;").executeUpdate();
         entityManager.createNativeQuery("commit; reindex database " + dbName + "; commit;").executeUpdate();
