@@ -1,6 +1,11 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -16,26 +21,27 @@ public class InvoicePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, updatable = false)
-    private long credit_card_id;
+    @Column(name = "credit_card_id", nullable = false, updatable = false)
+    private long creditCardId;
 
     @NotBlank
-    @Column(nullable = false, length = 7)
-    private String month_year;
+    @Column(name = "month_year", nullable = false, length = 7)
+    private String monthYear;
 
-    @Column(nullable = false)
-    private Long payment_account_id;
+    @Column(name = "payment_account_id", nullable = false)
+    private Long paymentAccountId;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal payment_amount;
+    @Column(name = "payment_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal paymentAmount;
 
-    @Column(nullable = false)
-    private LocalDate payment_date;
+    @Column(name = "payment_date", nullable = false)
+    private LocalDate paymentDate;
 
-    @Column(length = 5)
-    private String payment_hour;
+    @Column(name = "payment_hour", length = 5)
+    private String paymentHour;
 
     private byte[] attachment;
 
-    private String attachment_name;
+    @Column(name = "attachment_name")
+    private String attachmentName;
 }

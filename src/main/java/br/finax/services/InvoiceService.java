@@ -59,7 +59,7 @@ public class InvoiceService {
             final InvoicePayment invoicePayment = invoicePaymentService.findById(payment.getId());
 
             payment.setAttachment(invoicePayment.getAttachment());
-            payment.setAttachment_name(invoicePayment.getAttachment_name());
+            payment.setAttachmentName(invoicePayment.getAttachmentName());
         }
 
         return invoicePaymentService.save(payment);
@@ -81,7 +81,7 @@ public class InvoiceService {
         checkPermission(payment);
 
         payment.setAttachment(fileUtils.compressFile(attachment, true));
-        payment.setAttachment_name(attachment.getOriginalFilename());
+        payment.setAttachmentName(attachment.getOriginalFilename());
 
         return invoicePaymentService.save(payment);
     }
@@ -93,7 +93,7 @@ public class InvoiceService {
         checkPermission(payment);
 
         payment.setAttachment(null);
-        payment.setAttachment_name(null);
+        payment.setAttachmentName(null);
 
         return invoicePaymentService.save(payment);
     }
@@ -105,7 +105,7 @@ public class InvoiceService {
     }
 
     private void checkPermission(final InvoicePayment payment) {
-        if (creditCardService.findById(payment.getCredit_card_id()).getUser_id() != utils.getAuthUser().getId())
+        if (creditCardService.findById(payment.getCreditCardId()).getUserId() != utils.getAuthUser().getId())
             throw new WithoutPermissionException();
     }
 }

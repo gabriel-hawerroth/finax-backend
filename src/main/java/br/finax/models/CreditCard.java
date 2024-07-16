@@ -1,6 +1,11 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -17,29 +22,31 @@ public class CreditCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, updatable = false)
-    private Long user_id;
+    @Column(name = "user_id", nullable = false, updatable = false)
+    private Long userId;
 
     @NotBlank
     @Column(nullable = false, length = 40)
     private String name;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal card_limit;
+    @Column(name = "card_limit", nullable = false, precision = 15, scale = 2)
+    private BigDecimal cardLimit;
 
     @Min(1)
     @Max(31)
-    private int close_day;
+    @Column(name = "close_day")
+    private int closeDay;
 
     @Min(1)
     @Max(31)
-    private int expires_day;
+    @Column(name = "expires_day")
+    private int expiresDay;
 
     @Column(length = 25)
     private String image;
 
-    @Column(nullable = false)
-    private long standard_payment_account_id;
+    @Column(name = "standard_payment_account_id", nullable = false)
+    private long standardPaymentAccountId;
 
     @Column(nullable = false)
     private boolean active;

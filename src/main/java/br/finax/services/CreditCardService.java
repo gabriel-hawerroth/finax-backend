@@ -32,7 +32,7 @@ public class CreditCardService {
 
     @Transactional
     public CreditCard save(CreditCard card) {
-        card.setUser_id(utils.getAuthUser().getId());
+        card.setUserId(utils.getAuthUser().getId());
         return creditCardRepository.save(card);
     }
 

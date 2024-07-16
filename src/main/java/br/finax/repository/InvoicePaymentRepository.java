@@ -21,8 +21,8 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 ip.payment_hour AS paymentHour,
                 ip.attachment_name AS attachmentName,
                 ip.payment_account_id AS paymentAccountId,
-                ac.name AS payment_account_name,
-                ac.image AS payment_account_image
+                ac.name AS paymentAccountName,
+                ac.image AS paymentAccountImage
             FROM
                 invoice_payment ip
                 JOIN account ac ON ip.payment_account_id = ac.id

@@ -1,6 +1,7 @@
 package br.finax.services;
 
 import br.finax.dto.CashFlowValues;
+import br.finax.dto.DuplicatedReleaseBuilder;
 import br.finax.dto.InterfacesSQL;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.ErrorCategory;
@@ -12,7 +13,6 @@ import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
-import br.finax.models.DuplicatedReleaseBuilder;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import br.finax.utils.FileUtils;
