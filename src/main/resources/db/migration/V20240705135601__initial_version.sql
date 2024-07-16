@@ -69,30 +69,28 @@ CREATE TYPE user_signature AS ENUM ('MONTH', 'YEAR');
 
 CREATE TABLE public.users
 (
-    id                   serial4                                  NOT NULL,
-    email                varchar(255)                             NOT NULL,
-    "password"           bpchar(60)                               NOT NULL,
-    first_name           varchar(30)                              NOT NULL,
-    last_name            varchar(40)                              NULL,
-    "access"             user_access                              NOT NULL,
-    active               bool           DEFAULT true              NOT NULL,
-    can_change_password  bool           DEFAULT false             NOT NULL,
-    signature            user_signature DEFAULT 'MONTH'           NOT NULL,
-    signature_expiration date                                     NULL,
-    profile_image        text                                     NULL,
-    created_at           timestamptz    DEFAULT current_timestamp NOT NULL,
-    CONSTRAINT users_email_key UNIQUE (email),
-    CONSTRAINT users_pkey PRIMARY KEY (id)
+    id                   int4           DEFAULT nextval('users_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    email                varchar(255)                                                         NOT NULL,
+    "password"           bpchar(60)                                                           NOT NULL,
+    first_name           varchar(30)                                                          NOT NULL,
+    last_name            varchar(40)                                                          NULL,
+    "access"             user_access                                                          NOT NULL,
+    active               bool           DEFAULT true                                          NOT NULL,
+    can_change_password  bool           DEFAULT false                                         NOT NULL,
+    signature            user_signature DEFAULT 'MONTH'                                       NOT NULL,
+    signature_expiration date                                                                 NULL,
+    profile_image        text                                                                 NULL,
+    created_at           timestamptz    DEFAULT current_timestamp                             NOT NULL,
+    CONSTRAINT users_email_key UNIQUE (email)
 );
 
 -- public.access_log definition
 
 CREATE TABLE public.access_log
 (
-    id       serial4                               NOT NULL,
-    login_dt timestamptz DEFAULT current_timestamp NOT NULL,
-    user_id  int4                                  NOT NULL,
-    CONSTRAINT access_log_pkey PRIMARY KEY (id),
+    id       int4        DEFAULT nextval('access_log_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    login_dt timestamptz DEFAULT current_timestamp                                  NOT NULL,
+    user_id  int4                                                                   NOT NULL,
     CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
 CREATE INDEX access_log_user_id_idx ON public.access_log USING btree (user_id);
@@ -103,20 +101,19 @@ CREATE TYPE account_type AS ENUM ('CHECKING', 'SAVING', 'SALARY', 'LEGAL', 'BROK
 
 CREATE TABLE public.account
 (
-    id                  serial4                      NOT NULL,
-    user_id             int4                         NOT NULL,
-    "name"              varchar(40)                  NOT NULL,
-    balance             numeric(15, 2) DEFAULT 0     NOT NULL,
-    investments         bool           DEFAULT false NOT NULL,
-    add_overall_balance bool           DEFAULT true  NOT NULL,
-    active              bool           DEFAULT true  NOT NULL,
-    archived            bool           DEFAULT false NOT NULL,
-    image               varchar(30)                  NULL,
-    account_number      varchar(15)                  NULL,
-    agency              varchar(5)                   NULL,
-    code                numeric(3)                   NULL,
-    "type"              account_type                 NULL,
-    CONSTRAINT accounts_pkey PRIMARY KEY (id),
+    id                  int4           DEFAULT nextval('account_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    user_id             int4                                                                   NOT NULL,
+    "name"              varchar(40)                                                            NOT NULL,
+    balance             numeric(15, 2) DEFAULT 0                                               NOT NULL,
+    investments         bool           DEFAULT false                                           NOT NULL,
+    add_overall_balance bool           DEFAULT true                                            NOT NULL,
+    active              bool           DEFAULT true                                            NOT NULL,
+    archived            bool           DEFAULT false                                           NOT NULL,
+    image               varchar(30)                                                            NULL,
+    account_number      varchar(15)                                                            NULL,
+    agency              varchar(5)                                                             NULL,
+    code                numeric(3)                                                             NULL,
+    "type"              account_type                                                           NULL,
     CONSTRAINT accounts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
 CREATE INDEX accounts_user_id_idx ON public.account USING btree (user_id);
@@ -125,15 +122,14 @@ CREATE INDEX accounts_user_id_idx ON public.account USING btree (user_id);
 
 CREATE TABLE public.category
 (
-    id        serial4            NOT NULL,
-    "name"    varchar(40)        NOT NULL,
-    color     varchar(10)        NOT NULL,
-    icon      varchar(30)        NOT NULL,
-    "type"    bpchar(1)          NOT NULL,
-    user_id   int4               NOT NULL,
-    active    bool DEFAULT true  NOT NULL,
-    essential bool DEFAULT false NOT NULL,
-    CONSTRAINT category_pkey PRIMARY KEY (id),
+    id        int4 DEFAULT nextval('category_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    "name"    varchar(40)                                                   NOT NULL,
+    color     varchar(10)                                                   NOT NULL,
+    icon      varchar(30)                                                   NOT NULL,
+    "type"    bpchar(1)                                                     NOT NULL,
+    user_id   int4                                                          NOT NULL,
+    active    bool DEFAULT true                                             NOT NULL,
+    essential bool DEFAULT false                                            NOT NULL,
     CONSTRAINT user_id_fk FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
 CREATE INDEX category_user_id_idx ON public.category USING btree (user_id);
@@ -142,16 +138,15 @@ CREATE INDEX category_user_id_idx ON public.category USING btree (user_id);
 
 CREATE TABLE public.credit_card
 (
-    id                          int4 DEFAULT nextval('account_id_seq'::regclass) NOT NULL,
-    user_id                     int4                                             NOT NULL,
-    "name"                      varchar(40)                                      NOT NULL,
-    card_limit                  numeric(15, 2)                                   NOT NULL,
-    close_day                   numeric(2)                                       NOT NULL,
-    expires_day                 numeric(2)                                       NOT NULL,
-    image                       varchar(25)                                      NULL,
-    standard_payment_account_id int4                                             NOT NULL,
-    active                      bool DEFAULT true                                NOT NULL,
-    CONSTRAINT credit_card_pkey PRIMARY KEY (id),
+    id                          int4 DEFAULT nextval('account_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    user_id                     int4                                                         NOT NULL,
+    "name"                      varchar(40)                                                  NOT NULL,
+    card_limit                  numeric(15, 2)                                               NOT NULL,
+    close_day                   numeric(2)                                                   NOT NULL,
+    expires_day                 numeric(2)                                                   NOT NULL,
+    image                       varchar(25)                                                  NULL,
+    standard_payment_account_id int4                                                         NOT NULL,
+    active                      bool DEFAULT true                                            NOT NULL,
     CONSTRAINT credit_card_standard_payment_account_fkey FOREIGN KEY (standard_payment_account_id) REFERENCES public.account (id),
     CONSTRAINT credit_card_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
@@ -162,16 +157,15 @@ CREATE INDEX credit_card_user_id_idx ON public.credit_card USING btree (user_id)
 
 CREATE TABLE public.invoice_payment
 (
-    id                 serial4        NOT NULL,
-    payment_account_id int4           NOT NULL,
-    payment_amount     numeric(15, 2) NOT NULL,
-    payment_date       date           NOT NULL,
-    payment_hour       varchar(5)     NULL,
-    attachment         bytea          NULL,
-    attachment_name    text           NULL,
-    credit_card_id     int4           NOT NULL,
-    month_year         varchar(7)     NOT NULL,
-    CONSTRAINT invoice_payment_pkey PRIMARY KEY (id),
+    id                 int4 DEFAULT nextval('invoice_payment_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    payment_account_id int4                                                                 NOT NULL,
+    payment_amount     numeric(15, 2)                                                       NOT NULL,
+    payment_date       date                                                                 NOT NULL,
+    payment_hour       varchar(5)                                                           NULL,
+    attachment         bytea                                                                NULL,
+    attachment_name    text                                                                 NULL,
+    credit_card_id     int4                                                                 NOT NULL,
+    month_year         varchar(7)                                                           NOT NULL,
     CONSTRAINT invoice_payment_credit_card_id_fk FOREIGN KEY (credit_card_id) REFERENCES public.credit_card (id),
     CONSTRAINT invoice_payment_payment_account_fkey FOREIGN KEY (payment_account_id) REFERENCES public.account (id)
 );
@@ -183,10 +177,9 @@ CREATE INDEX invoice_payment_month_year_idx ON public.invoice_payment USING btre
 
 CREATE TABLE public."token"
 (
-    id      serial4    NOT NULL,
-    user_id int4       NOT NULL,
-    "token" bpchar(64) NOT NULL,
-    CONSTRAINT token_pkey PRIMARY KEY (id),
+    id      int4 DEFAULT nextval('token_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    user_id int4                                                       NOT NULL,
+    "token" bpchar(64)                                                 NOT NULL,
     CONSTRAINT token_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
 CREATE INDEX token_user_id_idx ON public.token USING btree (user_id);
@@ -198,14 +191,13 @@ CREATE TYPE user_configs_language AS ENUM ('pt-BR', 'en-US', 'es-CO', 'de-DE');
 
 CREATE TABLE public.user_configs
 (
-    id                                 serial4                                                  NOT NULL,
-    user_id                            int4                                                     NOT NULL,
-    theme                              user_configs_theme DEFAULT 'light'                       NOT NULL,
-    adding_material_goods_to_patrimony bool               DEFAULT false                         NOT NULL,
-    "language"                         varchar(5)         DEFAULT 'pt-BR'                       NOT NULL,
-    currency                           varchar(3)         DEFAULT 'R$'::character varying       NOT NULL,
-    releases_view_mode                 varchar(8)         DEFAULT 'releases'::character varying NOT NULL,
-    CONSTRAINT user_configs_pkey PRIMARY KEY (id),
+    id                                 int4               DEFAULT nextval('user_configs_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    user_id                            int4                                                                            NOT NULL,
+    theme                              user_configs_theme DEFAULT 'light'                                              NOT NULL,
+    adding_material_goods_to_patrimony bool               DEFAULT false                                                NOT NULL,
+    "language"                         varchar(5)         DEFAULT 'pt-BR'                                              NOT NULL,
+    currency                           varchar(3)         DEFAULT 'R$'::character varying                              NOT NULL,
+    releases_view_mode                 varchar(8)         DEFAULT 'releases'::character varying                        NOT NULL,
     CONSTRAINT user_configs_user_id_key UNIQUE (user_id),
     CONSTRAINT user_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)
 );
@@ -218,26 +210,25 @@ CREATE TYPE release_fixed_by AS ENUM ('DAILY', 'WEEKLY', 'MONTHLY', 'BIMONTHLY',
 
 CREATE TABLE public.release
 (
-    id                      serial4                   NOT NULL,
-    account_id              int4                      NULL,
-    amount                  numeric(15, 2)            NOT NULL,
-    "type"                  release_type              NOT NULL,
-    done                    bool DEFAULT true         NOT NULL,
-    target_account_id       int4                      NULL,
-    category_id             int4                      NULL,
-    "date"                  date DEFAULT current_date NOT NULL,
-    observation             varchar(100)              NULL,
-    description             varchar(50)               NULL,
-    "time"                  varchar(5)                NULL,
-    attachment_s3_file_name text                      NULL,
-    attachment_name         text                      NULL,
-    duplicated_release_id   int4                      NULL,
-    user_id                 int4                      NOT NULL,
-    repeat                  release_repeat            NULL,
-    fixed_by                release_fixed_by          NULL,
-    credit_card_id          int4                      NULL,
-    is_balance_adjustment   bool DEFAULT false        NOT NULL,
-    CONSTRAINT release_pkey PRIMARY KEY (id),
+    id                      int4 DEFAULT nextval('release_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    account_id              int4                                                         NULL,
+    amount                  numeric(15, 2)                                               NOT NULL,
+    "type"                  release_type                                                 NOT NULL,
+    done                    bool DEFAULT true                                            NOT NULL,
+    target_account_id       int4                                                         NULL,
+    category_id             int4                                                         NULL,
+    "date"                  date DEFAULT current_date                                    NOT NULL,
+    observation             varchar(100)                                                 NULL,
+    description             varchar(50)                                                  NULL,
+    "time"                  varchar(5)                                                   NULL,
+    attachment_s3_file_name text                                                         NULL,
+    attachment_name         text                                                         NULL,
+    duplicated_release_id   int4                                                         NULL,
+    user_id                 int4                                                         NOT NULL,
+    repeat                  release_repeat                                               NULL,
+    fixed_by                release_fixed_by                                             NULL,
+    credit_card_id          int4                                                         NULL,
+    is_balance_adjustment   bool DEFAULT false                                           NOT NULL,
     CONSTRAINT release_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.account (id),
     CONSTRAINT release_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.category (id),
     CONSTRAINT release_credit_card_id_fk FOREIGN KEY (credit_card_id) REFERENCES public.credit_card (id),
