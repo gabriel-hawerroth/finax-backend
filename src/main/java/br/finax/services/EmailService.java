@@ -1,14 +1,18 @@
 package br.finax.services;
 
 import br.finax.dto.EmailDTO;
+import br.finax.dto.HunterResponse;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +27,11 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${hunter.api.key}")
+    private String apiKey;
+
     public EmailService(JavaMailSender javaMailSender, Environment environment) {
         this.javaMailSender = javaMailSender;
 
@@ -31,6 +40,16 @@ public class EmailService {
         } else {
             apiUrl = "https://apifinax.hawetec.com.br";
         }
+    }
+
+    public boolean verifyEmail(String email) {
+        final String url = UriComponentsBuilder.fromHttpUrl("https://api.hunter.io/v2/email-verifier")
+                .queryParam("email", email)
+                .queryParam("api_key", apiKey)
+                .toUriString();
+
+        final HunterResponse response = restTemplate.getForObject(url, HunterResponse.class);
+        return response != null && response.data() != null && response.data().result().equals("deliverable");
     }
 
     public void sendMail(EmailDTO email) {

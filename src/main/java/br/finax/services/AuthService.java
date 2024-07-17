@@ -4,10 +4,12 @@ import br.finax.dto.AuthenticationDTO;
 import br.finax.dto.EmailDTO;
 import br.finax.dto.LoginResponseDTO;
 import br.finax.enums.EmailType;
+import br.finax.enums.ErrorCategory;
 import br.finax.enums.user.UserAccess;
 import br.finax.enums.user.UserSignature;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
+import br.finax.exceptions.ServiceException;
 import br.finax.models.AccessLog;
 import br.finax.models.Token;
 import br.finax.models.User;
@@ -21,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 
@@ -64,6 +67,12 @@ public class AuthService {
 
     @Transactional
     public User registerNewUser(User user) {
+        user.setEmail(HtmlUtils.htmlEscape(user.getEmail()));
+
+        final boolean isValidEmail = emailService.verifyEmail(user.getEmail());
+        if (!isValidEmail)
+            throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid email");
+
         if (userService.existsByEmail(user.getEmail()))
             throw new EmailAlreadyExistsException();
 
