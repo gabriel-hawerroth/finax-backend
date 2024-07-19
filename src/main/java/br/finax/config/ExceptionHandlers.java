@@ -23,13 +23,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.logging.Logger;
+
 @RestControllerAdvice
 public class ExceptionHandlers {
 
     private static final String INTERNAL_ERROR = "An internal error has occurred";
 
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseError> generalException(Exception ex) {
+        final String message = "Unhandled exception caught: " + getExceptionCause(ex);
+        logger.warning(message);
+
         return internalError();
     }
 
@@ -149,5 +156,15 @@ public class ExceptionHandlers {
         return ResponseEntity.internalServerError().body(
                 new ResponseError(INTERNAL_ERROR)
         );
+    }
+
+    private String getExceptionCause(Exception ex) {
+        if (ex.getMessage() != null)
+            return ex.getMessage();
+
+        if (ex.getCause() != null)
+            return ex.getCause().getMessage();
+
+        return ex.getLocalizedMessage();
     }
 }

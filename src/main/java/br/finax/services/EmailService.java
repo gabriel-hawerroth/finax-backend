@@ -43,13 +43,22 @@ public class EmailService {
     }
 
     public boolean verifyEmail(String email) {
-        final String url = UriComponentsBuilder.fromHttpUrl("https://api.hunter.io/v2/email-verifier")
-                .queryParam("email", email)
-                .queryParam("api_key", apiKey)
-                .toUriString();
+        final String url;
+        final HunterResponse response;
+        try {
+            url = UriComponentsBuilder.fromHttpUrl("https://api.hunter.io/v2/email-verifier")
+                    .queryParam("email", email)
+                    .queryParam("api_key", apiKey)
+                    .toUriString();
 
-        final HunterResponse response = restTemplate.getForObject(url, HunterResponse.class);
-        return response != null && response.data() != null && response.data().result().equals("deliverable");
+            response = restTemplate.getForObject(url, HunterResponse.class);
+        } catch (Exception _) {
+            return true;
+        }
+
+        if (response == null) return true;
+
+        return response.data() != null && response.data().result().equals("deliverable");
     }
 
     public void sendMail(EmailDTO email) {

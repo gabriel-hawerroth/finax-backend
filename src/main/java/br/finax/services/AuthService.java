@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,10 +50,10 @@ public class AuthService {
         final Authentication auth;
         try {
             auth = authenticationManager.authenticate(usernamePassword);
-        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
-            throw new BadCredentialsException("Bad credentials");
         } catch (DisabledException ex) {
             throw new BadCredentialsException("Inactive user");
+        } catch (AuthenticationException ex) {
+            throw new BadCredentialsException("Bad credentials");
         }
 
         final User user = userService.findById(((User) auth.getPrincipal()).getId());
