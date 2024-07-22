@@ -1,24 +1,25 @@
 package br.finax.services;
 
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
 import br.finax.dto.EmailDTO;
 import br.finax.dto.HunterResponse;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 @Service
 public class EmailService {
@@ -26,8 +27,6 @@ public class EmailService {
     private final String apiUrl;
 
     private final JavaMailSender javaMailSender;
-
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${hunter.api.key}")
     private String apiKey;
@@ -43,22 +42,30 @@ public class EmailService {
     }
 
     public boolean verifyEmail(String email) {
-        final String url;
-        final HunterResponse response;
+        final ResponseEntity<HunterResponse> response;
         try {
-            url = UriComponentsBuilder.fromHttpUrl("https://api.hunter.io/v2/email-verifier")
-                    .queryParam("email", email)
-                    .queryParam("api_key", apiKey)
-                    .toUriString();
-
-            response = restTemplate.getForObject(url, HunterResponse.class);
+            response = RestClient.create().get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("https://api.hunter.io/v2/email-verifier")
+                            .queryParam("email", email)
+                            .queryParam("api_key", apiKey)
+                            .build()
+                    )
+                    .retrieve()
+                    .toEntity(HunterResponse.class);
         } catch (Exception _) {
             return true;
         }
 
-        if (response == null) return true;
+        if (!response.getStatusCode().is2xxSuccessful())
+            return true;
 
-        return response.data() != null && response.data().result().equals("deliverable");
+        final var responseBody = response.getBody();
+
+        if (responseBody == null || responseBody.data() == null || responseBody.data().result() == null)
+            return true;
+
+        return responseBody.data().result().equals("deliverable");
     }
 
     public void sendMail(EmailDTO email) {
