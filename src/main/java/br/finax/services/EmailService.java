@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -28,10 +29,11 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
 
-    @Value("${hunter.api.key}")
-    private String apiKey;
+    private final String apiKey;
 
-    public EmailService(JavaMailSender javaMailSender, Environment environment) {
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+    public EmailService(JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey) {
         this.javaMailSender = javaMailSender;
 
         if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
@@ -39,21 +41,19 @@ public class EmailService {
         } else {
             apiUrl = "https://apifinax.hawetec.com.br";
         }
+
+        this.apiKey = apiKey;
     }
 
     public boolean verifyEmail(String email) {
         final ResponseEntity<HunterResponse> response;
         try {
             response = RestClient.create().get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("https://api.hunter.io/v2/email-verifier")
-                            .queryParam("email", email)
-                            .queryParam("api_key", apiKey)
-                            .build()
-                    )
+                    .uri("https://api.hunter.io/v2/email-verifier?email=" + email + "&api_key=" + apiKey)
                     .retrieve()
                     .toEntity(HunterResponse.class);
-        } catch (Exception _) {
+        } catch (Exception e) {
+            logger.info("Email verification failed: " + e.getMessage());
             return true;
         }
 
