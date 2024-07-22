@@ -1,5 +1,13 @@
 package br.finax.config;
 
+import java.util.logging.Logger;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
 import br.finax.dto.ResponseError;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.BadCredentialsException;
@@ -17,13 +25,6 @@ import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.TokenCreationException;
 import br.finax.exceptions.UnauthorizedException;
 import br.finax.exceptions.WithoutPermissionException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.util.logging.Logger;
 
 @RestControllerAdvice
 public class ExceptionHandlers {
@@ -73,7 +74,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ResponseError> emailAlreadyExistsException(EmailAlreadyExistsException ex) {
         return ResponseEntity.badRequest().body(
-                new ResponseError("this email is already in use")
+                new ResponseError("This email is already in use")
         );
     }
 
