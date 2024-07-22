@@ -122,6 +122,10 @@ public class EmailService {
                                 height: 100%;
                             }
 
+                            * {
+                                color: #000;
+                            }
+
                             .email {
                                 width: 100%;
                                 height: 100%;
@@ -154,19 +158,6 @@ public class EmailService {
                             .line {
                                 margin-bottom: 2rem;
                             }
-
-                            .card {
-                                width: 95%;
-                                max-width: 29rem;
-                                border: 1px solid #00000053;
-                                padding: 1rem;
-                                margin: 4rem auto;
-                                border-radius: 10px;
-                            }
-
-                            h2 {
-                                color: #2b2b2b;
-                            }
                         </style>
                     </head>
                     <body>
@@ -191,19 +182,6 @@ public class EmailService {
                                             mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
                                             dúvidas ou qualquer problema que você encontrar no sistema!
                                         </p>
-
-                                        <div class="card">
-                                            <h2>Sistema em desenvolvimento</h2>
-
-                                            <span>
-                                                Informamos que nosso sistema ainda está em fase de desenvolvimento
-                                                e o acesso está liberado à todos os módulos para fins de teste e
-                                                divulgação.
-                                                <br /> <br />
-                                                Após o lançamento oficial todos os usuários terão seu acesso
-                                                restrito ao nível gratuito!
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
                             </body>
