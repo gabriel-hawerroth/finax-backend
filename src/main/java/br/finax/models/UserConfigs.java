@@ -1,14 +1,8 @@
 package br.finax.models;
 
-import br.finax.enums.user.UserTheme;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import br.finax.enums.user_configs.UserConfigsReleasesViewMode;
+import br.finax.enums.user_configs.UserConfigsTheme;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -26,7 +20,7 @@ public class UserConfigs {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserTheme theme;
+    private UserConfigsTheme theme;
 
     @Column(name = "adding_material_goods_to_patrimony", nullable = false)
     private boolean addingMaterialGoodsToPatrimony;
@@ -39,6 +33,10 @@ public class UserConfigs {
     @Column(nullable = false, length = 3)
     private String currency;
 
-    @Column(name = "releases_view_mode", nullable = false, length = 8)
-    private String releasesViewMode;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "releases_view_mode", nullable = false)
+    private UserConfigsReleasesViewMode releasesViewMode;
+
+    @Column(name = "email_notifications", nullable = false, columnDefinition = "bool default true")
+    private boolean emailNotifications;
 }
