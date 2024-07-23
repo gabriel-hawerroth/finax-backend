@@ -76,6 +76,7 @@ public class EmailService {
 
                     javaMailSender.send(message);
                 } catch (MessagingException e) {
+                    logger.info("Erro ao enviar email: " + e.getMessage());
                     throw new EmailSendingException();
                 }
             });
