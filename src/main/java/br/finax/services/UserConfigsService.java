@@ -39,6 +39,7 @@ public class UserConfigsService {
         userConfigs.setLanguage("pt-BR");
         userConfigs.setCurrency("R$");
         userConfigs.setReleasesViewMode(UserConfigsReleasesViewMode.RELEASES);
+        userConfigs.setEmailNotifications(true);
 
         userConfigsRepository.save(userConfigs);
     }
