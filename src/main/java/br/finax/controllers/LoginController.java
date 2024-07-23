@@ -45,8 +45,8 @@ public class LoginController {
     }
 
     @PostMapping("/send-change-password-email")
-    public ResponseEntity<Void> sendChangePasswordMail(@RequestParam @NotNull String email) {
-        loginService.sendChangePasswordMail(email);
+    public ResponseEntity<Void> sendChangePasswordEmail(@RequestParam @NotNull String email) {
+        loginService.sendChangePasswordEmail(email);
         return ResponseEntity.ok().build();
     }
 
@@ -55,6 +55,23 @@ public class LoginController {
         loginService.permitChangePassword(userId, token);
 
         final URI uri = URI.create(siteUrl + "/recuperacao-da-senha/" + userId);
+
+        return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                .location(uri)
+                .build();
+    }
+
+    @PostMapping("/send-cancel-account-email/{userId}")
+    public ResponseEntity<Void> sendCancelUserAccountEmail(@PathVariable long userId) {
+        loginService.sendCancelUserAccountEmail(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/cancel-user/{userId}/{token}")
+    public ResponseEntity<Void> cancelUserAccount(@PathVariable long userId, @PathVariable @NotNull String token) {
+        loginService.cancelUserAccount(userId, token);
+
+        final URI uri = URI.create(siteUrl + "/conta-cancelada");
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)

@@ -12,7 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(@NonNull String email);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmail(@NonNull String email);
 
     @Modifying
     @Query("""
