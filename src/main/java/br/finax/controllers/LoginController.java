@@ -29,7 +29,7 @@ public class LoginController {
         if (Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
             siteUrl = "http://localhost:4200";
         } else {
-            siteUrl = "https://finax.hawetec.com.br";
+            siteUrl = "https://appfinax.com.br";
         }
     }
 
