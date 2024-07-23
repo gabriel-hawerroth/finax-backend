@@ -1,6 +1,6 @@
 package br.finax.enums.user_configs;
 
 public enum UserConfigsReleasesViewMode {
-    releases,
-    invoice;
+    RELEASES,
+    INVOICE;
 }

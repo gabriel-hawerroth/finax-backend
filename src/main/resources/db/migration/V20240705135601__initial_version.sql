@@ -188,7 +188,7 @@ CREATE INDEX token_user_id_idx ON public.token USING btree (user_id);
 
 CREATE TYPE user_configs_theme AS ENUM ('light', 'dark');
 CREATE TYPE user_configs_language AS ENUM ('pt-BR', 'en-US', 'es-CO', 'de-DE');
-CREATE TYPE user_configs_releases_view_mode AS ENUM ('releases', 'invoice');
+CREATE TYPE user_configs_releases_view_mode AS ENUM ('RELEASES', 'INVOICE');
 
 CREATE TABLE public.user_configs
 (
@@ -198,7 +198,7 @@ CREATE TABLE public.user_configs
     adding_material_goods_to_patrimony bool                            DEFAULT false                                                NOT NULL,
     "language"                         user_configs_language           DEFAULT 'pt-BR'                                              NOT NULL,
     currency                           varchar(3)                      DEFAULT 'R$'::character varying                              NOT NULL,
-    releases_view_mode                 user_configs_releases_view_mode DEFAULT 'releases'                                           NOT NULL,
+    releases_view_mode                 user_configs_releases_view_mode DEFAULT 'RELEASES'                                           NOT NULL,
     email_notifications                bool                            DEFAULT true                                                 NOT NULL,
     CONSTRAINT user_configs_user_id_key UNIQUE (user_id),
     CONSTRAINT user_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users (id)

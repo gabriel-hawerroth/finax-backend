@@ -38,7 +38,7 @@ public class UserConfigsService {
         userConfigs.setAddingMaterialGoodsToPatrimony(false);
         userConfigs.setLanguage("pt-BR");
         userConfigs.setCurrency("R$");
-        userConfigs.setReleasesViewMode(UserConfigsReleasesViewMode.releases);
+        userConfigs.setReleasesViewMode(UserConfigsReleasesViewMode.RELEASES);
 
         userConfigsRepository.save(userConfigs);
     }
