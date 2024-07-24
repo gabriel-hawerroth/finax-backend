@@ -30,13 +30,7 @@ public class EmailService {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private final String emailAddress;
-    private final String emailPassword;
-
-    public EmailService(
-            JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey,
-            @Value("${spring.mail.username}") String emailAddress, @Value("${spring.mail.password}") String emailPassword
-    ) {
+    public EmailService(JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey) {
         this.javaMailSender = javaMailSender;
 
         if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
@@ -46,9 +40,6 @@ public class EmailService {
         }
 
         this.apiKey = apiKey;
-
-        this.emailAddress = emailAddress;
-        this.emailPassword = emailPassword;
     }
 
     public boolean verifyEmail(String email) {
