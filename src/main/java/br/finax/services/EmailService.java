@@ -10,16 +10,13 @@ import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 @Service
@@ -33,7 +30,13 @@ public class EmailService {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public EmailService(JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey) {
+    private final String emailAddress;
+    private final String emailPassword;
+
+    public EmailService(
+            JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey,
+            @Value("${spring.mail.username}") String emailAddress, @Value("${spring.mail.password}") String emailPassword
+    ) {
         this.javaMailSender = javaMailSender;
 
         if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
@@ -43,6 +46,9 @@ public class EmailService {
         }
 
         this.apiKey = apiKey;
+
+        this.emailAddress = emailAddress;
+        this.emailPassword = emailPassword;
     }
 
     public boolean verifyEmail(String email) {
@@ -69,24 +75,19 @@ public class EmailService {
     }
 
     public void sendMail(EmailDTO email) {
-        try (final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
-            final Future<?> future = executorService.submit(() -> {
-                try {
-                    final MimeMessage message = createMimeMessage(email);
+        try {
+            final MimeMessage message = createMimeMessage(email);
 
-                    javaMailSender.send(message);
-                } catch (MessagingException e) {
-                    logger.info("Erro ao enviar email: " + e.getMessage());
-                    throw new EmailSendingException();
-                }
-            });
-
-            try {
-                future.get();
-            } catch (EmailSendingException | ExecutionException | InterruptedException e) {
-                future.cancel(true);
-                throw new EmailSendingException();
-            }
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            logger.info(() -> "Error creating mime-message: " + e.getMessage());
+            throw new EmailSendingException();
+        } catch (MailException e) {
+            logger.info(() -> "Error sending email: " + e.getMessage());
+            throw new EmailSendingException();
+        } catch (Exception e) {
+            logger.info(() -> "Unhandled error sending email: " + e.getMessage());
+            throw new EmailSendingException();
         }
     }
 
