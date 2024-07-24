@@ -69,7 +69,15 @@ public class LoginController {
 
     @GetMapping("/cancel-user/{userId}/{token}")
     public ResponseEntity<Void> cancelUserAccount(@PathVariable long userId, @PathVariable @NotNull String token) {
-        loginService.cancelUserAccount(userId, token);
+        try {
+            loginService.cancelUserAccount(userId, token);
+        } catch (Exception e) {
+            final URI uri = URI.create(siteUrl + "/erro-cancelamento");
+
+            return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                    .location(uri)
+                    .build();
+        }
 
         final URI uri = URI.create(siteUrl + "/conta-cancelada");
 
