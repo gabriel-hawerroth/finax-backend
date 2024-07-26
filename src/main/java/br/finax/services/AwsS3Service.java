@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.ServiceException;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -30,14 +29,11 @@ public class AwsS3Service {
     @Value("${aws.s3.secret-key}")
     private String secretKey;
 
-    private AWSCredentials awsCredentials() {
-        return new BasicAWSCredentials(accessKey, secretKey);
-    }
-
     private AmazonS3 awsS3ClientBuilder() {
-        return AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials()))
+        final var awsCreds = new BasicAWSCredentials(accessKey, secretKey);
+
+        return AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .withRegion(Regions.SA_EAST_1)
                 .build();
     }

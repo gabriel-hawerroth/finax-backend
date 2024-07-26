@@ -35,8 +35,8 @@ public class LoginService {
                 DELETE FROM release WHERE user_id = :userId;
 
                 DELETE FROM category WHERE user_id = :userId;
-                DELETE FROM account WHERE user_id = :userId;
                 DELETE FROM credit_card WHERE user_id = :userId;
+                DELETE FROM account WHERE user_id = :userId;
 
                 DELETE FROM users WHERE id = :userId;
             """;

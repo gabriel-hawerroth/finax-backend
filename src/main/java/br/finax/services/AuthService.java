@@ -39,6 +39,7 @@ public class AuthService {
     private final UserTokenService userTokenService;
     private final TokenService tokenService;
     private final EmailService emailService;
+    private final AwsEmailService awsEmailService;
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -104,7 +105,7 @@ public class AuthService {
     }
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
-        emailService.sendMail(
+        awsEmailService.sendEmail(
                 new EmailDTO(
                         userMail,
                         "Ativação da conta Finax",

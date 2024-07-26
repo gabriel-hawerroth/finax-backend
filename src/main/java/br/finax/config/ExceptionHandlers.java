@@ -17,7 +17,9 @@ import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.TokenCreationException;
 import br.finax.exceptions.UnauthorizedException;
 import br.finax.exceptions.WithoutPermissionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -150,6 +152,13 @@ public class ExceptionHandlers {
     @ExceptionHandler(FileIOException.class)
     public ResponseEntity<ResponseError> fileIOException(FileIOException ex) {
         return internalError();
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ResponseError> httpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
+                new ResponseError("Method not allowed")
+        );
     }
 
     private ResponseEntity<ResponseError> internalError() {
