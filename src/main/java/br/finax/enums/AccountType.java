@@ -6,5 +6,5 @@ public enum AccountType {
     SAVING,
     SALARY,
     LEGAL,
-    BROKERAGE;
+    BROKERAGE
 }

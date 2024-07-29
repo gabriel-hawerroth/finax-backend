@@ -105,12 +105,16 @@ public class AuthService {
     }
 
     private void sendActivateAccountEmail(String userMail, Long userId, String token) {
-        awsEmailService.sendEmail(
-                new EmailDTO(
-                        userMail,
-                        "Ativação da conta Finax",
-                        emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
-                )
+        final EmailDTO emailDTO = new EmailDTO(
+                userMail,
+                "Ativação da conta Finax",
+                emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
         );
+
+        try {
+            awsEmailService.sendMail(emailDTO);
+        } catch (Exception e) {
+            emailService.sendMail(emailDTO);
+        }
     }
 }

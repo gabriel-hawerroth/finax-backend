@@ -23,24 +23,18 @@ public class AwsS3Service {
 
     private static final String BUCKET = "finax";
 
-    @Value("${aws.s3.access-key}")
-    private String accessKey;
+    private final AmazonS3 s3Client;
 
-    @Value("${aws.s3.secret-key}")
-    private String secretKey;
-
-    private AmazonS3 awsS3ClientBuilder() {
+    public AwsS3Service(@Value("${aws.s3.access-key}") String accessKey, @Value("${aws.s3.secret-key}") String secretKey) {
         final var awsCreds = new BasicAWSCredentials(accessKey, secretKey);
 
-        return AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+        this.s3Client = AmazonS3ClientBuilder.standard()
                 .withRegion(Regions.SA_EAST_1)
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .build();
     }
 
     public byte[] getS3File(String filename) {
-        final AmazonS3 s3Client = awsS3ClientBuilder();
-
         final S3Object s3Object = s3Client.getObject(BUCKET, filename);
         try (S3ObjectInputStream objectInputStream = s3Object.getObjectContent()) {
             return IOUtils.toByteArray(objectInputStream);
@@ -50,21 +44,15 @@ public class AwsS3Service {
     }
 
     public void uploadS3File(String filename, File file) {
-        final AmazonS3 s3Client = awsS3ClientBuilder();
-
         s3Client.putObject(BUCKET, filename, file);
     }
 
     public void updateS3File(String oldFileName, String newFileName, File file) {
-        final AmazonS3 s3Client = awsS3ClientBuilder();
-
         s3Client.deleteObject(BUCKET, oldFileName);
         s3Client.putObject(BUCKET, newFileName, file);
     }
 
     public void deleteS3File(String fileName) {
-        final AmazonS3 s3Client = awsS3ClientBuilder();
-
         s3Client.deleteObject(BUCKET, fileName);
     }
 
