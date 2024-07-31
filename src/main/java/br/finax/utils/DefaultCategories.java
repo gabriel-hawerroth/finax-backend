@@ -14,7 +14,7 @@ public class DefaultCategories {
             new Category("Compras", "#7253C8", "local_mall", "E", false),
             new Category("Cuidados pessoais", "#94CD7A", "person", "E", true),
             new Category("Dívidas", "#FB6467", "request_quote", "E", true),
-            new Category("Educação", "#787878", "school", "E", true),
+            new Category("Educação", "#5161B9", "school", "E", true),
             new Category("Investimentos", "#FCA52D", "finance_mode", "E", true),
             new Category("Impostos e taxas", "#FFA490", "receipt_long", "E", true),
             new Category("Saúde", "#82C8F1", "medication", "E", true),
