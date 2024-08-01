@@ -12,7 +12,11 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalA
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +45,7 @@ public class FileUtils {
 
     private final Logger logger = Logger.getLogger(getClass().getName());
 
-    public static File convertByteArrayToFile(byte[] compressedFile, String fileName) {
+    public static File convertByteArrayToFile(byte[] compressedFile, String fileName) throws FileIOException {
         try {
             final File tempFile = File.createTempFile(fileName, null);
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {
@@ -79,11 +83,11 @@ public class FileUtils {
         return size;
     }
 
-    public byte[] compressFile(MultipartFile file) {
+    public byte[] compressFile(MultipartFile file) throws FileCompressionErrorException {
         return compressFile(file, false);
     }
 
-    public byte[] compressFile(@NonNull MultipartFile file, boolean isAttachment) {
+    public byte[] compressFile(@NonNull MultipartFile file, boolean isAttachment) throws FileCompressionErrorException {
         final String fileExtension = checkFileValidity(file);
 
         try {
@@ -136,7 +140,7 @@ public class FileUtils {
         }
     }
 
-    private byte[] compressPdf(byte[] pdfData) {
+    private byte[] compressPdf(byte[] pdfData) throws FileCompressionErrorException {
         try {
             try (final PDDocument document = Loader.loadPDF(pdfData)) {
                 document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());

@@ -3,6 +3,8 @@ package br.finax.services;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
 import br.finax.exceptions.InvalidPasswordException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
@@ -11,6 +13,7 @@ import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
 import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
+import com.amazonaws.SdkClientException;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
+import static br.finax.services.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 
@@ -103,29 +103,28 @@ public class UserService {
         final User user = utils.getAuthUser();
 
         final String fileExtension = getFileExtension(file);
-        final String fileName = awsS3Service.getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
+        final String fileName = getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
 
-        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            final Future<byte[]> compressedFileFuture = executor.submit(() -> fileUtils.compressFile(file));
-            final byte[] compressedFile = compressedFileFuture.get();
+        try {
+            final byte[] compressedFile = fileUtils.compressFile(file);
 
-            final Future<File> tempFileFuture = executor.submit(() -> convertByteArrayToFile(compressedFile, fileName));
-            final File tempFile = tempFileFuture.get();
+            final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 
-            if (user.getProfileImage() != null && !user.getProfileImage().isBlank())
-                executor.submit(() -> awsS3Service.updateS3File(user.getProfileImage(), fileName, tempFile)).get();
-            else
-                executor.submit(() -> awsS3Service.uploadS3File(fileName, tempFile)).get();
-
-            var _ = tempFile.delete();
+            try {
+                if (user.getProfileImage() != null && !user.getProfileImage().isBlank())
+                    awsS3Service.updateS3File(user.getProfileImage(), fileName, tempFile);
+                else
+                    awsS3Service.uploadS3File(fileName, tempFile);
+            } finally {
+                var _ = tempFile.delete();
+            }
 
             user.setProfileImage(fileName);
             securityFilter.updateCachedUser(user);
 
             return userRepository.save(user);
-        } catch (ExecutionException | InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
+        } catch (FileCompressionErrorException | FileIOException | SdkClientException e) {
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to process the file", e);
         }
     }
 

@@ -3,6 +3,7 @@ package br.finax.services;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.ServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -34,7 +35,14 @@ public class AwsS3Service {
                 .build();
     }
 
-    public byte[] getS3File(String filename) {
+    public static String getS3FileName(long recordId, String fileExtension, S3FolderPath s3FolderPath) {
+        final String folderPath = s3FolderPath.getPath();
+        final long unixTimestamp = Instant.now().getEpochSecond();
+
+        return folderPath + recordId + "_" + unixTimestamp + "." + fileExtension;
+    }
+
+    public byte[] getS3File(String filename) throws SdkClientException {
         final S3Object s3Object = s3Client.getObject(BUCKET, filename);
         try (S3ObjectInputStream objectInputStream = s3Object.getObjectContent()) {
             return IOUtils.toByteArray(objectInputStream);
@@ -43,23 +51,16 @@ public class AwsS3Service {
         }
     }
 
-    public void uploadS3File(String filename, File file) {
+    public void uploadS3File(String filename, File file) throws SdkClientException {
         s3Client.putObject(BUCKET, filename, file);
     }
 
-    public void updateS3File(String oldFileName, String newFileName, File file) {
+    public void updateS3File(String oldFileName, String newFileName, File file) throws SdkClientException {
         s3Client.deleteObject(BUCKET, oldFileName);
         s3Client.putObject(BUCKET, newFileName, file);
     }
 
     public void deleteS3File(String fileName) {
         s3Client.deleteObject(BUCKET, fileName);
-    }
-
-    public String getS3FileName(long recordId, String fileExtension, S3FolderPath s3FolderPath) {
-        final String folderPath = s3FolderPath.getPath();
-        final long unixTimestamp = Instant.now().getEpochSecond();
-
-        return folderPath + recordId + "_" + unixTimestamp + "." + fileExtension;
     }
 }

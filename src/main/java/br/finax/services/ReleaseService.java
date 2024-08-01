@@ -9,6 +9,8 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
 import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
@@ -17,6 +19,7 @@ import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
+import com.amazonaws.SdkClientException;
 import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -31,11 +34,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
+import static br.finax.services.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 
@@ -188,29 +188,28 @@ public class ReleaseService {
         checkPermission(release);
 
         final String fileExtension = getFileExtension(attachment);
-        final String fileName = awsS3Service.getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
+        final String fileName = getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
 
-        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            final Future<byte[]> compressedFileFuture = executor.submit(() -> fileUtils.compressFile(attachment));
-            final byte[] compressedFile = compressedFileFuture.get();
+        try {
+            final byte[] compressedFile = fileUtils.compressFile(attachment);
 
-            final Future<File> tempFileFuture = executor.submit(() -> convertByteArrayToFile(compressedFile, fileName));
-            final File tempFile = tempFileFuture.get();
+            final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 
-            if (release.getAttachmentS3FileName() != null)
-                executor.submit(() -> awsS3Service.updateS3File(release.getAttachmentS3FileName(), fileName, tempFile)).get();
-            else
-                executor.submit(() -> awsS3Service.uploadS3File(fileName, tempFile)).get();
-
-            var _ = tempFile.delete();
+            try {
+                if (release.getAttachmentS3FileName() != null)
+                    awsS3Service.updateS3File(release.getAttachmentS3FileName(), fileName, tempFile);
+                else
+                    awsS3Service.uploadS3File(fileName, tempFile);
+            } finally {
+                var _ = tempFile.delete();
+            }
 
             release.setAttachmentS3FileName(fileName);
             release.setAttachmentName(attachment.getOriginalFilename());
 
             return releaseRepository.save(release);
-        } catch (ExecutionException | InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
+        } catch (FileCompressionErrorException | FileIOException | SdkClientException e) {
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to process the file", e);
         }
     }
 
@@ -220,9 +219,7 @@ public class ReleaseService {
 
         checkPermission(release);
 
-        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            executor.submit(() -> awsS3Service.deleteS3File(release.getAttachmentS3FileName()));
-        }
+        awsS3Service.deleteS3File(release.getAttachmentS3FileName());
 
         release.setAttachmentS3FileName(null);
         release.setAttachmentName(null);
@@ -236,13 +233,7 @@ public class ReleaseService {
 
         checkPermission(release);
 
-        try (final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            final Future<byte[]> fileFuture = executor.submit(() -> awsS3Service.getS3File(release.getAttachmentS3FileName()));
-            return fileFuture.get();
-        } catch (ExecutionException | InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, e.getMessage(), e);
-        }
+        return awsS3Service.getS3File(release.getAttachmentS3FileName());
     }
 
     @Transactional
