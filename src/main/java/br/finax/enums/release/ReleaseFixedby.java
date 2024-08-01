@@ -7,5 +7,5 @@ public enum ReleaseFixedby {
     BIMONTHLY,
     QUARTERLY,
     BIANNUAL,
-    ANNUAL;
+    ANNUAL
 }

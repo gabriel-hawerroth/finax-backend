@@ -12,5 +12,5 @@ public enum ReleaseType {
     /**
      * TRANSFER
      */
-    T;
+    T
 }
