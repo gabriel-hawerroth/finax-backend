@@ -15,7 +15,6 @@ import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.TokenCreationException;
-import br.finax.exceptions.UnauthorizedException;
 import br.finax.exceptions.WithoutPermissionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,13 +76,6 @@ public class ExceptionHandlers {
         return ResponseEntity.badRequest().body(
                 new ResponseError("This email is already in use")
         );
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ResponseError> unauthorizedException(UnauthorizedException ex) {
-        return ResponseEntity
-                .status(ErrorCategory.UNAUTHORIZED.getHttpStatusCode())
-                .build();
     }
 
     @ExceptionHandler(BadCredentialsException.class)
