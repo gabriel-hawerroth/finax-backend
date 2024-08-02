@@ -1,6 +1,7 @@
 package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.AccountBasicList;
+import br.finax.dto.InterfacesSQL.HomeAccountsList;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
@@ -88,7 +89,7 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<Account> getHomeAccountsList(long userId) {
+    public List<HomeAccountsList> getHomeAccountsList(long userId) {
         return accountRepository.getHomeAccountsList(userId);
     }
 }

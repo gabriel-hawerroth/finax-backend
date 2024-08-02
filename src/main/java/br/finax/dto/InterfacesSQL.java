@@ -2,6 +2,7 @@ package br.finax.dto;
 
 import br.finax.enums.release.ReleaseType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -66,7 +67,7 @@ public class InterfacesSQL {
         boolean getIsBalanceAdjustment();
     }
 
-    public interface HomeBalances {
+    public interface HomeRevenueExpense {
         double getRevenues();
 
         double getExpenses();
@@ -134,5 +135,35 @@ public class InterfacesSQL {
         String getPaymentAccountName();
 
         String getPaymentAccountImage();
+    }
+
+    public interface HomeAccountsList {
+        String getName();
+
+        String getImage();
+
+        long getBalance();
+    }
+
+    public interface HomeUpcomingReleases {
+        String getCategoryColor();
+
+        String getCategoryIcon();
+
+        String getCategoryName();
+
+        boolean getIsCreditCardRelease();
+
+        String getDescription();
+
+        String getAccountName();
+
+        String getCreditCardName();
+
+        Date getDate();
+
+        BigDecimal getAmount();
+
+        String getType();
     }
 }

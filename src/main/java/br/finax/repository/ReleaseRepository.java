@@ -1,6 +1,7 @@
 package br.finax.repository;
 
-import br.finax.dto.InterfacesSQL.HomeBalances;
+import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
+import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
 import br.finax.dto.InterfacesSQL.MonthlyReleases;
 import br.finax.models.Release;
 import lombok.NonNull;
@@ -72,50 +73,34 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND rls.date between :firstDt and :lastDt
             LIMIT 1
             """, nativeQuery = true)
-    HomeBalances getHomeBalances(long userId, @NonNull Date firstDt, @NonNull Date lastDt);
+    HomeRevenueExpense getHomeBalances(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
-                rls.id,
-                rls.user_id AS userId,
-                rls.description,
-                rls.account_id AS accountId,
-                ac.name AS accountName,
-                rls.credit_card_id AS cardId,
-                cc.name AS cardName,
-                cc.image AS cardImg,
-                rls.amount,
-                rls.type,
-                rls.done,
-                rls.target_account_id AS targetAccountId,
-                ac2.name AS targetAccountName,
-                rls.category_id AS categoryId,
-                ctg.name AS categoryName,
                 ctg.color AS categoryColor,
                 ctg.icon AS categoryIcon,
+                ctg.name AS categoryName,
+                rls.credit_card_id is not null AS isCreditCardRelease,
+                rls.description,
+                ac.name AS accountName,
+                cc.name AS creditCardName,
                 rls.date,
-                rls.time,
-                rls.observation,
-                rls.attachment_s3_file_name AS attachmentS3FileName,
-                rls.attachment_name AS attachmentName,
-                rls.duplicated_release_id AS duplicatedReleaseId,
-                false AS isDuplicatedRelease,
-                rls.is_balance_adjustment AS isBalanceAdjustment
+                rls.amount,
+                rls.type
             FROM
                 release rls
                 LEFT JOIN account ac ON rls.account_id = ac.id
-                LEFT JOIN account ac2 ON rls.target_account_id  = ac2.id
-                LEFT JOIN credit_card cc ON rls.credit_card_id = cc.id
                 LEFT JOIN category ctg ON rls.category_id = ctg.id
+                LEFT JOIN public.credit_card cc on rls.credit_card_id = cc.id
             WHERE
                 rls.user_id = :userId
                 AND rls.date between current_date AND (current_date + interval '1 month')
                 AND rls.type <> 'T'
-                AND rls.done = false
+                AND rls.done is false
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<MonthlyReleases> getUpcomingReleasesExpected(long userId);
+    List<HomeUpcomingReleases> getUpcomingReleasesExpected(long userId);
 
     @Query(value = """
             SELECT
