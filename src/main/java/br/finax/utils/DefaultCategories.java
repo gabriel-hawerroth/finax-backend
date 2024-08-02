@@ -9,16 +9,16 @@ import java.util.List;
 public class DefaultCategories {
 
     public static final List<Category> DEFAULT_EXPENSE_CATEGORIES = List.of(
-            new Category("Alimentação", "#EC61A1", "restaurant", "E", true),
+            new Category("Alimentação", "#FCA52D", "restaurant", "E", true),
             new Category("Assinaturas e serviços", "#E454ED", "subscriptions", "E", false),
             new Category("Compras", "#7253C8", "local_mall", "E", false),
             new Category("Cuidados pessoais", "#94CD7A", "person", "E", true),
             new Category("Dívidas", "#FB6467", "request_quote", "E", true),
             new Category("Educação", "#5161B9", "school", "E", true),
-            new Category("Investimentos", "#FCA52D", "finance_mode", "E", true),
+            new Category("Investimentos", "#D9AA6A", "finance_mode", "E", true),
             new Category("Impostos e taxas", "#FFA490", "receipt_long", "E", true),
             new Category("Saúde", "#82C8F1", "medication", "E", true),
-            new Category("Transporte", "#D9AA6A", "directions_bus", "E", true),
+            new Category("Transporte", "#FCA52D", "directions_bus", "E", true),
             new Category("Lazer", "#7253C8", "local_bar", "E", false),
             new Category("Roupas", "#5096DE", "apparel", "E", false),
             new Category("Presentes e doações", "#FF494D", "redeem", "E", false),
