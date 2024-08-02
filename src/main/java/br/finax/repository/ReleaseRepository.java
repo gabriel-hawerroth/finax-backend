@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 public interface ReleaseRepository extends JpaRepository<Release, Long> {
@@ -170,7 +169,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull Date firstDt, @NonNull Date lastDt);
+    List<MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
     @Query(value = """
