@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -45,7 +45,7 @@ public class InvoicePaymentService {
     }
 
     @Transactional(readOnly = true)
-    public double getInvoicePreviousBalance(long userId, long creditCardId, Date firstDt) {
+    public double getInvoicePreviousBalance(long userId, long creditCardId, LocalDate firstDt) {
         return invoicePaymentRepository.getInvoicePreviousBalance(userId, creditCardId, firstDt);
     }
 }

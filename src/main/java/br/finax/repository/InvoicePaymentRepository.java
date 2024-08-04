@@ -6,7 +6,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, Long> {
@@ -52,5 +52,5 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 AND rls.date < :firstDt
                 AND rls.done is true
             """, nativeQuery = true)
-    double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull Date firstDt);
+    double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull LocalDate firstDt);
 }

@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 
@@ -33,13 +32,12 @@ public class InvoiceService {
     private final FileUtils fileUtils;
 
     @Transactional(readOnly = true)
-    public InvoiceMonthValues getInvoiceAndReleases(
-            long creditCardId, String selectedMonth,
-            Date firstDt, Date lastDt
-    ) {
+    public InvoiceMonthValues getInvoiceAndReleases(long creditCardId, String selectedMonth) {
         final long userId = utils.getAuthUser().getId();
 
         final CreditCard card = creditCardService.findById(creditCardId);
+
+        checkCardPermission(card);
 
         final var closeAndFirstDayInvoice = getInvoiceCloseAndFirstDay(selectedMonth, card.getCloseDay());
         final LocalDate firstDay = closeAndFirstDayInvoice.firstDay();
@@ -48,7 +46,7 @@ public class InvoiceService {
         return new InvoiceMonthValues(
                 invoicePaymentService.getInvoicePayments(userId, creditCardId, selectedMonth),
                 releaseService.getByInvoice(userId, creditCardId, firstDay, closeDay),
-                invoicePaymentService.getInvoicePreviousBalance(userId, creditCardId, firstDt)
+                invoicePaymentService.getInvoicePreviousBalance(userId, creditCardId, firstDay)
         );
     }
 
@@ -63,7 +61,7 @@ public class InvoiceService {
 
     @Transactional
     public InvoicePayment savePayment(InvoicePayment payment) {
-        checkPermission(payment);
+        checkPaymentPermission(payment);
 
         if (payment.getId() != null) {
             final InvoicePayment invoicePayment = invoicePaymentService.findById(payment.getId());
@@ -79,7 +77,7 @@ public class InvoiceService {
     public void deletePayment(long invoicePaymentId) {
         final InvoicePayment payment = invoicePaymentService.findById(invoicePaymentId);
 
-        checkPermission(payment);
+        checkPaymentPermission(payment);
 
         invoicePaymentService.deleteById(invoicePaymentId);
     }
@@ -88,7 +86,7 @@ public class InvoiceService {
     public InvoicePayment savePaymentAttachment(long invoiceId, @NonNull MultipartFile attachment) {
         final InvoicePayment payment = invoicePaymentService.findById(invoiceId);
 
-        checkPermission(payment);
+        checkPaymentPermission(payment);
 
         payment.setAttachment(fileUtils.compressFile(attachment, true));
         payment.setAttachmentName(attachment.getOriginalFilename());
@@ -100,7 +98,7 @@ public class InvoiceService {
     public InvoicePayment removePaymentAttachment(long invoiceId) {
         final InvoicePayment payment = invoicePaymentService.findById(invoiceId);
 
-        checkPermission(payment);
+        checkPaymentPermission(payment);
 
         payment.setAttachment(null);
         payment.setAttachmentName(null);
@@ -110,12 +108,19 @@ public class InvoiceService {
 
     @Transactional(readOnly = true)
     public byte[] getPaymentAttachment(long invoicePaymentId) {
-        return invoicePaymentService.findById(invoicePaymentId)
-                .getAttachment();
+        final InvoicePayment payment = invoicePaymentService.findById(invoicePaymentId);
+
+        checkPaymentPermission(payment);
+
+        return payment.getAttachment();
     }
 
-    private void checkPermission(final InvoicePayment payment) {
-        if (creditCardService.findById(payment.getCreditCardId()).getUserId() != utils.getAuthUser().getId())
+    private void checkCardPermission(final CreditCard card) {
+        if (card.getUserId() != utils.getAuthUser().getId())
             throw new WithoutPermissionException();
+    }
+
+    private void checkPaymentPermission(final InvoicePayment payment) {
+        checkCardPermission(creditCardService.findById(payment.getCreditCardId()));
     }
 }

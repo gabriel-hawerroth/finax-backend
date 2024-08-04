@@ -13,43 +13,44 @@ import static org.junit.jupiter.api.Assertions.*;
 class InvoiceUtilsTest {
 
     @Test
-    void testGetInvoiceCloseAndFirstDaySuccess() {
+    void testGetInvoiceCloseAndFirstDayWithDay31() {
         InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("03/2024", 31);
 
         assertEquals("2024-03-31", result.closeDay().toString());
         assertEquals("2024-03-02", result.firstDay().toString());
-    }
 
-    @Test
-    void testGetInvoiceCloseAndFirstDaySuccess2() {
-        InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("02/2024", 31);
+        result = getInvoiceCloseAndFirstDay("02/2024", 31);
 
         assertEquals("2024-03-01", result.closeDay().toString());
         assertEquals("2024-02-01", result.firstDay().toString());
-    }
 
-    @Test
-    void testGetInvoiceCloseAndFirstDaySuccess3() {
-        InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("01/2024", 31);
+        result = getInvoiceCloseAndFirstDay("01/2024", 31);
 
         assertEquals("2024-01-31", result.closeDay().toString());
         assertEquals("2024-01-01", result.firstDay().toString());
-    }
 
-    @Test
-    void testGetInvoiceCloseAndFirstDaySuccess4() {
-        InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("08/2024", 31);
+        result = getInvoiceCloseAndFirstDay("08/2024", 31);
 
         assertEquals("2024-08-31", result.closeDay().toString());
         assertEquals("2024-08-01", result.firstDay().toString());
-    }
 
-    @Test
-    void testGetInvoiceCloseAndFirstDaySuccess5() {
-        InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("05/2024", 31);
+        result = getInvoiceCloseAndFirstDay("05/2024", 31);
 
         assertEquals("2024-05-31", result.closeDay().toString());
         assertEquals("2024-05-02", result.firstDay().toString());
+    }
+
+    @Test
+    void testGetInvoiceCloseAndFirstDaySuccess() {
+        InvoiceCloseAndFirstDay result = getInvoiceCloseAndFirstDay("08/2024", 2);
+
+        assertEquals("2024-08-02", result.closeDay().toString());
+        assertEquals("2024-07-03", result.firstDay().toString());
+
+        result = getInvoiceCloseAndFirstDay("02/2024", 25);
+
+        assertEquals("2024-02-25", result.closeDay().toString());
+        assertEquals("2024-01-26", result.firstDay().toString());
     }
 
     @Test
