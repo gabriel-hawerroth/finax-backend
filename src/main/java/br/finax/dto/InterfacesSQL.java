@@ -32,7 +32,7 @@ public class InterfacesSQL {
 
         String getCardImg();
 
-        double getAmount();
+        BigDecimal getAmount();
 
         ReleaseType getType();
 
@@ -68,9 +68,9 @@ public class InterfacesSQL {
     }
 
     public interface HomeRevenueExpense {
-        double getRevenues();
+        BigDecimal getRevenues();
 
-        double getExpenses();
+        BigDecimal getExpenses();
     }
 
     public interface UserCreditCards {
@@ -80,7 +80,7 @@ public class InterfacesSQL {
 
         String getName();
 
-        double getCardLimit();
+        BigDecimal getCardLimit();
 
         int getCloseDay();
 
@@ -104,7 +104,7 @@ public class InterfacesSQL {
 
         String getImage();
 
-        long getBalance();
+        BigDecimal getBalance();
     }
 
     public interface CardBasicList {
@@ -122,7 +122,7 @@ public class InterfacesSQL {
 
         String getMonthYear();
 
-        double getPaymentAmount();
+        BigDecimal getPaymentAmount();
 
         LocalDate getPaymentDate();
 
@@ -142,7 +142,7 @@ public class InterfacesSQL {
 
         String getImage();
 
-        long getBalance();
+        BigDecimal getBalance();
     }
 
     public interface HomeUpcomingReleases {
