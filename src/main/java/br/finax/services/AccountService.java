@@ -35,7 +35,11 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public Account findById(long id) {
-        return accountRepository.findById(id).orElseThrow(NotFoundException::new);
+        final Account account = accountRepository.findById(id).orElseThrow(NotFoundException::new);
+
+        checkPermission(account);
+
+        return account;
     }
 
     @Transactional(readOnly = true)
@@ -49,8 +53,20 @@ public class AccountService {
     }
 
     @Transactional
-    public Account save(Account account) {
+    public Account createNew(Account account) {
+        account.setId(null);
         account.setUserId(utils.getAuthUser().getId());
+        return accountRepository.save(account);
+    }
+
+    @Transactional
+    public Account edit(Account account) {
+        final Account oldAccount = accountRepository.findById(account.getId()).orElseThrow(NotFoundException::new);
+
+        checkPermission(oldAccount);
+
+        account.setUserId(oldAccount.getUserId());
+
         return accountRepository.save(account);
     }
 
@@ -66,6 +82,11 @@ public class AccountService {
         account.setBalance(newBalance);
 
         return accountRepository.save(account);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HomeAccountsList> getHomeAccountsList(long userId) {
+        return accountRepository.getHomeAccountsList(userId);
     }
 
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
@@ -88,8 +109,8 @@ public class AccountService {
         releaseService.addRelease(release, 0);
     }
 
-    @Transactional(readOnly = true)
-    public List<HomeAccountsList> getHomeAccountsList(long userId) {
-        return accountRepository.getHomeAccountsList(userId);
+    private void checkPermission(Account account) {
+        if (account.getUserId() != utils.getAuthUser().getId())
+            throw new WithoutPermissionException();
     }
 }
