@@ -95,9 +95,8 @@ public class AuthService {
     }
 
     private void saveAccessLog(User user) {
-        if (user.getAccess().equals(UserAccess.ADM)) {
+        if (user.getAccess().equals(UserAccess.ADM))
             return;
-        }
 
         accessLogService.save(
                 new AccessLog(user.getId(), LocalDateTime.now())

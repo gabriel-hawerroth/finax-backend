@@ -1,6 +1,11 @@
 package br.finax.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,11 +16,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "access_log")
-public class AccessLog {
+public final class AccessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private long userId;
