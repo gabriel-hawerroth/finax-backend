@@ -4,20 +4,19 @@ import br.finax.exceptions.NotFoundException;
 import br.finax.models.Token;
 import br.finax.models.User;
 import br.finax.repository.TokenRepository;
-import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static br.finax.utils.UtilsService.generateHash;
+
 @Service
 @RequiredArgsConstructor
 public class UserTokenService {
 
     private final TokenRepository tokenRepository;
-
-    private final UtilsService utils;
 
     @Transactional
     public Token generateToken(final User user) {
@@ -32,7 +31,7 @@ public class UserTokenService {
             token.setUserId(user.getId());
         }
 
-        token.setToken(utils.generateHash(user.getEmail()));
+        token.setToken(generateHash(user.getEmail()));
 
         return tokenRepository.save(token);
     }

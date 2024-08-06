@@ -5,10 +5,11 @@ import br.finax.enums.user_configs.UserConfigsTheme;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
-import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor
@@ -16,11 +17,9 @@ public class UserConfigsService {
 
     private final UserConfigsRepository userConfigsRepository;
 
-    private final UtilsService utils;
-
     @Transactional(readOnly = true)
     public UserConfigs getByUser() {
-        return userConfigsRepository.findByUserId(utils.getAuthUser().getId())
+        return userConfigsRepository.findByUserId(getAuthUser().getId())
                 .orElseThrow(NotFoundException::new);
     }
 

@@ -9,16 +9,11 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidParametersException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
+import br.finax.exceptions.*;
+import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import br.finax.utils.FileUtils;
-import br.finax.utils.UtilsService;
 import com.amazonaws.SdkClientException;
 import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
@@ -34,9 +29,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 
-import static br.finax.services.AwsS3Service.getS3FileName;
+import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 public class ReleaseService {
@@ -48,17 +44,15 @@ public class ReleaseService {
     private final AccountService accountService;
     private final AwsS3Service awsS3Service;
 
-    private final UtilsService utils;
     private final FileUtils fileUtils;
 
     @Lazy
-    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, UtilsService utils, FileUtils fileUtils) {
+    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, FileUtils fileUtils) {
         this.releaseRepository = releaseRepository;
         this.creditCardService = creditCardService;
         this.accountService = accountService;
         this.categoryService = categoryService;
         this.awsS3Service = awsS3Service;
-        this.utils = utils;
         this.fileUtils = fileUtils;
     }
 
@@ -72,7 +66,7 @@ public class ReleaseService {
     public MonthlyCashFlow getMonthlyFlow(
             final LocalDate firstDt, final LocalDate lastDt
     ) {
-        final long userId = utils.getAuthUser().getId();
+        final long userId = getAuthUser().getId();
 
         if (ChronoUnit.DAYS.between(firstDt, lastDt) > 31)
             throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
@@ -93,7 +87,7 @@ public class ReleaseService {
 
     @Transactional
     public Release addRelease(final @NonNull Release release, final int repeatFor) {
-        release.setUserId(utils.getAuthUser().getId());
+        release.setUserId(getAuthUser().getId());
 
         if (release.getRepeat() == null)
             return releaseRepository.save(release);
@@ -300,7 +294,7 @@ public class ReleaseService {
     }
 
     private void checkPermission(final Release release) {
-        if (release.getUserId() != utils.getAuthUser().getId())
+        if (release.getUserId() != getAuthUser().getId())
             throw new WithoutPermissionException();
     }
 }

@@ -10,6 +10,7 @@ import br.finax.enums.user.UserSignature;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.exceptions.ServiceException;
+import br.finax.external.AwsEmailService;
 import br.finax.models.AccessLog;
 import br.finax.models.Token;
 import br.finax.models.User;

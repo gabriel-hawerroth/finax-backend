@@ -2,18 +2,18 @@ package br.finax.utils;
 
 import br.finax.exceptions.InvalidHashAlgorithmException;
 import br.finax.models.User;
+import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-@Service
+@UtilityClass
 public class UtilsService {
 
-    public String generateHash(String text) {
+    public static String generateHash(String text) {
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -32,7 +32,7 @@ public class UtilsService {
         return hexStringBuilder.toString();
     }
 
-    public User getAuthUser() {
+    public static User getAuthUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User) authentication.getPrincipal();
     }

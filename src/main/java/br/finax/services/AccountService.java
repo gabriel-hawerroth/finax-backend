@@ -8,7 +8,6 @@ import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Account;
 import br.finax.models.Release;
 import br.finax.repository.AccountRepository;
-import br.finax.utils.UtilsService;
 import lombok.NonNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -18,19 +17,19 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static br.finax.utils.UtilsService.getAuthUser;
+
 @Service
 public class AccountService {
 
     private final AccountRepository accountRepository;
 
     private final ReleaseService releaseService;
-    private final UtilsService utils;
 
     @Lazy
-    public AccountService(AccountRepository accountRepository, ReleaseService releaseService, UtilsService utils) {
+    public AccountService(AccountRepository accountRepository, ReleaseService releaseService) {
         this.accountRepository = accountRepository;
         this.releaseService = releaseService;
-        this.utils = utils;
     }
 
     @Transactional(readOnly = true)
@@ -44,18 +43,18 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<Account> getByUser() {
-        return accountRepository.findAllByUserIdOrderByIdAsc(utils.getAuthUser().getId());
+        return accountRepository.findAllByUserIdOrderByIdAsc(getAuthUser().getId());
     }
 
     @Transactional(readOnly = true)
     public List<AccountBasicList> getBasicList() {
-        return accountRepository.getBasicList(utils.getAuthUser().getId());
+        return accountRepository.getBasicList(getAuthUser().getId());
     }
 
     @Transactional
     public Account createNew(Account account) {
         account.setId(null);
-        account.setUserId(utils.getAuthUser().getId());
+        account.setUserId(getAuthUser().getId());
         return accountRepository.save(account);
     }
 
@@ -74,8 +73,7 @@ public class AccountService {
     public Account adjustBalance(long accountId, @NonNull BigDecimal newBalance) {
         final Account account = findById(accountId);
 
-        if (account.getUserId() != utils.getAuthUser().getId())
-            throw new WithoutPermissionException();
+        checkPermission(account);
 
         createNewCashFlowRelease(account, newBalance);
 
@@ -85,8 +83,10 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeAccountsList> getHomeAccountsList(long userId) {
-        return accountRepository.getHomeAccountsList(userId);
+    public List<HomeAccountsList> getHomeAccountsList() {
+        return accountRepository.getHomeAccountsList(
+                getAuthUser().getId()
+        );
     }
 
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
@@ -110,7 +110,7 @@ public class AccountService {
     }
 
     private void checkPermission(Account account) {
-        if (account.getUserId() != utils.getAuthUser().getId())
+        if (account.getUserId() != getAuthUser().getId())
             throw new WithoutPermissionException();
     }
 }

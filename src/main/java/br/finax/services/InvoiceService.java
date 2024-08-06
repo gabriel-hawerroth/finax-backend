@@ -6,7 +6,6 @@ import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CreditCard;
 import br.finax.models.InvoicePayment;
 import br.finax.utils.FileUtils;
-import br.finax.utils.UtilsService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +28,11 @@ public class InvoiceService {
     private final CategoryService categoryService;
     private final AccountService accountService;
 
-    private final UtilsService utils;
     private final FileUtils fileUtils;
 
     @Transactional(readOnly = true)
     public InvoiceMonthValues getInvoiceAndReleases(long creditCardId, String selectedMonth) {
-        final long userId = utils.getAuthUser().getId();
+        final long userId = getAuthUser().getId();
 
         final CreditCard card = creditCardService.findById(creditCardId);
 
@@ -116,7 +115,7 @@ public class InvoiceService {
     }
 
     private void checkCardPermission(final CreditCard card) {
-        if (card.getUserId() != utils.getAuthUser().getId())
+        if (!card.getUserId().equals(getAuthUser().getId()))
             throw new WithoutPermissionException();
     }
 

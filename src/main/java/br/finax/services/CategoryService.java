@@ -4,7 +4,6 @@ import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;
 import br.finax.repository.CategoryRepository;
-import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -14,13 +13,13 @@ import java.util.List;
 
 import static br.finax.utils.DefaultCategories.DEFAULT_EXPENSE_CATEGORIES;
 import static br.finax.utils.DefaultCategories.DEFAULT_REVENUE_CATEGORIES;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final UtilsService utils;
 
     @Transactional(readOnly = true)
     public Category findById(long id) {
@@ -31,20 +30,20 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public List<Category> getByUser() {
         return categoryRepository.findByUser(
-                utils.getAuthUser().getId()
+                getAuthUser().getId()
         );
     }
 
     @Transactional
     public Category save(Category category) {
-        category.setUserId(utils.getAuthUser().getId());
+        category.setUserId(getAuthUser().getId());
         return categoryRepository.save(category);
     }
 
     @Transactional
     public void deleteById(long id) {
         try {
-            if (findById(id).getUserId() != utils.getAuthUser().getId())
+            if (!findById(id).getUserId().equals(getAuthUser().getId()))
                 throw new WithoutPermissionException();
 
             categoryRepository.deleteById(id);

@@ -2,12 +2,8 @@ package br.finax.services;
 
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
-import br.finax.exceptions.CannotChangePasswordException;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidPasswordException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.*;
+import br.finax.external.AwsS3Service;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
@@ -24,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 
-import static br.finax.services.AwsS3Service.getS3FileName;
+import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 
@@ -36,7 +32,6 @@ public class UserService {
 
     private final AwsS3Service awsS3Service;
     private final SecurityFilter securityFilter;
-    private final UtilsService utils;
     private final FileUtils fileUtils;
 
     private final PasswordEncoder passwordEncoder;
@@ -54,7 +49,7 @@ public class UserService {
     }
 
     public User getAuthUser() {
-        return utils.getAuthUser();
+        return UtilsService.getAuthUser();
     }
 
     @Transactional
@@ -74,7 +69,7 @@ public class UserService {
 
     @Transactional
     public User changePassword(String newPassword, String currentPassword) {
-        final User user = utils.getAuthUser();
+        final User user = getAuthUser();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword()))
             throw new InvalidPasswordException();
@@ -88,7 +83,7 @@ public class UserService {
 
     @Transactional
     public User editUser(User userDTO) {
-        final User user = utils.getAuthUser();
+        final User user = getAuthUser();
 
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
@@ -100,7 +95,7 @@ public class UserService {
 
     @Transactional
     public User changeUserImage(MultipartFile file) {
-        final User user = utils.getAuthUser();
+        final User user = getAuthUser();
 
         final String fileExtension = getFileExtension(file);
         final String fileName = getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
@@ -129,7 +124,7 @@ public class UserService {
     }
 
     public String getUserImage() {
-        return utils.getAuthUser().getProfileImage();
+        return getAuthUser().getProfileImage();
     }
 
     @Transactional

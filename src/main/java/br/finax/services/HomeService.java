@@ -6,16 +6,17 @@ import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
 import br.finax.dto.SpendByCategory;
 import br.finax.models.Category;
 import br.finax.models.Release;
-import br.finax.utils.UtilsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+
+import static br.finax.utils.DateUtils.getFirstDayOfMonth;
+import static br.finax.utils.DateUtils.getLastDayOfMonth;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +26,10 @@ public class HomeService {
     private final CategoryService categoryService;
     private final AccountService accountService;
 
-    private final UtilsService utils;
-
     @Transactional(readOnly = true)
     public HomeRevenueExpense getRevenueExpense() {
         return releaseService.getHomeBalances(
-                utils.getAuthUser().getId(),
+                getAuthUser().getId(),
                 getFirstDayOfMonth(),
                 getLastDayOfMonth()
         );
@@ -38,14 +37,12 @@ public class HomeService {
 
     @Transactional(readOnly = true)
     public List<HomeAccountsList> getAccountsList() {
-        return accountService.getHomeAccountsList(
-                utils.getAuthUser().getId()
-        );
+        return accountService.getHomeAccountsList();
     }
 
     @Transactional(readOnly = true)
     public List<HomeUpcomingReleases> getUpcomingReleases() {
-        final long userId = utils.getAuthUser().getId();
+        final long userId = getAuthUser().getId();
 
         return releaseService.getUpcomingReleases(userId);
     }
@@ -53,7 +50,7 @@ public class HomeService {
     @Transactional(readOnly = true)
     public List<SpendByCategory> getSpendsByCategory() {
         final List<Release> expenses = releaseService.findReleasesForHomeSpendsCategory(
-                utils.getAuthUser().getId(),
+                getAuthUser().getId(),
                 getFirstDayOfMonth(),
                 getLastDayOfMonth()
         );
@@ -91,13 +88,5 @@ public class HomeService {
         spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
 
         return spendByCategories;
-    }
-
-    private LocalDate getFirstDayOfMonth() {
-        return LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-    }
-
-    private LocalDate getLastDayOfMonth() {
-        return LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
     }
 }
