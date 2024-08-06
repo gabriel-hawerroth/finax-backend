@@ -23,8 +23,12 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public Category findById(long id) {
-        return categoryRepository.findById(id)
+        final Category category = categoryRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
+
+        checkPermission(category);
+
+        return category;
     }
 
     @Transactional(readOnly = true)
@@ -35,23 +39,29 @@ public class CategoryService {
     }
 
     @Transactional
-    public Category save(Category category) {
+    public Category createNew(Category category) {
+        category.setId(null);
         category.setUserId(getAuthUser().getId());
         return categoryRepository.save(category);
     }
 
     @Transactional
-    public void deleteById(long id) {
-        try {
-            if (!findById(id).getUserId().equals(getAuthUser().getId()))
-                throw new WithoutPermissionException();
+    public Category edit(Category category) {
+        checkPermission(category);
 
+        return categoryRepository.save(category);
+    }
+
+    @Transactional
+    public void deleteById(long id) {
+        final Category category = findById(id);
+
+        checkPermission(category);
+
+        try {
             categoryRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            final Category category = findById(id);
-
             category.setActive(false);
-
             categoryRepository.save(category);
         }
     }
@@ -73,5 +83,10 @@ public class CategoryService {
         final var categories = new java.util.ArrayList<>(DEFAULT_EXPENSE_CATEGORIES);
         categories.addAll(DEFAULT_REVENUE_CATEGORIES);
         return categories;
+    }
+
+    private void checkPermission(Category category) {
+        if (!category.getUserId().equals(getAuthUser().getId()))
+            throw new WithoutPermissionException();
     }
 }

@@ -21,7 +21,12 @@ public class CreditCardService {
 
     @Transactional(readOnly = true)
     public CreditCard findById(long id) {
-        return creditCardRepository.findById(id).orElseThrow(NotFoundException::new);
+        final CreditCard card = creditCardRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
+
+        checkPermission(card);
+
+        return card;
     }
 
     @Transactional(readOnly = true)
@@ -30,8 +35,16 @@ public class CreditCardService {
     }
 
     @Transactional
-    public CreditCard save(CreditCard card) {
+    public CreditCard createNew(CreditCard card) {
+        card.setId(null);
         card.setUserId(getAuthUser().getId());
+        return creditCardRepository.save(card);
+    }
+
+    @Transactional
+    public CreditCard edit(CreditCard card) {
+        checkPermission(card);
+
         return creditCardRepository.save(card);
     }
 
@@ -43,5 +56,10 @@ public class CreditCardService {
     @Transactional(readOnly = true)
     public long findUserIdById(long id) {
         return creditCardRepository.findUserIdById(id);
+    }
+
+    private void checkPermission(CreditCard card) {
+        if (!card.getUserId().equals(getAuthUser().getId()))
+            throw new NotFoundException();
     }
 }

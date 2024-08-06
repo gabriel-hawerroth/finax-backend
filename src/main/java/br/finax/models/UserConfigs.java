@@ -16,7 +16,7 @@ public class UserConfigs {
     private Long id;
 
     @Column(name = "user_id", nullable = false, updatable = false)
-    private long userId;
+    private Long userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

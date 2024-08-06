@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.dto.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.*;
@@ -82,11 +83,11 @@ public class UserService {
     }
 
     @Transactional
-    public User editUser(User userDTO) {
+    public User editUser(EditUserDTO userDTO) {
         final User user = getAuthUser();
 
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
+        user.setFirstName(userDTO.firstName());
+        user.setLastName(userDTO.lastName());
 
         securityFilter.updateCachedUser(user);
 

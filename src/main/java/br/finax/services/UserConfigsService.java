@@ -3,6 +3,7 @@ package br.finax.services;
 import br.finax.enums.user_configs.UserConfigsReleasesViewMode;
 import br.finax.enums.user_configs.UserConfigsTheme;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ public class UserConfigsService {
 
     @Transactional
     public UserConfigs save(UserConfigs userConfigs) {
+        if (userConfigs.getId() == null)
+            userConfigs.setUserId(getAuthUser().getId());
+        else
+            checkPermission(userConfigs);
+
         return userConfigsRepository.save(userConfigs);
     }
 
@@ -41,5 +47,10 @@ public class UserConfigsService {
         userConfigs.setEmailNotifications(true);
 
         userConfigsRepository.save(userConfigs);
+    }
+
+    private void checkPermission(UserConfigs userConfigs) {
+        if (!userConfigs.getUserId().equals(getAuthUser().getId()))
+            throw new WithoutPermissionException();
     }
 }

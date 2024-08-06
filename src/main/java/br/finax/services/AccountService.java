@@ -60,11 +60,7 @@ public class AccountService {
 
     @Transactional
     public Account edit(Account account) {
-        final Account oldAccount = accountRepository.findById(account.getId()).orElseThrow(NotFoundException::new);
-
-        checkPermission(oldAccount);
-
-        account.setUserId(oldAccount.getUserId());
+        checkPermission(account);
 
         return accountRepository.save(account);
     }

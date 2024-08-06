@@ -41,15 +41,18 @@ public class CreditCardController {
     }
 
     @PostMapping
-    public ResponseEntity<CreditCard> save(@RequestBody @Valid CreditCard card) {
-        final CreditCard creditCard = creditCardService.save(card);
+    public ResponseEntity<CreditCard> createNew(@RequestBody @Valid CreditCard card) {
+        final CreditCard creditCard = creditCardService.createNew(card);
 
-        if (card.getId() == null) {
-            final URI uri = URI.create("/credit-card/" + creditCard.getId());
+        final URI uri = URI.create("/credit-card/" + creditCard.getId());
 
-            return ResponseEntity.created(uri).body(creditCard);
-        }
+        return ResponseEntity.created(uri).body(creditCard);
+    }
 
-        return ResponseEntity.ok(creditCard);
+    @PutMapping
+    public ResponseEntity<CreditCard> edit(@RequestBody @Valid CreditCard card) {
+        return ResponseEntity.ok(
+                creditCardService.edit(card)
+        );
     }
 }

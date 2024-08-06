@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.dto.EditUserDTO;
 import br.finax.models.User;
 import br.finax.services.UserService;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<User> editUser(@RequestBody @Valid User user) {
+    public ResponseEntity<User> editUser(@RequestBody @Valid EditUserDTO user) {
         return ResponseEntity.ok(
                 userService.editUser(user)
         );

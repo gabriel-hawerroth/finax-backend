@@ -58,8 +58,12 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public Release findById(@NonNull Long id) {
-        return releaseRepository.findById(id)
+        final Release release = releaseRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
+
+        checkPermission(release);
+
+        return release;
     }
 
     @Transactional(readOnly = true)
@@ -87,6 +91,7 @@ public class ReleaseService {
 
     @Transactional
     public Release addRelease(final @NonNull Release release, final int repeatFor) {
+        release.setId(null);
         release.setUserId(getAuthUser().getId());
 
         if (release.getRepeat() == null)
@@ -125,6 +130,8 @@ public class ReleaseService {
     public Release editRelease(
             @NonNull Release release, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
     ) {
+        checkPermission(release);
+
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
