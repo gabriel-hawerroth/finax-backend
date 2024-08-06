@@ -12,6 +12,8 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalA
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -19,24 +21,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 @Service
 public class FileUtils {
-
-    private static final Map<Integer, Integer> COMPRESSION_SIZE_MAP = Map.of(
-            50000, 250,     // 0,05MB - 50kb
-            125000, 300,    // 0,125MB - 125kb
-            250000, 400,    // 0,25MB - 250kb
-            500000, 500,   // 0,5MB - 500kb
-            1000000, 750,  // 1,0MB
-            1500000, 1000,  // 1,5MB
-            2000000, 1200,  // 2,0MB
-            2500000, 1300,  // 2,5MB
-            Integer.MAX_VALUE, 1500
-    );
 
     private static final List<String> VALID_IMAGE_EXTENSIONS =
             Arrays.asList("jpg", "jpeg", "png", "jfif", "webp");
@@ -67,22 +56,6 @@ public class FileUtils {
         return fileName.substring(pointIndex + 1).toLowerCase();
     }
 
-    private static int getImageSize(byte[] file, boolean isAttachment) {
-        int size = 1500;
-
-        for (Map.Entry<Integer, Integer> entry : COMPRESSION_SIZE_MAP.entrySet()) {
-            if (file.length < entry.getKey()) {
-                size = entry.getValue();
-            }
-        }
-
-        if (isAttachment) {
-            size = size * 2;
-        }
-
-        return size;
-    }
-
     public byte[] compressFile(MultipartFile file) throws FileCompressionErrorException {
         return compressFile(file, false);
     }
@@ -91,10 +64,18 @@ public class FileUtils {
         final String fileExtension = checkFileValidity(file);
 
         try {
+            int width = 0;
+            int height = 0;
+            if (!fileExtension.equals("pdf") && !fileExtension.equals("png") && !fileExtension.equals("webp")) {
+                BufferedImage originalImage = ImageIO.read(file.getInputStream());
+                width = originalImage.getWidth();
+                height = originalImage.getHeight();
+            }
+
             return switch (fileExtension) {
                 case "pdf" -> compressPdf(file.getBytes());
                 case "png", "webp" -> file.getBytes();
-                default -> compressImage(file.getBytes(), isAttachment);
+                default -> compressImage(file.getBytes(), isAttachment, new ImageSizes(width, height));
             };
         } catch (IOException e) {
             throw new InvalidFileException("error getting the file bytes");
@@ -115,18 +96,18 @@ public class FileUtils {
         return fileExtension;
     }
 
-    private byte[] compressImage(byte[] data, boolean isAttachment) {
+    private byte[] compressImage(byte[] data, boolean isAttachment, ImageSizes imageSizes) {
         try {
             final ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
-            final int imageSize = getImageSize(data, isAttachment);
+            final ImageSizes resizedImageSizes = getResizedImageSizes(imageSizes, isAttachment);
 
             // Resize and compress the image
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             Thumbnails.of(inputStream)
-                    .size(imageSize, imageSize)  // Desired size in px
+                    .size(resizedImageSizes.width(), resizedImageSizes.height())  // Desired size in px
                     .outputFormat("jpg")
-                    .outputQuality(0.5)
+                    .outputQuality(0.6)
                     .toOutputStream(outputStream);
 
             final byte[] response = outputStream.toByteArray();
@@ -158,5 +139,20 @@ public class FileUtils {
         } catch (IOException e) {
             throw new FileCompressionErrorException();
         }
+    }
+
+    private ImageSizes getResizedImageSizes(ImageSizes imageSizes, boolean isAttachment) {
+        final double reductionFactor = isAttachment ? 0.85 : 0.7;
+
+        final int newWidth = (int) (imageSizes.width() * reductionFactor);
+        final int newHeight = (int) (imageSizes.height() * reductionFactor);
+
+        return new ImageSizes(newWidth, newHeight);
+    }
+
+    private record ImageSizes(
+            int width,
+            int height
+    ) {
     }
 }
