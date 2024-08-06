@@ -4,17 +4,16 @@ import br.finax.dto.EmailDTO;
 import br.finax.dto.HunterResponse;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.EmailSendingException;
+import br.finax.external.HunterIoService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -22,33 +21,28 @@ import java.util.logging.Logger;
 @Service
 public class EmailService {
 
-    private final String apiUrl;
-
     private final JavaMailSender javaMailSender;
+    private final HunterIoService hunterIoService;
 
-    private final String apiKey;
+    private final String apiUrl;
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public EmailService(JavaMailSender javaMailSender, Environment environment, @Value("${hunter.api.key}") String apiKey) {
+    public EmailService(JavaMailSender javaMailSender, HunterIoService hunterIoService, Environment environment) {
         this.javaMailSender = javaMailSender;
+        this.hunterIoService = hunterIoService;
 
         if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
             apiUrl = "http://localhost:8080";
         } else {
             apiUrl = "https://apifinax.hawetec.com.br";
         }
-
-        this.apiKey = apiKey;
     }
 
     public boolean verifyEmail(String email) {
         final ResponseEntity<HunterResponse> response;
         try {
-            response = RestClient.create().get()
-                    .uri("https://api.hunter.io/v2/email-verifier?email=" + email + "&api_key=" + apiKey)
-                    .retrieve()
-                    .toEntity(HunterResponse.class);
+            response = hunterIoService.sendEmailVerifier(email);
         } catch (Exception e) {
             logger.info("Email verification failed: " + e.getMessage());
             return true;
@@ -62,7 +56,7 @@ public class EmailService {
         if (responseBody == null || responseBody.data() == null || responseBody.data().result() == null)
             return true;
 
-        return responseBody.data().result().equals("deliverable");
+        return responseBody.data().result().equalsIgnoreCase("deliverable");
     }
 
     public void sendMail(EmailDTO email) {
