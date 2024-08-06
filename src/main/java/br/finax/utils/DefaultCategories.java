@@ -28,7 +28,7 @@ public class DefaultCategories {
     public static final List<Category> DEFAULT_REVENUE_CATEGORIES = List.of(
             new Category("Salário", "#86BB5D", "receipt_long", "R", false),
             new Category("Investimentos", "#FCA52D", "finance_mode", "R", false),
-            new Category("Empréstimos", "#787878", "order_approve", "R", false),
+            new Category("Empréstimos", "#AFAFAF", "order_approve", "R", false),
             new Category("Presentes e doações", "#FF494D", "redeem", "R", false),
             new Category("Outras receitas", "#D9AA6A", "attach_money", "R", false)
     );
