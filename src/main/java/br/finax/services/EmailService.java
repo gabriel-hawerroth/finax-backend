@@ -5,17 +5,16 @@ import br.finax.dto.HunterResponse;
 import br.finax.enums.EmailType;
 import br.finax.exceptions.EmailSendingException;
 import br.finax.external.HunterIoService;
+import br.finax.utils.ServiceUrls;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.NonNull;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 @Service
@@ -23,20 +22,14 @@ public class EmailService {
 
     private final JavaMailSender javaMailSender;
     private final HunterIoService hunterIoService;
-
-    private final String apiUrl;
+    private final ServiceUrls serviceUrls;
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public EmailService(JavaMailSender javaMailSender, HunterIoService hunterIoService, Environment environment) {
+    public EmailService(JavaMailSender javaMailSender, HunterIoService hunterIoService, ServiceUrls serviceUrls) {
         this.javaMailSender = javaMailSender;
         this.hunterIoService = hunterIoService;
-
-        if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-            apiUrl = "http://localhost:8080";
-        } else {
-            apiUrl = "https://apifinax.hawetec.com.br";
-        }
+        this.serviceUrls = serviceUrls;
     }
 
     public boolean verifyEmail(String email) {
@@ -88,7 +81,7 @@ public class EmailService {
     }
 
     public String buildEmailTemplate(@NonNull EmailType emailType, long userId, @NonNull String token) {
-        final String url = apiUrl + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
+        final String url = serviceUrls.getApiUrl() + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
 
         final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> " ativar sua conta.";
@@ -177,7 +170,7 @@ public class EmailService {
     }
 
     public String buildCancelAccountEmailTemplate(long userId, @NonNull String token) {
-        final String url = apiUrl + "/login/cancel-user/" + userId + "/" + token;
+        final String url = serviceUrls.getApiUrl() + "/login/cancel-user/" + userId + "/" + token;
 
         return """
                 <!DOCTYPE html>
