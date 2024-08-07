@@ -58,6 +58,11 @@ public class CreditCardService {
         return creditCardRepository.findUserIdById(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<CreditCard> findAllByUserId(long userId) {
+        return creditCardRepository.findAllByUserId(userId);
+    }
+
     private void checkPermission(CreditCard card) {
         if (!card.getUserId().equals(getAuthUser().getId()))
             throw new NotFoundException();

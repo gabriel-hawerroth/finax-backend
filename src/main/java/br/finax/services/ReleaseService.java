@@ -72,13 +72,12 @@ public class ReleaseService {
     public MonthlyCashFlow getMonthlyFlow(
             final LocalDate firstDt, final LocalDate lastDt
     ) {
-        final long userId = getAuthUser().getId();
-
         if (ChronoUnit.DAYS.between(firstDt, lastDt) > 31)
             throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
 
         return new MonthlyCashFlow(
-                releaseRepository.getMonthlyReleases(userId, firstDt, lastDt), 0
+                releaseRepository.getMonthlyReleases(getAuthUser().getId(), firstDt, lastDt),
+                0
         );
     }
 

@@ -47,4 +47,11 @@ public class HomeController {
                 homeService.getSpendsByCategory()
         );
     }
+
+    @GetMapping("/get-credit-cards-list")
+    public ResponseEntity<List<?>> getCreditCardsList() {
+        return ResponseEntity.ok().body(
+                homeService.getCreditCardsList()
+        );
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
@@ -112,6 +113,18 @@ public class InvoiceService {
         return payment.getAttachment();
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal getCurrentInvoiceValue(CreditCard card) {
+        checkCardPermission(card);
+
+        final var closeAndFirstDayInvoice = getInvoiceCloseAndFirstDay(
+                getCurrentMonth(),
+                card.getCloseDay()
+        );
+
+        return BigDecimal.ZERO;
+    }
+
     private void checkCardPermission(final CreditCard card) {
         if (!card.getUserId().equals(getAuthUser().getId()))
             throw new WithoutPermissionException();
@@ -119,5 +132,14 @@ public class InvoiceService {
 
     private void checkPaymentPermission(final InvoicePayment payment) {
         checkCardPermission(creditCardService.findById(payment.getCreditCardId()));
+    }
+
+    private String getCurrentMonth() {
+        final int intCurrentMonth = LocalDate.now().getMonthValue();
+        final int intCurrentYear = LocalDate.now().getYear();
+
+        final String stringCurrentMonth = intCurrentMonth < 10 ? "0" + intCurrentMonth : String.valueOf(intCurrentMonth);
+
+        return stringCurrentMonth + "/" + intCurrentYear;
     }
 }

@@ -5,6 +5,7 @@ import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
 import br.finax.dto.SpendByCategory;
 import br.finax.models.Category;
+import br.finax.models.CreditCard;
 import br.finax.models.Release;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static br.finax.utils.DateUtils.getFirstDayOfMonth;
 import static br.finax.utils.DateUtils.getLastDayOfMonth;
@@ -25,6 +30,8 @@ public class HomeService {
     private final ReleaseService releaseService;
     private final CategoryService categoryService;
     private final AccountService accountService;
+    private final CreditCardService creditCardService;
+    private final InvoiceService invoiceService;
 
     @Transactional(readOnly = true)
     public HomeRevenueExpense getRevenueExpense() {
@@ -88,5 +95,16 @@ public class HomeService {
         spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
 
         return spendByCategories;
+    }
+
+    @Transactional(readOnly = true)
+    public List<?> getCreditCardsList() {
+        final long userId = getAuthUser().getId();
+
+        final List<CreditCard> creditCards = creditCardService.findAllByUserId(userId);
+
+        creditCards.forEach(card -> invoiceService.getCurrentInvoiceValue(card));
+
+        return List.of();
     }
 }
