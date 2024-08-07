@@ -9,7 +9,12 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
-import br.finax.exceptions.*;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidParametersException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
@@ -44,16 +49,13 @@ public class ReleaseService {
     private final AccountService accountService;
     private final AwsS3Service awsS3Service;
 
-    private final FileUtils fileUtils;
-
     @Lazy
-    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service, FileUtils fileUtils) {
+    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service) {
         this.releaseRepository = releaseRepository;
         this.creditCardService = creditCardService;
         this.accountService = accountService;
         this.categoryService = categoryService;
         this.awsS3Service = awsS3Service;
-        this.fileUtils = fileUtils;
     }
 
     @Transactional(readOnly = true)
@@ -191,7 +193,7 @@ public class ReleaseService {
         final String fileName = getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
 
         try {
-            final byte[] compressedFile = fileUtils.compressFile(attachment);
+            final byte[] compressedFile = FileUtils.compressFile(attachment);
 
             final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 

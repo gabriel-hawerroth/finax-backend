@@ -5,11 +5,11 @@ import br.finax.exceptions.FileCompressionErrorException;
 import br.finax.exceptions.FileIOException;
 import br.finax.exceptions.InvalidFileException;
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -22,17 +22,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
-@Service
+@UtilityClass
 public class FileUtils {
 
     private static final List<String> VALID_IMAGE_EXTENSIONS =
             Arrays.asList("jpg", "jpeg", "png", "jfif", "webp");
 
     private static final int MAX_FILE_SIZE = 3 * 1024 * 1024; // 3Mb in bytes
-
-    private final Logger logger = Logger.getLogger(getClass().getName());
 
     public static File convertByteArrayToFile(byte[] compressedFile, String fileName) throws FileIOException {
         try {
@@ -56,11 +53,11 @@ public class FileUtils {
         return fileName.substring(pointIndex + 1).toLowerCase();
     }
 
-    public byte[] compressFile(MultipartFile file) throws FileCompressionErrorException {
+    public static byte[] compressFile(MultipartFile file) throws FileCompressionErrorException {
         return compressFile(file, false);
     }
 
-    public byte[] compressFile(@NonNull MultipartFile file, boolean isAttachment) throws FileCompressionErrorException {
+    public static byte[] compressFile(@NonNull MultipartFile file, boolean isAttachment) throws FileCompressionErrorException {
         final String fileExtension = checkFileValidity(file);
 
         try {
@@ -82,7 +79,7 @@ public class FileUtils {
         }
     }
 
-    private String checkFileValidity(MultipartFile file) {
+    private static String checkFileValidity(MultipartFile file) {
         if (file == null || file.isEmpty() || file.getSize() == 0)
             throw new EmptyFileException();
 
@@ -96,7 +93,7 @@ public class FileUtils {
         return fileExtension;
     }
 
-    private byte[] compressImage(byte[] data, boolean isAttachment, ImageSizes imageSizes) {
+    private static byte[] compressImage(byte[] data, boolean isAttachment, ImageSizes imageSizes) {
         try {
             final ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
 
@@ -110,30 +107,20 @@ public class FileUtils {
                     .outputQuality(0.6)
                     .toOutputStream(outputStream);
 
-            final byte[] response = outputStream.toByteArray();
-
-            logger.info(() -> "IMG - Original size: " + data.length);
-            logger.info(() -> "IMG - Compressed size: " + response.length);
-
-            return response;
+            return outputStream.toByteArray();
         } catch (IOException e) {
             throw new FileCompressionErrorException();
         }
     }
 
-    private byte[] compressPdf(byte[] pdfData) throws FileCompressionErrorException {
+    private static byte[] compressPdf(byte[] pdfData) throws FileCompressionErrorException {
         try {
             try (final PDDocument document = Loader.loadPDF(pdfData)) {
                 document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
 
                 try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                     document.save(outputStream);
-                    final byte[] response = outputStream.toByteArray();
-
-                    logger.info(() -> "PDF - Original size: " + pdfData.length);
-                    logger.info(() -> "PDF - Compressed size: " + response.length);
-
-                    return response;
+                    return outputStream.toByteArray();
                 }
             }
         } catch (IOException e) {
@@ -141,7 +128,7 @@ public class FileUtils {
         }
     }
 
-    private ImageSizes getResizedImageSizes(ImageSizes imageSizes, boolean isAttachment) {
+    private static ImageSizes getResizedImageSizes(ImageSizes imageSizes, boolean isAttachment) {
         final double reductionFactor = isAttachment ? 0.85 : 0.7;
 
         final int newWidth = (int) (imageSizes.width() * reductionFactor);

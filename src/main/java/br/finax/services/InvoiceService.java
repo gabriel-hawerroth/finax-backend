@@ -28,8 +28,6 @@ public class InvoiceService {
     private final CategoryService categoryService;
     private final AccountService accountService;
 
-    private final FileUtils fileUtils;
-
     @Transactional(readOnly = true)
     public InvoiceMonthValues getInvoiceAndReleases(long creditCardId, String selectedMonth) {
         final long userId = getAuthUser().getId();
@@ -87,7 +85,7 @@ public class InvoiceService {
 
         checkPaymentPermission(payment);
 
-        payment.setAttachment(fileUtils.compressFile(attachment, true));
+        payment.setAttachment(FileUtils.compressFile(attachment, true));
         payment.setAttachmentName(attachment.getOriginalFilename());
 
         return invoicePaymentService.save(payment);

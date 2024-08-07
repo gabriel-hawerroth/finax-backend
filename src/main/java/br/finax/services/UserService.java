@@ -3,7 +3,12 @@ package br.finax.services;
 import br.finax.dto.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
-import br.finax.exceptions.*;
+import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidPasswordException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
@@ -33,7 +38,6 @@ public class UserService {
 
     private final AwsS3Service awsS3Service;
     private final SecurityFilter securityFilter;
-    private final FileUtils fileUtils;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -102,7 +106,7 @@ public class UserService {
         final String fileName = getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
 
         try {
-            final byte[] compressedFile = fileUtils.compressFile(file);
+            final byte[] compressedFile = FileUtils.compressFile(file);
 
             final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 
