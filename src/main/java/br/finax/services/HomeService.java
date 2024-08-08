@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.dto.HomeCreditCardsList;
 import br.finax.dto.InterfacesSQL.HomeAccountsList;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
@@ -16,6 +17,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -85,9 +87,7 @@ public class HomeService {
             final Category category = categoryMap.get(categoryId);
 
             final double percent = Double.parseDouble(
-                    String.valueOf(
-                            categoryExpense.divide(totalExpense, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100))
-                    )
+                    categoryExpense.divide(totalExpense, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100)).toString()
             );
             spendByCategories.add(new SpendByCategory(category, percent, categoryExpense));
         }
@@ -98,13 +98,24 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<?> getCreditCardsList() {
+    public List<HomeCreditCardsList> getCreditCardsList() {
         final long userId = getAuthUser().getId();
 
-        final List<CreditCard> creditCards = creditCardService.findAllByUserId(userId);
+        final List<CreditCard> userCreditCards = creditCardService.findAllByUserId(userId);
 
-        creditCards.forEach(card -> invoiceService.getCurrentInvoiceValue(card));
+        final List<HomeCreditCardsList> cardsLists = new LinkedList<>();
+        userCreditCards.forEach(card -> {
+            final var currentInvoiceAmount = invoiceService.getCurrentInvoiceAmount(card);
 
-        return List.of();
+            cardsLists.add(new HomeCreditCardsList(
+                    card.getId(),
+                    card.getName(),
+                    card.getImage(),
+                    card.getCardLimit(),
+                    currentInvoiceAmount
+            ));
+        });
+
+        return cardsLists;
     }
 }

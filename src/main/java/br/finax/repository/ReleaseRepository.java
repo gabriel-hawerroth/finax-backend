@@ -8,6 +8,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -186,4 +187,16 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
     List<Release> findReleasesForHomeSpendsCategory(
             long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt
     );
+
+    @Query(value = """
+            SELECT
+                coalesce(sum(r.amount), 0) AS current_amount
+            FROM
+                release r
+            WHERE
+                r.credit_card_id = :cardId
+                AND r."date" between :startDt AND :endDt
+                AND r.done is true
+            """, nativeQuery = true)
+    BigDecimal getCurrentCardInvoiceAmount(long cardId, LocalDate startDt, LocalDate endDt);
 }

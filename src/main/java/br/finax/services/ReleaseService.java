@@ -301,6 +301,11 @@ public class ReleaseService {
         return releaseRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal getCurrentCardInvoiceAmount(long cardId, LocalDate startDt, LocalDate endDt) {
+        return releaseRepository.getCurrentCardInvoiceAmount(cardId, startDt, endDt);
+    }
+
     private void checkPermission(final Release release) {
         if (release.getUserId() != getAuthUser().getId())
             throw new WithoutPermissionException();

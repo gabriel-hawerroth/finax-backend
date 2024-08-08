@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.dto.HomeCreditCardsList;
 import br.finax.dto.InterfacesSQL;
 import br.finax.dto.InterfacesSQL.HomeAccountsList;
 import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
@@ -49,7 +50,7 @@ public class HomeController {
     }
 
     @GetMapping("/get-credit-cards-list")
-    public ResponseEntity<List<?>> getCreditCardsList() {
+    public ResponseEntity<List<HomeCreditCardsList>> getCreditCardsList() {
         return ResponseEntity.ok().body(
                 homeService.getCreditCardsList()
         );

@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static br.finax.utils.DateUtils.getCurrentMonthYear;
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 import static br.finax.utils.UtilsService.getAuthUser;
 
@@ -114,15 +115,14 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public BigDecimal getCurrentInvoiceValue(CreditCard card) {
-        checkCardPermission(card);
+    public BigDecimal getCurrentInvoiceAmount(CreditCard card) {
+        final var invoiceDays = getInvoiceCloseAndFirstDay(getCurrentMonthYear(), card.getCloseDay());
 
-        final var closeAndFirstDayInvoice = getInvoiceCloseAndFirstDay(
-                getCurrentMonth(),
-                card.getCloseDay()
+        return releaseService.getCurrentCardInvoiceAmount(
+                card.getId(),
+                invoiceDays.firstDay(),
+                invoiceDays.closeDay()
         );
-
-        return BigDecimal.ZERO;
     }
 
     private void checkCardPermission(final CreditCard card) {
@@ -132,14 +132,5 @@ public class InvoiceService {
 
     private void checkPaymentPermission(final InvoicePayment payment) {
         checkCardPermission(creditCardService.findById(payment.getCreditCardId()));
-    }
-
-    private String getCurrentMonth() {
-        final int intCurrentMonth = LocalDate.now().getMonthValue();
-        final int intCurrentYear = LocalDate.now().getYear();
-
-        final String stringCurrentMonth = intCurrentMonth < 10 ? "0" + intCurrentMonth : String.valueOf(intCurrentMonth);
-
-        return stringCurrentMonth + "/" + intCurrentYear;
     }
 }
