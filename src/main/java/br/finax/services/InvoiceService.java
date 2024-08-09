@@ -116,7 +116,7 @@ public class InvoiceService {
 
     @Transactional(readOnly = true)
     public BigDecimal getCurrentInvoiceAmount(CreditCard card) {
-        final var invoiceDays = getInvoiceCloseAndFirstDay(getCurrentMonthYear(), card.getCloseDay());
+        final var invoiceDays = getInvoiceCloseAndFirstDay(getMonthYear(), card.getCloseDay());
 
         return releaseService.getCurrentCardInvoiceAmount(
                 card.getId(),
@@ -132,5 +132,21 @@ public class InvoiceService {
 
     private void checkPaymentPermission(final InvoicePayment payment) {
         checkCardPermission(creditCardService.findById(payment.getCreditCardId()));
+    }
+
+    private String getMonthYear() {
+        final String currentMonthYear = getCurrentMonthYear();
+
+        final String month = currentMonthYear.split("/")[0];
+
+        final String nextMonth;
+        if (month.equals("12")) {
+            nextMonth = "01";
+        } else {
+            final int intMonth = Integer.parseInt(month) + 1;
+            nextMonth = intMonth < 10 ? "0" + intMonth : String.valueOf(intMonth);
+        }
+
+        return nextMonth + "/" + currentMonthYear.split("/")[1];
     }
 }

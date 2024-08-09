@@ -1,7 +1,7 @@
 package br.finax.repository;
 
-import br.finax.dto.InterfacesSQL.CardBasicList;
-import br.finax.dto.InterfacesSQL.UserCreditCards;
+import br.finax.dto.InterfacesSQL.BasicCard;
+import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.models.CreditCard;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,7 +33,7 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
             ORDER BY
                 cc.id
             """, nativeQuery = true)
-    List<UserCreditCards> getAllByUser(long userId);
+    List<UserCreditCard> getAllByUser(long userId);
 
     @Query(value = """
             SELECT
@@ -48,7 +48,7 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
             ORDER BY
                 cc.id
             """, nativeQuery = true)
-    List<CardBasicList> getBasicList(long userId);
+    List<BasicCard> getBasicList(long userId);
 
     @Query(value = """
             SELECT

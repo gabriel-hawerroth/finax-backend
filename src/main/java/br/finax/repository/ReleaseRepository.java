@@ -1,8 +1,8 @@
 package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
-import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
-import br.finax.dto.InterfacesSQL.MonthlyReleases;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.models.Release;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -59,7 +59,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<MonthlyReleases> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    List<MonthlyRelease> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
@@ -100,7 +100,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<HomeUpcomingReleases> getUpcomingReleasesExpected(long userId);
+    List<HomeUpcomingRelease> getUpcomingReleasesExpected(long userId);
 
     @Query(value = """
             SELECT
@@ -170,7 +170,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<MonthlyReleases> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    List<MonthlyRelease> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
     // ajustar para buscar entre as datas de fechamento do cartão
 
     @Query(value = """

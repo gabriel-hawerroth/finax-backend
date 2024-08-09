@@ -1,17 +1,17 @@
 package br.finax.dto;
 
-import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
-import br.finax.dto.InterfacesSQL.MonthlyReleases;
+import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
+import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record InvoiceMonthValues(
         @NotNull
-        List<InvoicePaymentsPerson> invoicePayments,
+        List<InvoicePaymentPerson> invoicePayments,
 
         @NotNull
-        List<MonthlyReleases> releases,
+        List<MonthlyRelease> releases,
 
         @NotNull
         double previousBalance

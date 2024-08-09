@@ -15,7 +15,7 @@ public class InterfacesSQL {
         String getDs();
     }
 
-    public interface MonthlyReleases {
+    public interface MonthlyRelease {
         long getId();
 
         long getUserId();
@@ -73,7 +73,7 @@ public class InterfacesSQL {
         BigDecimal getExpenses();
     }
 
-    public interface UserCreditCards {
+    public interface UserCreditCard {
         long getId();
 
         long getUserId();
@@ -97,7 +97,7 @@ public class InterfacesSQL {
         String getAccountImage();
     }
 
-    public interface AccountBasicList {
+    public interface BasicAccount {
         long getId();
 
         String getName();
@@ -107,7 +107,7 @@ public class InterfacesSQL {
         BigDecimal getBalance();
     }
 
-    public interface CardBasicList {
+    public interface BasicCard {
         long getId();
 
         String getName();
@@ -115,7 +115,7 @@ public class InterfacesSQL {
         String getImage();
     }
 
-    public interface InvoicePaymentsPerson {
+    public interface InvoicePaymentPerson {
         long getId();
 
         long getCreditCardId();
@@ -137,7 +137,7 @@ public class InterfacesSQL {
         String getPaymentAccountImage();
     }
 
-    public interface HomeAccountsList {
+    public interface HomeAccount {
         String getName();
 
         String getImage();
@@ -145,7 +145,7 @@ public class InterfacesSQL {
         BigDecimal getBalance();
     }
 
-    public interface HomeUpcomingReleases {
+    public interface HomeUpcomingRelease {
         String getCategoryColor();
 
         String getCategoryIcon();

@@ -1,6 +1,6 @@
 package br.finax.repository;
 
-import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
+import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
 import br.finax.models.InvoicePayment;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,7 +32,7 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
             ORDER BY
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true)
-    List<InvoicePaymentsPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
+    List<InvoicePaymentPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
 
     @Query(value = """
             SELECT

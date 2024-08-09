@@ -1,9 +1,9 @@
 package br.finax.services;
 
-import br.finax.dto.HomeCreditCardsList;
-import br.finax.dto.InterfacesSQL.HomeAccountsList;
+import br.finax.dto.HomeCreditCard;
+import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
-import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategory;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
@@ -14,12 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static br.finax.utils.DateUtils.getFirstDayOfMonth;
 import static br.finax.utils.DateUtils.getLastDayOfMonth;
@@ -45,12 +40,12 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeAccountsList> getAccountsList() {
+    public List<HomeAccount> getAccountsList() {
         return accountService.getHomeAccountsList();
     }
 
     @Transactional(readOnly = true)
-    public List<HomeUpcomingReleases> getUpcomingReleases() {
+    public List<HomeUpcomingRelease> getUpcomingReleases() {
         final long userId = getAuthUser().getId();
 
         return releaseService.getUpcomingReleases(userId);
@@ -98,16 +93,16 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeCreditCardsList> getCreditCardsList() {
+    public List<HomeCreditCard> getCreditCardsList() {
         final long userId = getAuthUser().getId();
 
         final List<CreditCard> userCreditCards = creditCardService.findAllByUserId(userId);
 
-        final List<HomeCreditCardsList> cardsLists = new LinkedList<>();
+        final List<HomeCreditCard> cardsLists = new LinkedList<>();
         userCreditCards.forEach(card -> {
             final var currentInvoiceAmount = invoiceService.getCurrentInvoiceAmount(card);
 
-            cardsLists.add(new HomeCreditCardsList(
+            cardsLists.add(new HomeCreditCard(
                     card.getId(),
                     card.getName(),
                     card.getImage(),

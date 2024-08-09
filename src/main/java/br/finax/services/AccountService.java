@@ -1,7 +1,7 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL.AccountBasicList;
-import br.finax.dto.InterfacesSQL.HomeAccountsList;
+import br.finax.dto.InterfacesSQL.BasicAccount;
+import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
@@ -47,7 +47,7 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<AccountBasicList> getBasicList() {
+    public List<BasicAccount> getBasicList() {
         return accountRepository.getBasicList(getAuthUser().getId());
     }
 
@@ -79,7 +79,7 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeAccountsList> getHomeAccountsList() {
+    public List<HomeAccount> getHomeAccountsList() {
         return accountRepository.getHomeAccountsList(
                 getAuthUser().getId()
         );

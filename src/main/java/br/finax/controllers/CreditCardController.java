@@ -1,7 +1,7 @@
 package br.finax.controllers;
 
-import br.finax.dto.InterfacesSQL.CardBasicList;
-import br.finax.dto.InterfacesSQL.UserCreditCards;
+import br.finax.dto.InterfacesSQL.BasicCard;
+import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.models.CreditCard;
 import br.finax.services.CreditCardService;
 import jakarta.validation.Valid;
@@ -20,7 +20,7 @@ public class CreditCardController {
     private final CreditCardService creditCardService;
 
     @GetMapping("/get-by-user")
-    public ResponseEntity<List<UserCreditCards>> getByUser() {
+    public ResponseEntity<List<UserCreditCard>> getByUser() {
         return ResponseEntity.ok(
                 creditCardService.getByUser()
         );
@@ -34,7 +34,7 @@ public class CreditCardController {
     }
 
     @GetMapping("/basic-list")
-    public ResponseEntity<List<CardBasicList>> getBasicList() {
+    public ResponseEntity<List<BasicCard>> getBasicList() {
         return ResponseEntity.ok(
                 creditCardService.getBasicList()
         );

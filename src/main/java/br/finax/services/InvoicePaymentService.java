@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL.InvoicePaymentsPerson;
+import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.InvoicePayment;
@@ -37,7 +37,7 @@ public class InvoicePaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<InvoicePaymentsPerson> getInvoicePayments(long userId, long creditCardId, String selectedMonth) {
+    public List<InvoicePaymentPerson> getInvoicePayments(long userId, long creditCardId, String selectedMonth) {
         if (creditCardService.findUserIdById(creditCardId) != userId)
             throw new WithoutPermissionException();
 

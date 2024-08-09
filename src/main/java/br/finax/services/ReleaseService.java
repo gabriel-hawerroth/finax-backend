@@ -9,12 +9,7 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidParametersException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
+import br.finax.exceptions.*;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
@@ -287,7 +282,7 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.HomeUpcomingReleases> getUpcomingReleases(long userId) {
+    public List<InterfacesSQL.HomeUpcomingRelease> getUpcomingReleases(long userId) {
         return releaseRepository.getUpcomingReleasesExpected(userId);
     }
 
@@ -297,7 +292,7 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.MonthlyReleases> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
+    public List<InterfacesSQL.MonthlyRelease> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
         return releaseRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
     }
 

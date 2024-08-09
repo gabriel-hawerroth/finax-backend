@@ -1,9 +1,9 @@
 package br.finax.controllers;
 
-import br.finax.dto.HomeCreditCardsList;
+import br.finax.dto.HomeCreditCard;
 import br.finax.dto.InterfacesSQL;
-import br.finax.dto.InterfacesSQL.HomeAccountsList;
-import br.finax.dto.InterfacesSQL.HomeUpcomingReleases;
+import br.finax.dto.InterfacesSQL.HomeAccount;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategory;
 import br.finax.services.HomeService;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ public class HomeController {
     }
 
     @GetMapping("/get-accounts-list")
-    public ResponseEntity<List<HomeAccountsList>> getAccountsList() {
+    public ResponseEntity<List<HomeAccount>> getAccountsList() {
         return ResponseEntity.ok(
                 homeService.getAccountsList()
         );
     }
 
     @GetMapping("/get-upcoming-releases")
-    public ResponseEntity<List<HomeUpcomingReleases>> getUpcomingReleases() {
+    public ResponseEntity<List<HomeUpcomingRelease>> getUpcomingReleases() {
         return ResponseEntity.ok(
                 homeService.getUpcomingReleases()
         );
@@ -50,7 +50,7 @@ public class HomeController {
     }
 
     @GetMapping("/get-credit-cards-list")
-    public ResponseEntity<List<HomeCreditCardsList>> getCreditCardsList() {
+    public ResponseEntity<List<HomeCreditCard>> getCreditCardsList() {
         return ResponseEntity.ok().body(
                 homeService.getCreditCardsList()
         );

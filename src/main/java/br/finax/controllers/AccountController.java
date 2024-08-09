@@ -1,20 +1,12 @@
 package br.finax.controllers;
 
-import br.finax.dto.InterfacesSQL.AccountBasicList;
+import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -42,7 +34,7 @@ public class AccountController {
     }
 
     @GetMapping("/basic-list")
-    public ResponseEntity<List<AccountBasicList>> getBasicList() {
+    public ResponseEntity<List<BasicAccount>> getBasicList() {
         return ResponseEntity.ok(
                 accountService.getBasicList()
         );

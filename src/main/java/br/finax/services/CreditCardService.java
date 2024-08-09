@@ -1,7 +1,7 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL.CardBasicList;
-import br.finax.dto.InterfacesSQL.UserCreditCards;
+import br.finax.dto.InterfacesSQL.BasicCard;
+import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.CreditCard;
 import br.finax.repository.CreditCardRepository;
@@ -30,7 +30,7 @@ public class CreditCardService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserCreditCards> getByUser() {
+    public List<UserCreditCard> getByUser() {
         return creditCardRepository.getAllByUser(getAuthUser().getId());
     }
 
@@ -49,7 +49,7 @@ public class CreditCardService {
     }
 
     @Transactional(readOnly = true)
-    public List<CardBasicList> getBasicList() {
+    public List<BasicCard> getBasicList() {
         return creditCardRepository.getBasicList(getAuthUser().getId());
     }
 
