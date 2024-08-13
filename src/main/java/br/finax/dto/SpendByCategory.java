@@ -11,7 +11,7 @@ public record SpendByCategory(
         Category category,
 
         @NotNull
-        double percent,
+        BigDecimal percent,
 
         @Min(0)
         @NotNull

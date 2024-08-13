@@ -14,7 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static br.finax.utils.DateUtils.getFirstDayOfMonth;
 import static br.finax.utils.DateUtils.getLastDayOfMonth;
@@ -76,16 +81,16 @@ public class HomeService {
         });
 
         final List<SpendByCategory> spendByCategories = new ArrayList<>();
-        for (Map.Entry<Long, BigDecimal> entry : categoryExpenseMap.entrySet()) {
-            final Long categoryId = entry.getKey();
-            final BigDecimal categoryExpense = entry.getValue();
+
+        categoryExpenseMap.forEach((categoryId, expense) -> {
             final Category category = categoryMap.get(categoryId);
 
-            final double percent = Double.parseDouble(
-                    categoryExpense.divide(totalExpense, RoundingMode.HALF_EVEN).multiply(BigDecimal.valueOf(100)).toString()
-            );
-            spendByCategories.add(new SpendByCategory(category, percent, categoryExpense));
-        }
+            final BigDecimal percent = expense.divide(totalExpense, 10, RoundingMode.HALF_EVEN)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_EVEN);
+
+            spendByCategories.add(new SpendByCategory(category, percent, expense));
+        });
 
         spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
 
