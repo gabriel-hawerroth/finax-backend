@@ -85,9 +85,8 @@ public class HomeService {
         categoryExpenseMap.forEach((categoryId, expense) -> {
             final Category category = categoryMap.get(categoryId);
 
-            final BigDecimal percent = expense.divide(totalExpense, 10, RoundingMode.HALF_EVEN)
-                    .multiply(BigDecimal.valueOf(100))
-                    .setScale(2, RoundingMode.HALF_EVEN);
+            final BigDecimal percent = expense.divide(totalExpense, RoundingMode.HALF_EVEN)
+                    .multiply(BigDecimal.valueOf(100));
 
             spendByCategories.add(new SpendByCategory(category, percent, expense));
         });
