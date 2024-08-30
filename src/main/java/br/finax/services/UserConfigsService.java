@@ -2,10 +2,10 @@ package br.finax.services;
 
 import br.finax.enums.user_configs.UserConfigsReleasesViewMode;
 import br.finax.enums.user_configs.UserConfigsTheme;
-import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +18,15 @@ public class UserConfigsService {
 
     private final UserConfigsRepository userConfigsRepository;
 
+    @Resource
+    private UserConfigsService service;
+
     @Transactional(readOnly = true)
     public UserConfigs getByUser() {
-        return userConfigsRepository.findByUserId(getAuthUser().getId())
-                .orElseThrow(NotFoundException::new);
+        final long userId = getAuthUser().getId();
+
+        return userConfigsRepository.findByUserId(userId)
+                .orElse(service.save(getDefaultUserConfigs(userId)));
     }
 
     @Transactional
@@ -36,21 +41,25 @@ public class UserConfigsService {
 
     @Transactional
     public void insertNewUserConfigs(long userId) {
-        final var userConfigs = new UserConfigs();
-
-        userConfigs.setUserId(userId);
-        userConfigs.setTheme(UserConfigsTheme.light);
-        userConfigs.setAddingMaterialGoodsToPatrimony(false);
-        userConfigs.setLanguage("pt-BR");
-        userConfigs.setCurrency("R$");
-        userConfigs.setReleasesViewMode(UserConfigsReleasesViewMode.RELEASES);
-        userConfigs.setEmailNotifications(true);
-
-        userConfigsRepository.save(userConfigs);
+        service.save(getDefaultUserConfigs(userId));
     }
 
     private void checkPermission(UserConfigs userConfigs) {
         if (!userConfigs.getUserId().equals(getAuthUser().getId()))
             throw new WithoutPermissionException();
+    }
+
+    private UserConfigs getDefaultUserConfigs(long userId) {
+        final var configs = new UserConfigs();
+
+        configs.setUserId(userId);
+        configs.setTheme(UserConfigsTheme.light);
+        configs.setAddingMaterialGoodsToPatrimony(false);
+        configs.setLanguage("pt-BR");
+        configs.setCurrency("R$");
+        configs.setReleasesViewMode(UserConfigsReleasesViewMode.RELEASES);
+        configs.setEmailNotifications(true);
+
+        return configs;
     }
 }

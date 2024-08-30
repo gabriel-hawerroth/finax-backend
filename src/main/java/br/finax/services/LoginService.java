@@ -27,18 +27,18 @@ public class LoginService {
                 DELETE FROM user_configs WHERE user_id = :userId;
                 DELETE FROM access_log WHERE user_id = :userId;
                 DELETE FROM token WHERE user_id = :userId;
-
+            
                 DELETE FROM invoice_payment ip
                     WHERE credit_card_id in (
                         select credit_card_id from credit_card where user_id = :userId
                     );
-
+            
                 DELETE FROM release WHERE user_id = :userId;
-
+            
                 DELETE FROM category WHERE user_id = :userId;
                 DELETE FROM credit_card WHERE user_id = :userId;
                 DELETE FROM account WHERE user_id = :userId;
-
+            
                 DELETE FROM users WHERE id = :userId;
             """;
 
@@ -61,9 +61,8 @@ public class LoginService {
 
         final User user = userService.findById(userId);
 
-        if (savedToken.equals(token)) {
+        if (savedToken.equals(token))
             userService.activeUser(user.getId());
-        }
 
         Thread.ofVirtual().start(() -> {
             categoryService.insertNewUserCategories(userId);
