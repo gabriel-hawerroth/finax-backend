@@ -9,13 +9,19 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
-import br.finax.exceptions.*;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidParametersException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import br.finax.utils.FileUtils;
 import com.amazonaws.SdkClientException;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,23 +41,14 @@ import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class ReleaseService {
 
     private final ReleaseRepository releaseRepository;
-
     private final CreditCardService creditCardService;
     private final CategoryService categoryService;
     private final AccountService accountService;
     private final AwsS3Service awsS3Service;
-
-    @Lazy
-    public ReleaseService(ReleaseRepository releaseRepository, CreditCardService creditCardService, AccountService accountService, CategoryService categoryService, AwsS3Service awsS3Service) {
-        this.releaseRepository = releaseRepository;
-        this.creditCardService = creditCardService;
-        this.accountService = accountService;
-        this.categoryService = categoryService;
-        this.awsS3Service = awsS3Service;
-    }
 
     @Transactional(readOnly = true)
     public Release findById(@NonNull Long id) {

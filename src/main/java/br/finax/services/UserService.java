@@ -35,10 +35,8 @@ import static br.finax.utils.FileUtils.getFileExtension;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final AwsS3Service awsS3Service;
     private final SecurityFilter securityFilter;
-
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)

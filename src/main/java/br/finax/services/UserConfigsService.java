@@ -5,7 +5,6 @@ import br.finax.enums.user_configs.UserConfigsTheme;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.UserConfigs;
 import br.finax.repository.UserConfigsRepository;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,15 +17,12 @@ public class UserConfigsService {
 
     private final UserConfigsRepository userConfigsRepository;
 
-    @Resource
-    private UserConfigsService service;
-
-    @Transactional(readOnly = true)
+    @Transactional
     public UserConfigs getByUser() {
         final long userId = getAuthUser().getId();
 
         return userConfigsRepository.findByUserId(userId)
-                .orElse(service.save(getDefaultUserConfigs(userId)));
+                .orElse(userConfigsRepository.save(getDefaultUserConfigs(userId)));
     }
 
     @Transactional
@@ -41,7 +37,7 @@ public class UserConfigsService {
 
     @Transactional
     public void insertNewUserConfigs(long userId) {
-        service.save(getDefaultUserConfigs(userId));
+        userConfigsRepository.save(getDefaultUserConfigs(userId));
     }
 
     private void checkPermission(UserConfigs userConfigs) {
@@ -50,7 +46,7 @@ public class UserConfigsService {
     }
 
     private UserConfigs getDefaultUserConfigs(long userId) {
-        final var configs = new UserConfigs();
+        var configs = new UserConfigs();
 
         configs.setUserId(userId);
         configs.setTheme(UserConfigsTheme.light);

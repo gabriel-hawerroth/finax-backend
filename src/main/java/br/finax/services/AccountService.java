@@ -9,6 +9,7 @@ import br.finax.models.Account;
 import br.finax.models.Release;
 import br.finax.repository.AccountRepository;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,17 +21,11 @@ import java.util.List;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class AccountService {
 
     private final AccountRepository accountRepository;
-
     private final ReleaseService releaseService;
-
-    @Lazy
-    public AccountService(AccountRepository accountRepository, ReleaseService releaseService) {
-        this.accountRepository = accountRepository;
-        this.releaseService = releaseService;
-    }
 
     @Transactional(readOnly = true)
     public Account findById(long id) {
