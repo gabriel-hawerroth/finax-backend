@@ -71,6 +71,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.user_id = :userId
                 AND rls.done = true
                 AND rls.date between :firstDt and :lastDt
+                AND rls.is_balance_adjustment is false
             LIMIT 1
             """, nativeQuery = true)
     HomeRevenueExpense getHomeBalances(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
@@ -97,6 +98,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND rls.date between current_date AND (current_date + interval '1 month')
                 AND rls.type <> 'T'
                 AND rls.done is false
+                AND rls.is_balance_adjustment is false
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
@@ -182,7 +184,8 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.user_id = :userId
                 AND rls.date between :firstDt AND :lastDt
                 AND rls.type = 'E'
-                AND rls.done IS TRUE
+                AND rls.done is true
+                AND rls.is_balance_adjustment is false
             """, nativeQuery = true)
     List<Release> findReleasesForHomeSpendsCategory(
             long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt
