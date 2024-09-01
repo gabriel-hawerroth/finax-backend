@@ -19,8 +19,8 @@ public class ServiceUrls {
             return;
         }
 
-        API_URL = "https://apifinax.hawetec.com.br";
-        SITE_URL = "https://appfinax.hawetec.com.br";
+        API_URL = "https://api.appfinax.com.br";
+        SITE_URL = "https://appfinax.com.br";
     }
 
     public String getApiUrl() {
