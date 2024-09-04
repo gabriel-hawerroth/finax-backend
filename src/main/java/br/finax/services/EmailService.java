@@ -101,16 +101,16 @@ public class EmailService {
                                 width: 100%;
                                 height: 100%;
                             }
-
+                
                             * {
                                 color: #000;
                             }
-
+                
                             .email {
                                 width: 100%;
                                 height: 100%;
                             }
-
+                
                             .box {
                                 width: 100%;
                                 max-width: 44rem;
@@ -122,7 +122,7 @@ public class EmailService {
                                 font-size: 1.1rem;
                                 background-color: #eff3f8;
                             }
-
+                
                             h1 {
                                 width: 100%;
                                 text-align: center;
@@ -130,11 +130,11 @@ public class EmailService {
                                 color: #009465;
                                 margin-bottom: 2.5rem;
                             }
-
+                
                             a {
                                 color: #000;
                             }
-
+                
                             .line {
                                 margin-bottom: 2rem;
                             }
@@ -144,7 +144,7 @@ public class EmailService {
                         <div class="email">
                             <div class="box">
                                 <h1>Finax</h1>
-
+                
                                 <p class="line">
                                     Clique <a href='
                 """
@@ -156,10 +156,10 @@ public class EmailService {
                 + action +
                 """
                                         </p>
-
+                        
                                         <p class="line">
-                                            Para entrar em contato com nosso suporte, envie uma mensagem nesse
-                                            mesmo endereço de email, ficaremos felizes em receber sugestões de melhorias,
+                                            Para entrar em contato com nosso suporte, envie uma mensagem para
+                                            suporte@appfinax.com.br, ficaremos felizes em receber sugestões de melhorias,
                                             dúvidas ou qualquer problema que você encontrar no sistema!
                                         </p>
                                     </div>
@@ -186,16 +186,16 @@ public class EmailService {
                                 margin: 0;
                                 padding: 0;
                             }
-
+                
                             * {
                                 color: #000;
                             }
-
+                
                             .email {
                                 width: 100%;
                                 height: 100%;
                             }
-
+                
                             .box {
                                 width: 100%;
                                 max-width: 44rem;
@@ -207,7 +207,7 @@ public class EmailService {
                                 font-size: 1.1rem;
                                 background-color: #eff3f8;
                             }
-
+                
                             h1 {
                                 width: 100%;
                                 text-align: center;
@@ -215,15 +215,15 @@ public class EmailService {
                                 color: #009465;
                                 margin-bottom: 2.5rem;
                             }
-
+                
                             a {
                                 color: #000;
                             }
-
+                
                             .line {
                                 margin-bottom: 2rem;
                             }
-
+                
                             .important {
                                 font-weight: bold;
                             }
@@ -233,17 +233,17 @@ public class EmailService {
                         <div class="email">
                             <div class="box">
                                 <h1>Finax</h1>
-
+                
                                 <p class="line">
                                     Você solicitou o cancelamento da sua conta Finax. Antes de prosseguir, queremos lembrar que esta ação é <span class="important">irreversível</span>. A confirmação do cancelamento resultará na exclusão permanente de todos os seus dados, incluindo:
                                 </p>
-
+                
                                 <ul class="line">
                                     <li><span class="important">Assinatura e benefícios</span>: Sua assinatura será cancelada imediatamente, e você perderá acesso a todos os benefícios exclusivos.</li>
                                     <li><span class="important">Dados de conta</span>: Todas as suas informações pessoais e dados armazenados serão permanentemente deletados do nosso sistema.</li>
                                     <li><span class="important">Histórico de uso</span>: Seu histórico de uso, preferências e configurações personalizadas também serão removidos.</li>
                                 </ul>
-
+                
                                 <p class="line">
                                     Clique <a href="
                 """
@@ -253,15 +253,15 @@ public class EmailService {
                                             <br>
                                             Este link é válido por apenas 2 horas.
                                         </p>
-
+                        
                                         <p class="line">
                                             Se você está enfrentando algum problema ou se há algo que possamos fazer para melhorar sua experiência, por favor, entre em contato conosco antes de confirmar o cancelamento. Estamos comprometidos em fornecer o melhor serviço possível e ficaremos felizes em ajudar a resolver qualquer questão que você tenha.
                                         </p>
-
+                        
                                         <p class="line">
-                                            Para entrar em contato com nosso suporte, envie uma mensagem para este mesmo endereço de e-mail. Nossa equipe está pronta para atender suas dúvidas, sugestões ou preocupações.
+                                            Para entrar em contato com nosso suporte, envie uma mensagem para suporte@appfinax.com.br. Nossa equipe está pronta para atender suas dúvidas, sugestões ou preocupações.
                                         </p>
-
+                        
                                         <p class="line">
                                             Obrigado por escolher a Finax. Esperamos que reconsidere e continue a fazer parte da nossa comunidade.
                                         </p>
