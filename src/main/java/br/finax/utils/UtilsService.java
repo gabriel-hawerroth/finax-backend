@@ -36,4 +36,17 @@ public class UtilsService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User) authentication.getPrincipal();
     }
+
+    public static boolean isNotBlank(String s) {
+        if (s != null && !s.isEmpty()) {
+            for (int i = 0; i < s.length(); ++i) {
+                char c = s.charAt(i);
+                if (!Character.isWhitespace(c)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }

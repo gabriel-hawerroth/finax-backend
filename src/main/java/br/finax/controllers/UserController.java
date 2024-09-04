@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import static br.finax.utils.UtilsService.isNotBlank;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -61,8 +63,10 @@ public class UserController {
 
     @GetMapping("/get-user-image")
     public ResponseEntity<String> getUserImage() {
-        return ResponseEntity.ok(
-                userService.getUserImage()
-        );
+        final String userImage = userService.getUserImage();
+
+        return isNotBlank(userImage)
+                ? ResponseEntity.ok(userImage)
+                : ResponseEntity.noContent().build();
     }
 }
