@@ -22,7 +22,7 @@ public class UserConfigsService {
         final long userId = getAuthUser().getId();
 
         return userConfigsRepository.findByUserId(userId)
-                .orElse(userConfigsRepository.save(getDefaultUserConfigs(userId)));
+                .orElseGet(() -> userConfigsRepository.save(getDefaultUserConfigs(userId)));
     }
 
     @Transactional
