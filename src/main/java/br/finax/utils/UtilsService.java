@@ -36,4 +36,6 @@ public class UtilsService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User) authentication.getPrincipal();
     }
+
+
 }
