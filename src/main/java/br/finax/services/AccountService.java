@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static br.finax.utils.UtilsService.getAuthUser;
@@ -96,6 +98,7 @@ public class AccountService {
         release.setCategoryId(null);
         release.setDate(LocalDate.now());
         release.setRepeat(null);
+        release.setTime(LocalDateTime.now().minusHours(3).format(DateTimeFormatter.ofPattern("HH:mm")));
 
         releaseService.addRelease(release, 0);
     }
