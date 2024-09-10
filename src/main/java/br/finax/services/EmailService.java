@@ -132,7 +132,7 @@ public class EmailService {
                             }
                 
                             a {
-                                color: #000;
+                                color: blue;
                             }
                 
                             .line {
@@ -146,7 +146,7 @@ public class EmailService {
                                 <h1>Finax</h1>
                 
                                 <p class="line">
-                                    Clique <a href='
+                                    Clique <a id="link" href='
                 """
                 + url +
                 """
@@ -217,7 +217,7 @@ public class EmailService {
                             }
                 
                             a {
-                                color: #000;
+                                color: blue;
                             }
                 
                             .line {
@@ -245,7 +245,7 @@ public class EmailService {
                                 </ul>
                 
                                 <p class="line">
-                                    Clique <a href="
+                                    Clique <a id="link" href="
                 """
                 + url +
                 """
