@@ -3,19 +3,13 @@ package br.finax.services;
 import br.finax.dto.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
-import br.finax.exceptions.CannotChangePasswordException;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidPasswordException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.*;
 import br.finax.external.AwsS3Service;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
 import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
-import com.amazonaws.SdkClientException;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -121,7 +115,7 @@ public class UserService {
             securityFilter.updateCachedUser(user);
 
             return userRepository.save(user);
-        } catch (FileCompressionErrorException | FileIOException | SdkClientException e) {
+        } catch (FileCompressionErrorException | FileIOException | ServiceException e) {
             throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to process the file", e);
         }
     }

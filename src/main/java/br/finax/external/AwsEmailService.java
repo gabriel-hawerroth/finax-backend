@@ -1,40 +1,62 @@
 package br.finax.external;
 
 import br.finax.dto.EmailDTO;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
-import com.amazonaws.services.simpleemail.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.*;
 
 @Service
 public class AwsEmailService {
 
-    private final AmazonSimpleEmailService sesClient;
+    private final SesClient sesClient;
 
     public AwsEmailService(@Value("${aws.s3.access-key}") String accessKey, @Value("${aws.s3.secret-key}") String secretKey) {
-        final var awsCreds = new BasicAWSCredentials(accessKey, secretKey);
+        final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
 
-        this.sesClient = AmazonSimpleEmailServiceClientBuilder.standard()
-                .withRegion(Regions.SA_EAST_1)
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+        this.sesClient = SesClient.builder()
+                .region(Region.SA_EAST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
                 .build();
     }
 
     public void sendMail(EmailDTO emailDTO) {
         final String from = "noreply@appfinax.com.br";
 
-        final SendEmailRequest request = new SendEmailRequest()
-                .withDestination(new Destination().withToAddresses(emailDTO.addressee()))
-                .withMessage(new Message()
-                        .withBody(new Body().withHtml(new Content().withCharset("UTF-8").withData(emailDTO.content())))
-                        .withSubject(new Content().withCharset("UTF-8").withData(emailDTO.subject()))
-                )
-                .withSource(from);
+        final Content subjectContent = Content.builder()
+                .data(emailDTO.subject())
+                .charset("UTF-8")
+                .build();
 
-        sesClient.sendEmail(request);
+        final Content bodyContent = Content.builder()
+                .data(emailDTO.content())
+                .charset("UTF-8")
+                .build();
+
+        final Body body = Body.builder()
+                .html(bodyContent)
+                .build();
+
+        final Message message = Message.builder()
+                .subject(subjectContent)
+                .body(body)
+                .build();
+
+        final SendEmailRequest emailRequest = SendEmailRequest.builder()
+                .destination(Destination.builder()
+                        .toAddresses(emailDTO.addressee())
+                        .build())
+                .message(message)
+                .source(from)
+                .build();
+
+        try {
+            sesClient.sendEmail(emailRequest);
+        } catch (SesException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
     }
 }
