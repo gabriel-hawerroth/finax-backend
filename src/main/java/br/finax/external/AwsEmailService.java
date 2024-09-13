@@ -20,7 +20,7 @@ public class AwsEmailService {
 
     private final SesClient sesClient;
 
-    public AwsEmailService(@Value("${aws.s3.access-key}") String accessKey, @Value("${aws.s3.secret-key}") String secretKey) {
+    public AwsEmailService(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
         final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
 
         this.sesClient = SesClient.builder()

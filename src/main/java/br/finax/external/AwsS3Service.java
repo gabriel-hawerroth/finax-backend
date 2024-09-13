@@ -27,7 +27,7 @@ public class AwsS3Service {
 
     private final S3Client s3Client;
 
-    public AwsS3Service(@Value("${aws.s3.access-key}") String accessKey, @Value("${aws.s3.secret-key}") String secretKey) {
+    public AwsS3Service(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
         final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
 
         this.s3Client = S3Client.builder()
