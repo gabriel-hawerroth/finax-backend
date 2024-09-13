@@ -1,33 +1,19 @@
 package br.finax.utils;
 
-import org.springframework.core.env.Environment;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-
+@Getter
 @Component
 public class ServiceUrls {
 
-    private final String API_URL;
+    private final String siteUrl;
 
-    private final String SITE_URL;
+    private final String apiUrl;
 
-    ServiceUrls(Environment environment) {
-        if (environment.getActiveProfiles().length > 0 && Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-            API_URL = "http://localhost:8080";
-            SITE_URL = "http://localhost:4200";
-            return;
-        }
-
-        API_URL = "https://api.appfinax.com.br";
-        SITE_URL = "https://appfinax.com.br";
-    }
-
-    public String getApiUrl() {
-        return API_URL;
-    }
-
-    public String getSiteUrl() {
-        return SITE_URL;
+    ServiceUrls(@Value("${finax.urls.website}") String websiteUrl, @Value("${finax.urls.api}") String apiUrl) {
+        siteUrl = websiteUrl;
+        this.apiUrl = apiUrl;
     }
 }
