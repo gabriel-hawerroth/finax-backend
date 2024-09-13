@@ -1,13 +1,19 @@
 package br.finax.external;
 
 import br.finax.dto.EmailDTO;
+import br.finax.enums.ErrorCategory;
+import br.finax.exceptions.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.*;
+import software.amazon.awssdk.services.ses.model.Body;
+import software.amazon.awssdk.services.ses.model.Content;
+import software.amazon.awssdk.services.ses.model.Message;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 @Service
 public class AwsEmailService {
@@ -46,9 +52,7 @@ public class AwsEmailService {
                 .build();
 
         final SendEmailRequest emailRequest = SendEmailRequest.builder()
-                .destination(Destination.builder()
-                        .toAddresses(emailDTO.addressee())
-                        .build())
+                .destination(d -> d.toAddresses(emailDTO.addressee()).build())
                 .message(message)
                 .source(from)
                 .build();
@@ -56,7 +60,7 @@ public class AwsEmailService {
         try {
             sesClient.sendEmail(emailRequest);
         } catch (SesException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to send email", e);
         }
     }
 }

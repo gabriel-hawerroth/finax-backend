@@ -113,7 +113,7 @@ public class AuthService {
 
         try {
             awsEmailService.sendMail(emailDTO);
-        } catch (Exception e) {
+        } catch (ServiceException e) {
             emailService.sendMail(emailDTO);
         }
     }

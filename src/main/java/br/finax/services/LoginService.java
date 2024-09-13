@@ -139,7 +139,7 @@ public class LoginService {
     private void sendMail(EmailDTO emailDTO) {
         try {
             awsEmailService.sendMail(emailDTO);
-        } catch (Exception e) {
+        } catch (ServiceException e) {
             emailService.sendMail(emailDTO);
         }
     }
