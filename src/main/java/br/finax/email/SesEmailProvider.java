@@ -1,26 +1,22 @@
-package br.finax.external;
+package br.finax.email;
 
 import br.finax.dto.EmailDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.Body;
-import software.amazon.awssdk.services.ses.model.Content;
-import software.amazon.awssdk.services.ses.model.Message;
-import software.amazon.awssdk.services.ses.model.SendEmailRequest;
-import software.amazon.awssdk.services.ses.model.SesException;
+import software.amazon.awssdk.services.ses.model.*;
 
-@Service
-public class AwsEmailService {
+@Component("SesEmailProvider")
+public class SesEmailProvider implements EmailProvider {
 
     private final SesClient sesClient;
 
-    public AwsEmailService(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
+    public SesEmailProvider(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
         final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
 
         this.sesClient = SesClient.builder()
@@ -29,6 +25,7 @@ public class AwsEmailService {
                 .build();
     }
 
+    @Override
     public void sendMail(EmailDTO emailDTO) {
         final String from = "noreply@appfinax.com.br";
 

@@ -2,34 +2,37 @@ package br.finax.services;
 
 import br.finax.dto.EmailDTO;
 import br.finax.dto.HunterResponse;
+import br.finax.email.EmailProvider;
 import br.finax.enums.EmailType;
-import br.finax.exceptions.EmailSendingException;
 import br.finax.external.HunterIoService;
 import br.finax.utils.ServiceUrls;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender javaMailSender;
     private final HunterIoService hunterIoService;
     private final ServiceUrls serviceUrls;
 
+    private final EmailProvider emailProvider;
+
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public EmailService(JavaMailSender javaMailSender, HunterIoService hunterIoService, ServiceUrls serviceUrls) {
-        this.javaMailSender = javaMailSender;
+    public EmailService(
+            @Value("${finax.email.provider}") String emailProvider, Map<String, EmailProvider> emailProvidersMap,
+            HunterIoService hunterIoService, ServiceUrls serviceUrls
+    ) {
         this.hunterIoService = hunterIoService;
         this.serviceUrls = serviceUrls;
+
+//        this.emailProvider = emailProvidersMap.get(emailProvider);
+        this.emailProvider = emailProvidersMap.get("SmtpEmailProvider");
     }
 
     public boolean verifyEmail(String email) {
@@ -52,32 +55,8 @@ public class EmailService {
         return responseBody.data().result().equalsIgnoreCase("deliverable");
     }
 
-    public void sendMail(EmailDTO email) {
-        try {
-            final MimeMessage message = createMimeMessage(email);
-
-            javaMailSender.send(message);
-        } catch (MessagingException e) {
-            logger.info(() -> "Error creating mime-message: " + e.getMessage());
-            throw new EmailSendingException();
-        } catch (MailException e) {
-            logger.info(() -> "Error sending email: " + e.getMessage());
-            throw new EmailSendingException();
-        } catch (Exception e) {
-            logger.info(() -> "Unhandled error sending email: " + e.getMessage());
-            throw new EmailSendingException();
-        }
-    }
-
-    private MimeMessage createMimeMessage(EmailDTO email) throws MessagingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-        helper.setTo(email.addressee());
-        helper.setSubject(email.subject());
-        helper.setText(email.content(), true);
-
-        return message;
+    public void sendMail(EmailDTO emailDTO) {
+        emailProvider.sendMail(emailDTO);
     }
 
     public String buildEmailTemplate(@NonNull EmailType emailType, long userId, @NonNull String token) {

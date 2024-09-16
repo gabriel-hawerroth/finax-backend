@@ -10,7 +10,6 @@ import br.finax.enums.user.UserSignature;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.exceptions.ServiceException;
-import br.finax.external.AwsEmailService;
 import br.finax.models.AccessLog;
 import br.finax.models.Token;
 import br.finax.models.User;
@@ -40,7 +39,6 @@ public class AuthService {
     private final UserTokenService userTokenService;
     private final TokenService tokenService;
     private final EmailService emailService;
-    private final AwsEmailService awsEmailService;
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -111,10 +109,6 @@ public class AuthService {
                 emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
         );
 
-        try {
-            awsEmailService.sendMail(emailDTO);
-        } catch (ServiceException e) {
-            emailService.sendMail(emailDTO);
-        }
+        emailService.sendMail(emailDTO);
     }
 }

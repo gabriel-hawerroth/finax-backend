@@ -5,7 +5,6 @@ import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
-import br.finax.external.AwsEmailService;
 import br.finax.models.Token;
 import br.finax.models.User;
 import br.finax.security.TokenService;
@@ -46,7 +45,6 @@ public class LoginService {
     private final UserTokenService userTokenService;
     private final CategoryService categoryService;
     private final EmailService emailService;
-    private final AwsEmailService awsEmailService;
     private final UserService userService;
     private final TokenService tokenService;
 
@@ -82,7 +80,7 @@ public class LoginService {
 
         final Token token = userTokenService.generateToken(user);
 
-        sendMail(
+        emailService.sendMail(
                 new EmailDTO(
                         email,
                         "Alteração da senha Finax",
@@ -111,7 +109,7 @@ public class LoginService {
 
         final String token = tokenService.generateToken(user);
 
-        sendMail(
+        emailService.sendMail(
                 new EmailDTO(
                         user.getEmail(),
                         "Confirmação de cancelamento da conta",
@@ -134,13 +132,5 @@ public class LoginService {
                 .executeUpdate();
 
         logger.info("Conta cancelada:\nId - " + user.getId() + "\nEmail - " + user.getEmail());
-    }
-
-    private void sendMail(EmailDTO emailDTO) {
-        try {
-            awsEmailService.sendMail(emailDTO);
-        } catch (ServiceException e) {
-            emailService.sendMail(emailDTO);
-        }
     }
 }
