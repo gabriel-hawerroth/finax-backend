@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -53,7 +54,9 @@ public class HomeService {
     public List<HomeUpcomingRelease> getUpcomingReleases() {
         final long userId = getAuthUser().getId();
 
-        return releaseService.getUpcomingReleases(userId);
+        return releaseService.getPayableAndReceivableAccounts(
+                userId, LocalDate.now().minusMonths(1), LocalDate.now().plusDays(20)
+        );
     }
 
     @Transactional(readOnly = true)

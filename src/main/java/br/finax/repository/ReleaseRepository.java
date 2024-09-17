@@ -95,14 +95,14 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 LEFT JOIN public.credit_card cc on rls.credit_card_id = cc.id
             WHERE
                 rls.user_id = :userId
-                AND rls.date between current_date AND (current_date + interval '1 month')
+                AND rls.date between :firstDt AND :lastDt
                 AND rls.type <> 'T'
                 AND rls.done is false
                 AND rls.is_balance_adjustment is false
             ORDER BY
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
-    List<HomeUpcomingRelease> getUpcomingReleasesExpected(long userId);
+    List<HomeUpcomingRelease> getPayableAndReceivableAccounts(long userId, LocalDate firstDt, LocalDate lastDt);
 
     @Query(value = """
             SELECT

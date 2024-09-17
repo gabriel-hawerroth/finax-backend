@@ -273,8 +273,8 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.HomeUpcomingRelease> getUpcomingReleases(long userId) {
-        return releaseRepository.getUpcomingReleasesExpected(userId);
+    public List<InterfacesSQL.HomeUpcomingRelease> getPayableAndReceivableAccounts(long userId, LocalDate firstDt, LocalDate lastDt) {
+        return releaseRepository.getPayableAndReceivableAccounts(userId, firstDt, lastDt);
     }
 
     @Transactional(readOnly = true)
