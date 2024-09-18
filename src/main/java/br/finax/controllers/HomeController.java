@@ -38,7 +38,7 @@ public class HomeController {
     @GetMapping("/get-upcoming-releases")
     public ResponseEntity<List<HomeUpcomingRelease>> getUpcomingReleases() {
         return ResponseEntity.ok(
-                homeService.getUpcomingReleases()
+                homeService.getPayableAndReceivableAccounts()
         );
     }
 

@@ -51,7 +51,7 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeUpcomingRelease> getUpcomingReleases() {
+    public List<HomeUpcomingRelease> getPayableAndReceivableAccounts() {
         final long userId = getAuthUser().getId();
 
         return releaseService.getPayableAndReceivableAccounts(
