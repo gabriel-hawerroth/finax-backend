@@ -2,16 +2,14 @@
 
 cd ..
 
-mvn -v
-
 # Executa o build usando Maven
-#mvn clean package
-#
-## Verifica se o build foi bem-sucedido
-#if [ $? -ne 0 ]; then
-#    echo "O build falhou. Parando a execução do script."
-#    exit 1
-#fi
+mvn clean package
+
+# Verifica se o build foi bem-sucedido
+if [ $? -ne 0 ]; then
+    echo "O build falhou. Parando a execução do script."
+    exit 1
+fi
 
 # Deleta o processo existente do PM2 no servidor remoto
 ssh root@15.229.18.114 "pm2 delete api.finax"
