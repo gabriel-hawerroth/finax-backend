@@ -35,4 +35,3 @@ Ao terminar a feature abrir um pull request para a branch `develop` e solicitar 
 - Funções e variáveis privadas sempre que possível
 - Utilizar `final` sempre que possível
 - Utilizar `Optional` ao invés de null
- 
