@@ -3,7 +3,7 @@
 cd ..
 
 # Executa o build usando Maven
-mvn clean package
+mvn clean package -T 8C
 
 # Verifica se o build foi bem-sucedido
 if [ $? -ne 0 ]; then

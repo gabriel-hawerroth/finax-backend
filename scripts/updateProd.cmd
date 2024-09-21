@@ -1,6 +1,6 @@
 cd ../
 
-call mvn clean package -T 2C
+call mvn clean package -T 8C
 
 IF NOT %ERRORLEVEL% == 0 (
     exit /b %ERRORLEVEL%
