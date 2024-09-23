@@ -30,11 +30,8 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Build the code
-        run: |
-          # Aqui você deve incluir os comandos de build do seu projeto
-          # Por exemplo, se você estiver usando Maven:
-          ./mvnw clean install -DskipTests=true
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
