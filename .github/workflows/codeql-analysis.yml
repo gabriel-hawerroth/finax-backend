@@ -1,0 +1,40 @@
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+      - develop  # Branches protegidas que você quer monitorar
+  pull_request:
+    # Executa o CodeQL nos pull requests para essas branches
+    branches:
+      - main
+      - develop
+
+jobs:
+  analyze:
+    name: Run CodeQL Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java'' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build the code
+        run: |
+          # Aqui você deve incluir os comandos de build do seu projeto
+          # Por exemplo, se você estiver usando Maven:
+          ./mvnw clean install -DskipTests=true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
