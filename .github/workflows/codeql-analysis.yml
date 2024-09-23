@@ -10,10 +10,6 @@ on:
       - main
       - develop
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   analyze:
     name: Run CodeQL Analysis
