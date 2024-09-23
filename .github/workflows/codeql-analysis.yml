@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - main
-      - develop  # Branches protegidas que você quer monitorar
+      - develop
   pull_request:
-    # Executa o CodeQL nos pull requests para essas branches
     branches:
       - main
       - develop
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
   analyze:
