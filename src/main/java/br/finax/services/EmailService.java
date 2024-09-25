@@ -22,7 +22,7 @@ public class EmailService {
 
     private final EmailProvider emailProvider;
 
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = Logger.getLogger(EmailService.class.getName());
 
     public EmailService(
             @Value("${finax.email.provider}") String emailProvider, Map<String, EmailProvider> emailProvidersMap,
@@ -31,8 +31,7 @@ public class EmailService {
         this.hunterIoService = hunterIoService;
         this.serviceUrls = serviceUrls;
 
-//        this.emailProvider = emailProvidersMap.get(emailProvider);
-        this.emailProvider = emailProvidersMap.get("SmtpEmailProvider");
+        this.emailProvider = emailProvidersMap.get(emailProvider);
     }
 
     public boolean verifyEmail(String email) {
