@@ -14,6 +14,7 @@ public enum ErrorCategory {
     UNPROCESSABLE(422), // Request cannot be processed
     INTERNAL_ERROR(500), // Internal server error
     NOT_IMPLEMENTED(501), // Not implemented
+    BAD_GATEWAY(502), // Bad gateway
     SERVICE_UNAVAILABLE(503); // Service unavailable
 
     private final int httpStatusCode;

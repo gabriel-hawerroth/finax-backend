@@ -80,13 +80,17 @@ public class LoginService {
 
         final Token token = userTokenService.generateToken(user);
 
-        emailService.sendMail(
-                new EmailDTO(
-                        email,
-                        "Alteração da senha Finax",
-                        emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
-                )
-        );
+        try {
+            emailService.sendMail(
+                    new EmailDTO(
+                            email,
+                            "Alteração da senha Finax",
+                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
+                    )
+            );
+        } catch (Exception e) {
+            throw new ServiceException(ErrorCategory.BAD_GATEWAY, "Error sending email");
+        }
     }
 
     @Transactional
