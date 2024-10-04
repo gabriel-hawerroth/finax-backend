@@ -5,6 +5,7 @@ import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategory;
+import br.finax.enums.home.SpendByCategoryInterval;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
 import br.finax.models.Release;
@@ -60,11 +61,21 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SpendByCategory> getSpendsByCategory() {
+    public List<SpendByCategory> getSpendsByCategory(SpendByCategoryInterval interval) {
+        final LocalDate firstDay = switch (interval) {
+            case CURRENT_MONTH -> getFirstDayOfMonth();
+            case LAST_30_DAYS -> LocalDate.now().minusDays(30);
+        };
+
+        final LocalDate lastDay = switch (interval) {
+            case CURRENT_MONTH -> getLastDayOfMonth();
+            case LAST_30_DAYS -> LocalDate.now();
+        };
+
         final List<Release> expenses = releaseService.findReleasesForHomeSpendsCategory(
                 getAuthUser().getId(),
-                getFirstDayOfMonth(),
-                getLastDayOfMonth()
+                firstDay,
+                lastDay
         );
 
         final Map<Long, Category> categoryMap = new HashMap<>();
