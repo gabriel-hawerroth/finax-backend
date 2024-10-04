@@ -4,7 +4,7 @@ import br.finax.dto.HomeCreditCard;
 import br.finax.dto.InterfacesSQL;
 import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.SpendByCategory;
+import br.finax.dto.SpendByCategoryOutput;
 import br.finax.enums.home.SpendByCategoryInterval;
 import br.finax.services.HomeService;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class HomeController {
     }
 
     @GetMapping("/get-spends-by-category")
-    public ResponseEntity<List<SpendByCategory>> getSpendsByCategory(
+    public ResponseEntity<SpendByCategoryOutput> getSpendsByCategory(
             @RequestParam(defaultValue = "LAST_30_DAYS") SpendByCategoryInterval interval
     ) {
         return ResponseEntity.ok(
