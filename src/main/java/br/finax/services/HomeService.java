@@ -5,6 +5,7 @@ import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategory;
+import br.finax.dto.SpendByCategoryOutput;
 import br.finax.enums.home.SpendByCategoryInterval;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
@@ -61,7 +62,7 @@ public class HomeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SpendByCategory> getSpendsByCategory(SpendByCategoryInterval interval) {
+    public SpendByCategoryOutput getSpendsByCategory(SpendByCategoryInterval interval) {
         final LocalDate firstDay = switch (interval) {
             case CURRENT_MONTH -> getFirstDayOfMonth();
             case LAST_30_DAYS -> LocalDate.now().minusDays(30);
@@ -107,7 +108,11 @@ public class HomeService {
 
         spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
 
-        return spendByCategories;
+        return new SpendByCategoryOutput(
+                spendByCategories,
+                firstDay,
+                lastDay
+        );
     }
 
     @Transactional(readOnly = true)
