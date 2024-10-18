@@ -7,18 +7,11 @@ import br.finax.exceptions.InvalidFileException;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.coobird.thumbnailator.Thumbnails;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -70,8 +63,7 @@ public class FileUtils {
             }
 
             return switch (fileExtension) {
-                case "pdf" -> compressPdf(file.getBytes());
-                case "png", "webp" -> file.getBytes();
+                case "pdf", "png", "webp" -> file.getBytes();
                 default -> compressImage(file.getBytes(), isAttachment, new ImageSizes(width, height));
             };
         } catch (IOException e) {
@@ -108,21 +100,6 @@ public class FileUtils {
                     .toOutputStream(outputStream);
 
             return outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new FileCompressionErrorException();
-        }
-    }
-
-    private static byte[] compressPdf(byte[] pdfData) throws FileCompressionErrorException {
-        try {
-            try (final PDDocument document = Loader.loadPDF(pdfData)) {
-                document.getDocumentCatalog().setActions(new PDDocumentCatalogAdditionalActions());
-
-                try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                    document.save(outputStream);
-                    return outputStream.toByteArray();
-                }
-            }
         } catch (IOException e) {
             throw new FileCompressionErrorException();
         }
