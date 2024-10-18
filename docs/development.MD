@@ -7,8 +7,6 @@ Definir as envs no sistema ou configurar na própria IDE.
 - FINAX_DATABASE
 - FINAX_DATABASE_USERNAME
 - FINAX_DATABASE_PASSWORD
-- FINAX_EMAIL
-- FINAX_EMAIL_PASSWORD
 - HUNTER_IO_API_KEY
 
 # Database
