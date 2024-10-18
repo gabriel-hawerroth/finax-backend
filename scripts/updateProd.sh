@@ -2,7 +2,7 @@
 
 cd ..
 
-mvn clean package -T 8C
+mvn clean package -T 6C
 
 # Verifica se o build foi bem-sucedido
 if [ $? -ne 0 ]; then
@@ -18,7 +18,7 @@ git pull origin develop
 git checkout main
 git pull origin main
 
-git merge origin/develop
+git merge origin/develop --no-edit
 git push origin main
 
 git checkout develop
