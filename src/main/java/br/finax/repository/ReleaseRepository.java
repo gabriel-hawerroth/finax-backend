@@ -193,13 +193,25 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
 
     @Query(value = """
             SELECT
-                coalesce(sum(r.amount), 0) AS current_amount
+                coalesce(sum(r.amount), 0)
             FROM
                 release r
             WHERE
                 r.credit_card_id = :cardId
-                AND r."date" between :startDt AND :endDt
+                AND r."date" between :invoiceFirstDay AND :invoiceLastDay
                 AND r.done is true
             """, nativeQuery = true)
-    BigDecimal getCurrentCardInvoiceAmount(long cardId, LocalDate startDt, LocalDate endDt);
+    BigDecimal getCardInvoiceAmount(long cardId, LocalDate invoiceFirstDay, LocalDate invoiceLastDay);
+
+    @Query(value = """
+            SELECT
+                coalesce(sum(r.amount), 0)
+            FROM
+                release r
+            WHERE
+                r.credit_card_id = :cardId
+                AND r."date" >= :firstDay
+                AND r.done is true
+            """, nativeQuery = true)
+    BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay);
 }

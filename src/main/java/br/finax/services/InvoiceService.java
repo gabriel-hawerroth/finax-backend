@@ -6,6 +6,7 @@ import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CreditCard;
 import br.finax.models.InvoicePayment;
 import br.finax.utils.FileUtils;
+import br.finax.utils.InvoiceUtils.InvoiceCloseAndFirstDay;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -116,12 +117,23 @@ public class InvoiceService {
 
     @Transactional(readOnly = true)
     public BigDecimal getCurrentInvoiceAmount(CreditCard card) {
-        final var invoiceDays = getInvoiceCloseAndFirstDay(getMonthYear(), card.getCloseDay());
+        final var invoiceDays = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
 
-        return releaseService.getCurrentCardInvoiceAmount(
+        return releaseService.getCardInvoiceAmount(
                 card.getId(),
                 invoiceDays.firstDay(),
                 invoiceDays.closeDay()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getCardNextInvoicesAmount(CreditCard card) {
+        final InvoiceCloseAndFirstDay invoiceDays = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
+        final LocalDate firstDay = invoiceDays.closeDay().plusDays(1);
+
+        return releaseService.getCardNextInvoicesAmount(
+                card.getId(),
+                firstDay
         );
     }
 
@@ -134,7 +146,7 @@ public class InvoiceService {
         checkCardPermission(creditCardService.findById(payment.getCreditCardId()));
     }
 
-    private String getMonthYear() {
+    private String getNextMonthYear() {
         final String currentMonthYear = getCurrentMonthYear();
 
         final String month = currentMonthYear.split("/")[0];

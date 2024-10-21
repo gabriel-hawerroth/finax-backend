@@ -1,5 +1,6 @@
 package br.finax.dto;
 
+import br.finax.enums.release.ReleaseRepeat;
 import br.finax.models.Release;
 
 import java.math.BigDecimal;
@@ -16,7 +17,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setAccountId(original.getAccountId());
         duplicatedRelease.setAmount(BigDecimal.ZERO);
         duplicatedRelease.setType(original.getType());
-        duplicatedRelease.setDone(false);
+        duplicatedRelease.setDone(original.getRepeat() == ReleaseRepeat.INSTALLMENTS);
         duplicatedRelease.setTargetAccountId(original.getTargetAccountId());
         duplicatedRelease.setCategoryId(original.getCategoryId());
         duplicatedRelease.setDate(null);
