@@ -9,7 +9,12 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
-import br.finax.exceptions.*;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidParametersException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
@@ -288,8 +293,13 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public BigDecimal getCurrentCardInvoiceAmount(long cardId, LocalDate startDt, LocalDate endDt) {
-        return releaseRepository.getCurrentCardInvoiceAmount(cardId, startDt, endDt);
+    public BigDecimal getCardInvoiceAmount(long cardId, LocalDate invoiceFirstDay, LocalDate invoiceLastDay) {
+        return releaseRepository.getCardInvoiceAmount(cardId, invoiceFirstDay, invoiceLastDay);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay) {
+        return releaseRepository.getCardNextReleasesAmount(cardId, firstDay);
     }
 
     private void checkPermission(final Release release) {

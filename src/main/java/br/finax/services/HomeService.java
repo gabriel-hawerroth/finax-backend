@@ -122,15 +122,18 @@ public class HomeService {
         final List<CreditCard> userCreditCards = creditCardService.findAllByUserId(userId);
 
         final List<HomeCreditCard> cardsLists = new LinkedList<>();
+
         userCreditCards.forEach(card -> {
             final var currentInvoiceAmount = invoiceService.getCurrentInvoiceAmount(card);
+            final var nextInvoicesAmount = invoiceService.getCardNextInvoicesAmount(card);
 
             cardsLists.add(new HomeCreditCard(
                     card.getId(),
                     card.getName(),
                     card.getImage(),
                     card.getCardLimit(),
-                    currentInvoiceAmount
+                    currentInvoiceAmount,
+                    nextInvoicesAmount
             ));
         });
 
