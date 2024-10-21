@@ -26,7 +26,7 @@ import java.time.LocalDate;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/cash-flow")
-public class CashFlowController {
+public class ReleaseController {
 
     public final ReleaseService releaseService;
 
