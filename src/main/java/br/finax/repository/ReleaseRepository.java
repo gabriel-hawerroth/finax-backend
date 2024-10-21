@@ -213,5 +213,5 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND r."date" >= :firstDay
                 AND r.done is true
             """, nativeQuery = true)
-    BigDecimal getCardNextReleasesAmount(long cardId, LocalDate firstDay);
+    BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay);
 }

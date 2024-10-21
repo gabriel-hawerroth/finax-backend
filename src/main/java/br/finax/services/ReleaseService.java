@@ -299,7 +299,7 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay) {
-        return releaseRepository.getCardNextReleasesAmount(cardId, firstDay);
+        return releaseRepository.getCardNextInvoicesAmount(cardId, firstDay);
     }
 
     private void checkPermission(final Release release) {
