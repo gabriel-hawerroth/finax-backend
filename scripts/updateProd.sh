@@ -23,8 +23,8 @@ git push origin main
 
 git checkout develop
 
-ssh ubuntu@64.181.177.7 "pm2 delete api.finax"
+ssh ubuntu@server3 "pm2 delete api.finax"
 
-scp -r ./target/finax.jar ubuntu@64.181.177.7:/home/ubuntu/finax_builds/back/
+scp -r ./target/finax.jar ubuntu@server3:/home/ubuntu/finax_builds/back/
 
-ssh ubuntu@64.181.177.7 "/home/ubuntu/start_scripts/start_finax_api.sh"
+ssh ubuntu@server3 "/home/ubuntu/start_scripts/start_finax_api.sh"
