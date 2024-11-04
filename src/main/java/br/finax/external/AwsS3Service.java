@@ -1,7 +1,6 @@
 package br.finax.external;
 
 import br.finax.enums.ErrorCategory;
-import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,9 +22,10 @@ import java.time.Instant;
 @Service
 public class AwsS3Service {
 
-    private static final String BUCKET = "finax";
-
     private final S3Client s3Client;
+
+    @Value("${aws.s3.bucket}")
+    private String BUCKET;
 
     public AwsS3Service(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
         final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
@@ -36,11 +36,10 @@ public class AwsS3Service {
                 .build();
     }
 
-    public static String getS3FileName(long recordId, String fileExtension, S3FolderPath s3FolderPath) {
-        final String folderPath = s3FolderPath.getPath();
+    public static String getS3FileName(long recordId, String fileExtension) {
         final long unixTimestamp = Instant.now().getEpochSecond();
 
-        return folderPath + recordId + "_" + unixTimestamp + "." + fileExtension;
+        return recordId + "_" + unixTimestamp + "." + fileExtension;
     }
 
     public byte[] getS3File(String filename) throws ServiceException {

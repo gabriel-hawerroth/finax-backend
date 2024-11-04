@@ -75,7 +75,7 @@ public class ReleaseController {
     @PatchMapping("/add-attachment/{id}")
     public ResponseEntity<Release> addAttachment(@PathVariable long id, @RequestParam MultipartFile file) {
         return ResponseEntity.ok(
-                releaseService.addAttachment(id, file)
+                releaseService.saveAttachment(id, file)
         );
     }
 

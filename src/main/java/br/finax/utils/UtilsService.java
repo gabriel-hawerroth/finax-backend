@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @UtilityClass
 public class UtilsService {
@@ -35,5 +36,20 @@ public class UtilsService {
     public static User getAuthUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User) authentication.getPrincipal();
+    }
+
+    public static boolean isEmpty(Object object) {
+        return !isNotEmpty(object);
+    }
+
+    public static boolean isNotEmpty(Object object) {
+        if (object == null)
+            return false;
+
+        return switch (object) {
+            case String s -> !s.isBlank();
+            case List<?> list -> !list.isEmpty();
+            default -> false;
+        };
     }
 }

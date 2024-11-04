@@ -18,7 +18,6 @@ import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
-import br.finax.utils.FileUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -35,8 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.FileUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -132,7 +130,7 @@ public class ReleaseService {
         // things that can't change
         release.setUserId(existingRelease.getUserId());
         release.setType(existingRelease.getType());
-        release.setAttachmentS3FileName(existingRelease.getAttachmentS3FileName());
+        release.setS3FileName(existingRelease.getS3FileName());
         release.setAttachmentName(existingRelease.getAttachmentName());
         release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
         release.setRepeat(existingRelease.getRepeat());
@@ -174,29 +172,37 @@ public class ReleaseService {
     }
 
     @Transactional
-    public Release addAttachment(long releaseId, final @NonNull MultipartFile attachment) {
+    public Release saveAttachment(long releaseId, final @NonNull MultipartFile attachment) {
         final Release release = findById(releaseId);
 
         checkPermission(release);
 
         final String fileExtension = getFileExtension(attachment);
-        final String fileName = getS3FileName(releaseId, fileExtension, S3FolderPath.USER_ATTACHMENTS);
+        final String fileName = getS3FileName(releaseId, fileExtension);
 
         try {
-            final byte[] compressedFile = FileUtils.compressFile(attachment);
+            final byte[] compressedFile = compressFile(attachment);
 
             final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 
             try {
-                if (release.getAttachmentS3FileName() != null)
-                    awsS3Service.updateS3File(release.getAttachmentS3FileName(), fileName, tempFile);
-                else
-                    awsS3Service.uploadS3File(fileName, tempFile);
+                if (release.getS3FileName() != null) {
+                    awsS3Service.updateS3File(
+                            concatS3FolderPath(release.getS3FileName()),
+                            concatS3FolderPath(fileName),
+                            tempFile
+                    );
+                } else {
+                    awsS3Service.uploadS3File(
+                            concatS3FolderPath(fileName),
+                            tempFile
+                    );
+                }
             } finally {
                 var _ = tempFile.delete();
             }
 
-            release.setAttachmentS3FileName(fileName);
+            release.setS3FileName(fileName);
             release.setAttachmentName(attachment.getOriginalFilename());
 
             return releaseRepository.save(release);
@@ -211,9 +217,9 @@ public class ReleaseService {
 
         checkPermission(release);
 
-        awsS3Service.deleteS3File(release.getAttachmentS3FileName());
+        awsS3Service.deleteS3File(concatS3FolderPath(release.getS3FileName()));
 
-        release.setAttachmentS3FileName(null);
+        release.setS3FileName(null);
         release.setAttachmentName(null);
 
         return releaseRepository.save(release);
@@ -225,7 +231,9 @@ public class ReleaseService {
 
         checkPermission(release);
 
-        return awsS3Service.getS3File(release.getAttachmentS3FileName());
+        return awsS3Service.getS3File(
+                concatS3FolderPath(release.getS3FileName())
+        );
     }
 
     @Transactional
@@ -305,5 +313,9 @@ public class ReleaseService {
     private void checkPermission(final Release release) {
         if (release.getUserId() != getAuthUser().getId())
             throw new WithoutPermissionException();
+    }
+
+    private String concatS3FolderPath(String filename) {
+        return S3FolderPath.RELEASE_ATTACHMENTS.getPath().concat(filename);
     }
 }

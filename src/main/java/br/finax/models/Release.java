@@ -59,8 +59,8 @@ public class Release {
     @Column(length = 100)
     private String observation;
 
-    @Column(name = "attachment_s3_file_name")
-    private String attachmentS3FileName;
+    @Column(name = "s3_file_name")
+    private String s3FileName;
 
     @Column(name = "attachment_name")
     private String attachmentName;
