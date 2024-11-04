@@ -36,7 +36,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.date,
                 rls.time,
                 rls.observation,
-                rls.attachment_s3_file_name AS attachmentS3FileName,
+                rls.s3_file_name AS attachmentS3FileName,
                 rls.attachment_name AS attachmentName,
                 rls.duplicated_release_id AS duplicatedReleaseId,
                 (CASE WHEN
@@ -150,7 +150,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.date,
                 rls.time,
                 rls.observation,
-                rls.attachment_s3_file_name AS attachmentS3FileName,
+                rls.s3_file_name AS attachmentS3FileName,
                 rls.attachment_name AS attachmentName,
                 rls.duplicated_release_id AS duplicatedReleaseId,
                 (CASE WHEN

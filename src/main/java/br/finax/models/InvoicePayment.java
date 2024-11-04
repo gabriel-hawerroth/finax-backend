@@ -24,6 +24,9 @@ public class InvoicePayment {
     @Column(name = "credit_card_id", nullable = false, updatable = false)
     private long creditCardId;
 
+    /**
+     * The month and year of the invoice payment in the format "MM/YYYY".
+     */
     @NotBlank
     @Column(name = "month_year", nullable = false, length = 7)
     private String monthYear;
@@ -40,7 +43,8 @@ public class InvoicePayment {
     @Column(name = "payment_hour", length = 5)
     private String paymentHour;
 
-    private byte[] attachment;
+    @Column(name = "s3_file_name")
+    private String s3FileName;
 
     @Column(name = "attachment_name")
     private String attachmentName;

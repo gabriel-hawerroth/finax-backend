@@ -23,7 +23,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setDate(null);
         duplicatedRelease.setTime(original.getTime());
         duplicatedRelease.setObservation(original.getObservation());
-        duplicatedRelease.setAttachmentS3FileName(null);
+        duplicatedRelease.setS3FileName(null);
         duplicatedRelease.setAttachmentName(null);
         duplicatedRelease.setDuplicatedReleaseId(original.getId());
         duplicatedRelease.setRepeat(original.getRepeat());

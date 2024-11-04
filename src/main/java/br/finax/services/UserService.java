@@ -3,7 +3,12 @@ package br.finax.services;
 import br.finax.dto.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
-import br.finax.exceptions.*;
+import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidPasswordException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
@@ -23,6 +28,7 @@ import java.io.File;
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.UtilsService.isNotEmpty;
 
 @Service
 @RequiredArgsConstructor
@@ -95,7 +101,7 @@ public class UserService {
         final User user = getAuthUser();
 
         final String fileExtension = getFileExtension(file);
-        final String fileName = getS3FileName(user.getId(), fileExtension, S3FolderPath.USER_PROFILE_IMG);
+        final String fileName = getS3FileName(user.getId(), fileExtension);
 
         try {
             final byte[] compressedFile = FileUtils.compressFile(file);
@@ -103,10 +109,18 @@ public class UserService {
             final File tempFile = convertByteArrayToFile(compressedFile, fileName);
 
             try {
-                if (user.getProfileImage() != null && !user.getProfileImage().isBlank())
-                    awsS3Service.updateS3File(user.getProfileImage(), fileName, tempFile);
-                else
-                    awsS3Service.uploadS3File(fileName, tempFile);
+                if (isNotEmpty(user.getProfileImage())) {
+                    awsS3Service.updateS3File(
+                            concatS3FolderPath(user.getProfileImage()),
+                            concatS3FolderPath(fileName),
+                            tempFile
+                    );
+                } else {
+                    awsS3Service.uploadS3File(
+                            concatS3FolderPath(fileName),
+                            tempFile
+                    );
+                }
             } finally {
                 var _ = tempFile.delete();
             }
@@ -138,5 +152,9 @@ public class UserService {
     @Transactional
     public void activeUser(long userId) {
         userRepository.activeUser(userId);
+    }
+
+    private String concatS3FolderPath(String filename) {
+        return S3FolderPath.USER_PROFILE_IMG.getPath().concat(filename);
     }
 }
