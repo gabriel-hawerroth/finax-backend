@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,10 +31,10 @@ public class ReleaseController {
 
     @GetMapping
     public ResponseEntity<MonthlyCashFlow> getMonthlyFlow(
-            @RequestParam LocalDate firstDt, @RequestParam LocalDate lastDt
+            @RequestParam String monthYear // should be in MM/yyyy format
     ) {
         return ResponseEntity.ok(
-                releaseService.getMonthlyFlow(firstDt, lastDt)
+                releaseService.getMonthlyFlow(monthYear)
         );
     }
 

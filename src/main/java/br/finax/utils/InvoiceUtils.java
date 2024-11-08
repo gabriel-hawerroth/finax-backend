@@ -1,5 +1,6 @@
 package br.finax.utils;
 
+import br.finax.dto.FirstAndLastDate;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ServiceException;
 import lombok.experimental.UtilityClass;
@@ -12,7 +13,7 @@ import java.time.format.DateTimeParseException;
 @UtilityClass
 public class InvoiceUtils {
 
-    public static InvoiceCloseAndFirstDay getInvoiceCloseAndFirstDay(String monthYear, int closingDay) {
+    public static FirstAndLastDate getInvoiceCloseAndFirstDay(String monthYear, int closingDay) {
         if (closingDay < 1 || closingDay > 31)
             throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid closing day");
 
@@ -30,7 +31,7 @@ public class InvoiceUtils {
                 firstDay = firstDay.plusDays(1);
         }
 
-        return new InvoiceCloseAndFirstDay(closeDay.closeDay(), firstDay);
+        return new FirstAndLastDate(firstDay, closeDay.closeDay());
     }
 
     private static InvoiceCloseDay getCloseDayInvoice(String monthYear, int closingDay) {
@@ -73,12 +74,6 @@ public class InvoiceUtils {
     public record InvoiceCloseDay(
             LocalDate closeDay,
             boolean adjusted
-    ) {
-    }
-
-    public record InvoiceCloseAndFirstDay(
-            LocalDate closeDay,
-            LocalDate firstDay
     ) {
     }
 }
