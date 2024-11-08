@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static br.finax.utils.DateUtils.getCurrentMonthYear;
+import static br.finax.utils.DateUtils.getNextMonthYear;
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 import static br.finax.utils.UtilsService.getAuthUser;
 
@@ -28,7 +28,7 @@ public class InvoiceService {
     private final AccountService accountService;
 
     @Transactional(readOnly = true)
-    public InvoiceMonthValues getInvoiceAndReleases(long creditCardId, String selectedMonth) {
+    public InvoiceMonthValues getMonthValues(long creditCardId, String selectedMonth) {
         final long userId = getAuthUser().getId();
 
         final CreditCard card = creditCardService.findById(creditCardId);
@@ -80,21 +80,5 @@ public class InvoiceService {
     private void checkCardPermission(final CreditCard card) {
         if (!card.getUserId().equals(getAuthUser().getId()))
             throw new WithoutPermissionException();
-    }
-
-    private String getNextMonthYear() {
-        final String currentMonthYear = getCurrentMonthYear();
-
-        final String month = currentMonthYear.split("/")[0];
-
-        final String nextMonth;
-        if (month.equals("12")) {
-            nextMonth = "01";
-        } else {
-            final int intMonth = Integer.parseInt(month) + 1;
-            nextMonth = intMonth < 10 ? "0" + intMonth : String.valueOf(intMonth);
-        }
-
-        return nextMonth + "/" + currentMonthYear.split("/")[1];
     }
 }

@@ -34,7 +34,7 @@ public class InvoiceController {
             @RequestParam long creditCardId, @RequestParam String selectedMonth
     ) {
         return ResponseEntity.ok(
-                invoiceService.getInvoiceAndReleases(creditCardId, selectedMonth)
+                invoiceService.getMonthValues(creditCardId, selectedMonth)
         );
     }
 

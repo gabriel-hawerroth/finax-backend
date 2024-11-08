@@ -6,6 +6,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -52,5 +53,5 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 AND rls.date < :firstDt
                 AND rls.done is true
             """, nativeQuery = true)
-    double getInvoicePreviousBalance(long userId, long creditCardId, @NonNull LocalDate firstDt);
+    BigDecimal getInvoicePreviousBalance(long userId, long creditCardId, @NonNull LocalDate firstDt);
 }
