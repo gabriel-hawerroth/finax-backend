@@ -39,10 +39,10 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
             SELECT
                 COALESCE(
                     GREATEST(
-                    SUM(rls.amount) -
-                    (SELECT SUM(ip.payment_amount)
-                    FROM invoice_payment ip
-                    WHERE ip.credit_card_id = :creditCardId)
+                        SUM(rls.amount) -
+                        COALESCE((SELECT SUM(ip.payment_amount)
+                        FROM invoice_payment ip
+                        WHERE ip.credit_card_id = :creditCardId), 0)
                     , 0)
                 , 0) AS previousBalance
             FROM
