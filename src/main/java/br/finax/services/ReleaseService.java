@@ -11,7 +11,6 @@ import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
 import br.finax.exceptions.FileCompressionErrorException;
 import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidParametersException;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
@@ -29,12 +28,14 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.FileUtils.*;
+import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
+import static br.finax.utils.FileUtils.compressFile;
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -58,14 +59,15 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public MonthlyCashFlow getMonthlyFlow(
-            final LocalDate firstDt, final LocalDate lastDt
-    ) {
-        if (ChronoUnit.DAYS.between(firstDt, lastDt) > 31)
-            throw new InvalidParametersException("The difference between the firstDt and lastDt should not exceed 31 days");
+    public MonthlyCashFlow getMonthlyFlow(final String monthYear) {
+        final var firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
 
         return new MonthlyCashFlow(
-                releaseRepository.getMonthlyReleases(getAuthUser().getId(), firstDt, lastDt),
+                releaseRepository.getMonthlyReleases(
+                        getAuthUser().getId(),
+                        firstAndLastDate.firstDay(),
+                        firstAndLastDate.lastDay()
+                ),
                 0
         );
     }
