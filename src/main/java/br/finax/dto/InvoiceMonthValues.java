@@ -4,6 +4,7 @@ import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
 import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record InvoiceMonthValues(
@@ -14,6 +15,6 @@ public record InvoiceMonthValues(
         List<MonthlyRelease> releases,
 
         @NotNull
-        double previousBalance
+        BigDecimal previousBalance
 ) {
 }
