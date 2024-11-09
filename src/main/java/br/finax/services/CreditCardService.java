@@ -5,12 +5,16 @@ import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.exceptions.NotFoundException;
 import br.finax.models.CreditCard;
 import br.finax.repository.CreditCardRepository;
+import br.finax.repository.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import static br.finax.utils.DateUtils.getNextMonthYear;
+import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -18,6 +22,7 @@ import static br.finax.utils.UtilsService.getAuthUser;
 public class CreditCardService {
 
     private final CreditCardRepository creditCardRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @Transactional(readOnly = true)
     public CreditCard findById(long id) {
@@ -46,6 +51,32 @@ public class CreditCardService {
         checkPermission(card);
 
         return creditCardRepository.save(card);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getCardAvailableLimit(CreditCard card) {
+        final var invoiceDays = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
+
+        final BigDecimal actualInvoiceAmount = invoiceRepository.getInvoiceAmount(
+                card.getId(),
+                invoiceDays.firstDay(),
+                invoiceDays.lastDay()
+        );
+        final BigDecimal previousInvoicesAmount = invoiceRepository.getInvoicePreviousAmount(
+                card.getUserId(),
+                card.getId(),
+                invoiceDays.firstDay()
+        );
+        final BigDecimal nextInvoicesAmount = invoiceRepository.getNextInvoicesAmount(
+                card.getId(),
+                invoiceDays.lastDay().plusDays(1)
+        );
+
+        return card.getCardLimit()
+                .subtract(actualInvoiceAmount)
+                .subtract(previousInvoicesAmount)
+                .subtract(nextInvoicesAmount)
+                .max(BigDecimal.ZERO);
     }
 
     @Transactional(readOnly = true)

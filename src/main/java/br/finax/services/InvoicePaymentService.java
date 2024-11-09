@@ -19,14 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.FileUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 import static br.finax.utils.UtilsService.isNotEmpty;
 
@@ -74,11 +70,6 @@ public class InvoicePaymentService {
             throw new WithoutPermissionException();
 
         return invoicePaymentRepository.getInvoicePayments(creditCardId, selectedMonth);
-    }
-
-    @Transactional(readOnly = true)
-    public BigDecimal getInvoicePreviousBalance(long userId, long creditCardId, LocalDate firstDt) {
-        return invoicePaymentRepository.getInvoicePreviousBalance(userId, creditCardId, firstDt);
     }
 
     @Transactional

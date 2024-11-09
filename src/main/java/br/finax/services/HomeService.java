@@ -26,8 +26,6 @@ import java.util.Map;
 
 import static br.finax.utils.DateUtils.getFirstDayOfMonth;
 import static br.finax.utils.DateUtils.getLastDayOfMonth;
-import static br.finax.utils.DateUtils.getNextMonthYear;
-import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -39,7 +37,6 @@ public class HomeService {
     private final AccountService accountService;
     private final CreditCardService creditCardService;
     private final InvoiceService invoiceService;
-    private final InvoicePaymentService invoicePaymentService;
 
     @Transactional(readOnly = true)
     public HomeRevenueExpense getRevenueExpense() {
@@ -127,20 +124,15 @@ public class HomeService {
         final List<HomeCreditCard> cardsLists = new LinkedList<>();
 
         userCreditCards.forEach(card -> {
-            final var closeAndFirstDayInvoice = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
-
             final var currentInvoiceAmount = invoiceService.getCurrentInvoiceAmount(card);
-            final var previousInvoiceAmount = invoicePaymentService.getInvoicePreviousBalance(userId, card.getId(), closeAndFirstDayInvoice.firstDay());
-
-            final var nextInvoicesAmount = invoiceService.getCardNextInvoicesAmount(card);
+            final var availableLimit = creditCardService.getCardAvailableLimit(card);
 
             cardsLists.add(new HomeCreditCard(
                     card.getId(),
                     card.getName(),
                     card.getImage(),
-                    card.getCardLimit(),
-                    currentInvoiceAmount.add(previousInvoiceAmount),
-                    nextInvoicesAmount
+                    currentInvoiceAmount,
+                    availableLimit
             ));
         });
 

@@ -1,16 +1,17 @@
 package br.finax.services;
 
-import br.finax.dto.FirstAndLastDate;
+import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CreditCard;
+import br.finax.repository.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.List;
 
 import static br.finax.utils.DateUtils.getNextMonthYear;
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
@@ -20,8 +21,9 @@ import static br.finax.utils.UtilsService.getAuthUser;
 @RequiredArgsConstructor
 public class InvoiceService {
 
-    private final InvoicePaymentService invoicePaymentService;
+    private final InvoiceRepository invoiceRepository;
 
+    private final InvoicePaymentService invoicePaymentService;
     private final CreditCardService creditCardService;
     private final ReleaseService releaseService;
     private final CategoryService categoryService;
@@ -30,19 +32,25 @@ public class InvoiceService {
     @Transactional(readOnly = true)
     public InvoiceMonthValues getMonthValues(long creditCardId, String selectedMonth) {
         final long userId = getAuthUser().getId();
-
         final CreditCard card = creditCardService.findById(creditCardId);
 
         checkCardPermission(card);
 
-        final var closeAndFirstDayInvoice = getInvoiceCloseAndFirstDay(selectedMonth, card.getCloseDay());
-        final LocalDate firstDay = closeAndFirstDayInvoice.firstDay();
-        final LocalDate closeDay = closeAndFirstDayInvoice.lastDay();
+        final var invoiceDays = getInvoiceCloseAndFirstDay(selectedMonth, card.getCloseDay());
+
+        final List<MonthlyRelease> releases = releaseService.getByInvoice(userId, creditCardId, invoiceDays.firstDay(), invoiceDays.lastDay());
+        final BigDecimal previousAmount = invoiceRepository.getInvoicePreviousAmount(userId, creditCardId, invoiceDays.firstDay());
+
+        final BigDecimal amount = releases.stream()
+                .filter(MonthlyRelease::getDone)
+                .map(MonthlyRelease::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(previousAmount);
 
         return new InvoiceMonthValues(
                 invoicePaymentService.getInvoicePayments(userId, creditCardId, selectedMonth),
-                releaseService.getByInvoice(userId, creditCardId, firstDay, closeDay),
-                invoicePaymentService.getInvoicePreviousBalance(userId, creditCardId, firstDay)
+                releases,
+                amount
         );
     }
 
@@ -59,22 +67,18 @@ public class InvoiceService {
     public BigDecimal getCurrentInvoiceAmount(CreditCard card) {
         final var invoiceDays = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
 
-        return releaseService.getCardInvoiceAmount(
+        final BigDecimal actualInvoiceAmount = invoiceRepository.getInvoiceAmount(
                 card.getId(),
                 invoiceDays.firstDay(),
                 invoiceDays.lastDay()
         );
-    }
-
-    @Transactional(readOnly = true)
-    public BigDecimal getCardNextInvoicesAmount(CreditCard card) {
-        final FirstAndLastDate invoiceDays = getInvoiceCloseAndFirstDay(getNextMonthYear(), card.getCloseDay());
-        final LocalDate firstDay = invoiceDays.lastDay().plusDays(1);
-
-        return releaseService.getCardNextInvoicesAmount(
+        final BigDecimal previousInvoicesAmount = invoiceRepository.getInvoicePreviousAmount(
+                card.getUserId(),
                 card.getId(),
-                firstDay
+                invoiceDays.firstDay()
         );
+
+        return actualInvoiceAmount.add(previousInvoicesAmount);
     }
 
     private void checkCardPermission(final CreditCard card) {
