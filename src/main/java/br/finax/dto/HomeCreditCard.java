@@ -6,8 +6,7 @@ public record HomeCreditCard(
         long cardId,
         String cardName,
         String cardImage,
-        BigDecimal cardLimit,
         BigDecimal currentInvoiceAmount,
-        BigDecimal nextInvoicesAmount
+        BigDecimal availableLimit
 ) {
 }

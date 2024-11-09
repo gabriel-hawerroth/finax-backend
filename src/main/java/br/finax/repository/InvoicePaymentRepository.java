@@ -6,8 +6,6 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, Long> {
@@ -34,24 +32,4 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true)
     List<InvoicePaymentPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
-
-    @Query(value = """
-            SELECT
-                COALESCE(
-                    GREATEST(
-                        SUM(rls.amount) -
-                        COALESCE((SELECT SUM(ip.payment_amount)
-                        FROM invoice_payment ip
-                        WHERE ip.credit_card_id = :creditCardId), 0)
-                    , 0)
-                , 0) AS previousBalance
-            FROM
-                release rls
-            WHERE
-                rls.user_id = :userId
-                AND rls.credit_card_id = :creditCardId
-                AND rls.date < :firstDt
-                AND rls.done is true
-            """, nativeQuery = true)
-    BigDecimal getInvoicePreviousBalance(long userId, long creditCardId, @NonNull LocalDate firstDt);
 }

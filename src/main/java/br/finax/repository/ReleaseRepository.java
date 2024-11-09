@@ -8,7 +8,6 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -173,7 +172,6 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.date, rls.time, rls.id
             """, nativeQuery = true)
     List<MonthlyRelease> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
-    // ajustar para buscar entre as datas de fechamento do cartão
 
     @Query(value = """
             SELECT
@@ -187,31 +185,5 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND rls.done is true
                 AND rls.is_balance_adjustment is false
             """, nativeQuery = true)
-    List<Release> findReleasesForHomeSpendsCategory(
-            long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt
-    );
-
-    @Query(value = """
-            SELECT
-                coalesce(sum(r.amount), 0)
-            FROM
-                release r
-            WHERE
-                r.credit_card_id = :cardId
-                AND r."date" between :invoiceFirstDay AND :invoiceLastDay
-                AND r.done is true
-            """, nativeQuery = true)
-    BigDecimal getCardInvoiceAmount(long cardId, LocalDate invoiceFirstDay, LocalDate invoiceLastDay);
-
-    @Query(value = """
-            SELECT
-                coalesce(sum(r.amount), 0)
-            FROM
-                release r
-            WHERE
-                r.credit_card_id = :cardId
-                AND r."date" >= :firstDay
-                AND r.done is true
-            """, nativeQuery = true)
-    BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay);
+    List<Release> getReleasesForHomeSpendsCategory(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 }

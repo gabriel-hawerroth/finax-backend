@@ -2,7 +2,9 @@ package br.finax.services;
 
 import br.finax.dto.CashFlowValues;
 import br.finax.dto.DuplicatedReleaseBuilder;
-import br.finax.dto.InterfacesSQL;
+import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.dto.MonthlyCashFlow;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
@@ -33,9 +35,7 @@ import java.util.List;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.FileUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -256,7 +256,6 @@ public class ReleaseService {
                             release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
                     )
             );
-            default -> { /* do nothing */ }
         }
 
         if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
@@ -283,33 +282,23 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public InterfacesSQL.HomeRevenueExpense getHomeBalances(long userId, LocalDate firstDt, LocalDate lastDt) {
+    public HomeRevenueExpense getHomeBalances(long userId, LocalDate firstDt, LocalDate lastDt) {
         return releaseRepository.getHomeBalances(userId, firstDt, lastDt);
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.HomeUpcomingRelease> getPayableAndReceivableAccounts(long userId, LocalDate firstDt, LocalDate lastDt) {
+    public List<HomeUpcomingRelease> getPayableAndReceivableAccounts(long userId, LocalDate firstDt, LocalDate lastDt) {
         return releaseRepository.getPayableAndReceivableAccounts(userId, firstDt, lastDt);
     }
 
     @Transactional(readOnly = true)
     public List<Release> findReleasesForHomeSpendsCategory(long id, LocalDate startDate, LocalDate endDate) {
-        return releaseRepository.findReleasesForHomeSpendsCategory(id, startDate, endDate);
+        return releaseRepository.getReleasesForHomeSpendsCategory(id, startDate, endDate);
     }
 
     @Transactional(readOnly = true)
-    public List<InterfacesSQL.MonthlyRelease> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
+    public List<MonthlyRelease> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
         return releaseRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
-    }
-
-    @Transactional(readOnly = true)
-    public BigDecimal getCardInvoiceAmount(long cardId, LocalDate invoiceFirstDay, LocalDate invoiceLastDay) {
-        return releaseRepository.getCardInvoiceAmount(cardId, invoiceFirstDay, invoiceLastDay);
-    }
-
-    @Transactional(readOnly = true)
-    public BigDecimal getCardNextInvoicesAmount(long cardId, LocalDate firstDay) {
-        return releaseRepository.getCardNextInvoicesAmount(cardId, firstDay);
     }
 
     private void checkPermission(final Release release) {

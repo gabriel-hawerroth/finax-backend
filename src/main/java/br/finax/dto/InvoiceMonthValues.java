@@ -9,12 +9,12 @@ import java.util.List;
 
 public record InvoiceMonthValues(
         @NotNull
-        List<InvoicePaymentPerson> invoicePayments,
+        List<InvoicePaymentPerson> payments,
 
         @NotNull
         List<MonthlyRelease> releases,
 
         @NotNull
-        BigDecimal previousBalance
+        BigDecimal amount
 ) {
 }
