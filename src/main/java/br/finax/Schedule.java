@@ -11,10 +11,9 @@ import br.finax.security.SecurityFilter;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -24,7 +23,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 public class Schedule {
 
     private final CategoryRepository categoryRepository;
@@ -38,25 +37,8 @@ public class Schedule {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    //    @Value("${spring.datasource.url}")
-    private final String databaseUrl;
-
-    public Schedule(Environment environment, CategoryRepository categoryRepository, UserRepository userRepository, ReleaseRepository releaseRepository, InvoicePaymentRepository invoicePaymentRepository, SecurityFilter securityFilter, AwsS3Service s3Service, EntityManager entityManager, @Value("${spring.datasource.url}") String databaseUrl) {
-        this.categoryRepository = categoryRepository;
-        this.userRepository = userRepository;
-        this.releaseRepository = releaseRepository;
-        this.invoicePaymentRepository = invoicePaymentRepository;
-        this.securityFilter = securityFilter;
-        this.s3Service = s3Service;
-        this.entityManager = entityManager;
-        this.databaseUrl = databaseUrl;
-
-        if (environment.acceptsProfiles(Profiles.of("prod"))) {
-            Thread.ofVirtual().start(this::checkS3UnusedProfileImages);
-            Thread.ofVirtual().start(this::checkS3UnusedReleaseAttachments);
-            Thread.ofVirtual().start(this::checkS3UnusedInvoicePaymentAttachments);
-        }
-    }
+    @Value("${spring.datasource.url}")
+    private String databaseUrl;
 
     // Method for not leaving the machine idle
     @Scheduled(cron = "45 * * * * *") //every minute
@@ -87,28 +69,25 @@ public class Schedule {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "0 0 4 1 * *")
     public void checkS3UnusedProfileImages() {
         final List<String> dbProfileImages = userRepository.getAllUserProfileImages();
 
         checkS3UnusedObjects(S3FolderPath.USER_PROFILE_IMG, dbProfileImages);
-        log.info("Passou checagem de objetos inutilizados do s3 - profile images");
     }
 
-    @Scheduled(cron = "0 05 4 * * *")
+    @Scheduled(cron = "0 05 4 1 * *")
     public void checkS3UnusedReleaseAttachments() {
         final List<String> dbAttachments = releaseRepository.getAllReleaseAttachments();
 
         checkS3UnusedObjects(S3FolderPath.RELEASE_ATTACHMENTS, dbAttachments);
-        log.info("Passou checagem de objetos inutilizados do s3 - release attachments");
     }
 
-    @Scheduled(cron = "0 10 4 * * *")
+    @Scheduled(cron = "0 10 4 1 * *")
     public void checkS3UnusedInvoicePaymentAttachments() {
         final List<String> dbAttachments = invoicePaymentRepository.getAllInvoicePaymentAttachments();
 
         checkS3UnusedObjects(S3FolderPath.INVOICE_PAYMENT_ATTACHMENTS, dbAttachments);
-        log.info("Passou checagem de objetos inutilizados do s3 - invoice payment attachments");
     }
 
     private void checkS3UnusedObjects(S3FolderPath folderPath, List<String> dbObjects) {
