@@ -32,4 +32,13 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
                 ip.payment_date desc, ip.payment_hour desc, ip.id desc
             """, nativeQuery = true)
     List<InvoicePaymentPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
+
+    @Query("""
+            SELECT ip.s3FileName
+            FROM InvoicePayment ip
+            WHERE
+                ip.s3FileName is not null
+                AND ip.s3FileName <> ''
+            """)
+    List<String> getAllInvoicePaymentAttachments();
 }
