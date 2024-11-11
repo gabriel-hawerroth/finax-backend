@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -16,9 +17,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Modifying
     @Query("""
-                update User u
-                set u.active = true
-                where u.id = ?1
+            UPDATE User u
+            SET u.active = true
+            WHERE u.id = ?1
             """)
     void activeUser(long userId);
+
+    @Query("""
+            SELECT u.profileImage
+            FROM User u
+            WHERE
+                u.profileImage is not null
+                AND u.profileImage <> ''
+            """)
+    List<String> getAllUserProfileImages();
 }

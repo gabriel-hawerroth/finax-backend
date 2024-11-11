@@ -186,4 +186,13 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND rls.is_balance_adjustment is false
             """, nativeQuery = true)
     List<Release> getReleasesForHomeSpendsCategory(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+
+    @Query("""
+            SELECT r.s3FileName
+            FROM Release r
+            WHERE
+            	r.s3FileName is not null
+            	AND r.s3FileName <> ''
+            """)
+    List<String> getAllReleaseAttachments();
 }
