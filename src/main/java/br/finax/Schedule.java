@@ -41,7 +41,7 @@ public class Schedule {
     private String databaseUrl;
 
     // Method for not leaving the machine idle
-    @Scheduled(cron = "45 * * * * *") //every minute
+    @Scheduled(cron = "45 * * * * *")
     public void stayActive() {
         List<Category> categories = categoryRepository.findAll();
 
@@ -51,14 +51,14 @@ public class Schedule {
     }
 
     @Scheduled(cron = "0 0 3 * * *")
-    public void clearUsersCache() { //every day at 3:40AM
+    public void clearUsersCache() {
         securityFilter.clearUsersCache();
 
         log.info("Cleared user cache in security filter");
     }
 
     @Transactional
-    @Scheduled(cron = "0 05 3 * * *") //every day at 3:30AM
+    @Scheduled(cron = "0 05 3 * * *")
     public void optimizeDatabase() {
         final String dbName = databaseUrl.split("//")[1].split("/")[1].split("\\?")[0];
 
