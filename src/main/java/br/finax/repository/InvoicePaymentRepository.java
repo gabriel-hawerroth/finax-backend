@@ -12,30 +12,32 @@ public interface InvoicePaymentRepository extends JpaRepository<InvoicePayment, 
 
     @Query(value = """
             SELECT
-                ip.id,
-                ip.credit_card_id AS creditCardId,
-                ip.month_year AS monthYear,
-                ip.payment_amount AS paymentAmount,
-                ip.payment_date AS paymentDate,
-                ip.payment_hour AS paymentHour,
-                ip.attachment_name AS attachmentName,
-                ip.payment_account_id AS paymentAccountId,
+                ip.id AS id,
+                ip.creditCardId AS creditCardId,
+                ip.monthYear AS monthYear,
+                ip.paymentAmount AS paymentAmount,
+                ip.paymentDate AS paymentDate,
+                ip.paymentHour AS paymentHour,
+                ip.attachmentName AS attachmentName,
+                ip.paymentAccountId AS paymentAccountId,
                 ac.name AS paymentAccountName,
                 ac.image AS paymentAccountImage
             FROM
-                invoice_payment ip
-                JOIN account ac ON ip.payment_account_id = ac.id
+                InvoicePayment ip
+                JOIN Account ac ON ip.paymentAccountId = ac.id
             WHERE
-                ip.credit_card_id = :creditCardId
-                AND ip.month_year = :monthYear
+                ip.creditCardId = :creditCardId
+                AND ip.monthYear = :monthYear
             ORDER BY
-                ip.payment_date desc, ip.payment_hour desc, ip.id desc
-            """, nativeQuery = true)
+                ip.paymentDate desc, ip.paymentHour desc, ip.id desc
+            """)
     List<InvoicePaymentPerson> getInvoicePayments(long creditCardId, @NonNull String monthYear);
 
     @Query("""
-            SELECT ip.s3FileName
-            FROM InvoicePayment ip
+            SELECT
+                ip.s3FileName AS fileName
+            FROM
+                InvoicePayment ip
             WHERE
                 ip.s3FileName is not null
                 AND ip.s3FileName <> ''

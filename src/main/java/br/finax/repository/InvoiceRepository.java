@@ -16,12 +16,12 @@ public interface InvoiceRepository extends JpaRepository<InvoicePayment, Long> {
             SELECT
                 coalesce(sum(r.amount), 0)
             FROM
-                release r
+                Release r
             WHERE
-                r.credit_card_id = :cardId
-                AND r."date" between :invoiceFirstDay AND :invoiceLastDay
+                r.creditCardId = :cardId
+                AND r.date between :invoiceFirstDay AND :invoiceLastDay
                 AND r.done is true
-            """, nativeQuery = true)
+            """)
     BigDecimal getInvoiceAmount(long cardId, LocalDate invoiceFirstDay, LocalDate invoiceLastDay);
 
     @Query(value = """
@@ -29,30 +29,30 @@ public interface InvoiceRepository extends JpaRepository<InvoicePayment, Long> {
                 COALESCE(
                     GREATEST(
                         SUM(rls.amount) -
-                        COALESCE((SELECT SUM(ip.payment_amount)
-                        FROM invoice_payment ip
-                        WHERE ip.credit_card_id = :creditCardId), 0)
+                        COALESCE((SELECT SUM(ip.paymentAmount)
+                        FROM InvoicePayment ip
+                        WHERE ip.creditCardId = :creditCardId), 0)
                     , 0)
                 , 0) AS previousBalance
             FROM
-                release rls
+                Release rls
             WHERE
-                rls.user_id = :userId
-                AND rls.credit_card_id = :creditCardId
+                rls.userId = :userId
+                AND rls.creditCardId = :creditCardId
                 AND rls.date < :firstDt
                 AND rls.done is true
-            """, nativeQuery = true)
+            """)
     BigDecimal getInvoicePreviousAmount(long userId, long creditCardId, @NonNull LocalDate firstDt);
 
     @Query(value = """
             SELECT
                 coalesce(sum(r.amount), 0)
             FROM
-                release r
+                Release r
             WHERE
-                r.credit_card_id = :cardId
-                AND r."date" >= :firstDay
+                r.creditCardId = :cardId
+                AND r.date >= :firstDay
                 AND r.done is true
-            """, nativeQuery = true)
+            """)
     BigDecimal getNextInvoicesAmount(long cardId, LocalDate firstDay);
 }

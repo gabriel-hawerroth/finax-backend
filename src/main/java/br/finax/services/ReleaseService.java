@@ -35,7 +35,9 @@ import java.util.List;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.*;
+import static br.finax.utils.FileUtils.compressFile;
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service

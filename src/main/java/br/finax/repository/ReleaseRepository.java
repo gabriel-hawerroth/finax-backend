@@ -15,49 +15,49 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
 
     @Query(value = """
             SELECT
-                rls.id,
-                rls.user_id AS userId,
-                rls.description,
-                rls.account_id AS accountId,
+                rls.id AS id,
+                rls.userId AS userId,
+                rls.description AS description,
+                rls.accountId AS accountId,
                 ac.name AS accountName,
-                rls.credit_card_id AS cardId,
+                rls.creditCardId AS cardId,
                 cc.name AS cardName,
                 cc.image AS cardImg,
-                rls.amount,
-                rls.type,
-                rls.done,
-                rls.target_account_id AS targetAccountId,
+                rls.amount AS amount,
+                rls.type AS type,
+                rls.done AS done,
+                rls.targetAccountId AS targetAccountId,
                 ac2.name AS targetAccountName,
-                rls.category_id AS categoryId,
+                rls.categoryId AS categoryId,
                 ctg.name AS categoryName,
                 ctg.color AS categoryColor,
                 ctg.icon AS categoryIcon,
-                rls.date,
-                rls.time,
-                rls.observation,
-                rls.s3_file_name AS attachmentS3FileName,
-                rls.attachment_name AS attachmentName,
-                rls.duplicated_release_id AS duplicatedReleaseId,
+                rls.date AS date,
+                rls.time AS time,
+                rls.observation AS observation,
+                rls.s3FileName AS attachmentS3FileName,
+                rls.attachmentName AS attachmentName,
+                rls.duplicatedReleaseId AS duplicatedReleaseId,
                 (CASE WHEN
-                        EXISTS (SELECT 1 FROM release WHERE duplicated_release_id = rls.id)
+                        EXISTS (SELECT 1 FROM Release r WHERE r.duplicatedReleaseId = rls.id)
                             OR
-                        rls.duplicated_release_id IS NOT NULL
+                        rls.duplicatedReleaseId IS NOT NULL
                     THEN true
                     ELSE false
                 END) AS isDuplicatedRelease,
-                rls.is_balance_adjustment AS isBalanceAdjustment
+                rls.isBalanceAdjustment AS isBalanceAdjustment
             FROM
-                release rls
-                LEFT JOIN account ac ON rls.account_id = ac.id
-                LEFT JOIN account ac2 ON rls.target_account_id  = ac2.id
-                LEFT JOIN credit_card cc ON rls.credit_card_id = cc.id
-                LEFT JOIN category ctg ON rls.category_id = ctg.id
+                Release rls
+                LEFT JOIN Account ac ON rls.accountId = ac.id
+                LEFT JOIN Account ac2 ON rls.targetAccountId  = ac2.id
+                LEFT JOIN CreditCard cc ON rls.creditCardId = cc.id
+                LEFT JOIN Category ctg ON rls.categoryId = ctg.id
             WHERE
-                rls.user_id = :userId
+                rls.userId = :userId
                 AND rls.date between :firstDt and :lastDt
             ORDER BY
                 rls.date, rls.time, rls.id
-            """, nativeQuery = true)
+            """)
     List<MonthlyRelease> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
@@ -80,116 +80,118 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 ctg.color AS categoryColor,
                 ctg.icon AS categoryIcon,
                 ctg.name AS categoryName,
-                rls.credit_card_id is not null AS isCreditCardRelease,
-                rls.description,
+                rls.creditCardId is not null AS isCreditCardRelease,
+                rls.description AS description,
                 ac.name AS accountName,
                 cc.name AS creditCardName,
-                rls.date,
-                rls.amount,
-                rls.type
+                rls.date AS date,
+                rls.amount AS amount,
+                rls.type AS type
             FROM
-                release rls
-                LEFT JOIN account ac ON rls.account_id = ac.id
-                LEFT JOIN category ctg ON rls.category_id = ctg.id
-                LEFT JOIN public.credit_card cc on rls.credit_card_id = cc.id
+                Release rls
+                LEFT JOIN Account ac ON rls.accountId = ac.id
+                LEFT JOIN Category ctg ON rls.categoryId = ctg.id
+                LEFT JOIN CreditCard cc on rls.creditCardId = cc.id
             WHERE
-                rls.user_id = :userId
+                rls.userId = :userId
                 AND rls.date between :firstDt AND :lastDt
                 AND rls.type <> 'T'
                 AND rls.done is false
-                AND rls.is_balance_adjustment is false
+                AND rls.isBalanceAdjustment is false
             ORDER BY
                 rls.date, rls.time, rls.id
-            """, nativeQuery = true)
+            """)
     List<HomeUpcomingRelease> getPayableAndReceivableAccounts(long userId, LocalDate firstDt, LocalDate lastDt);
 
     @Query(value = """
             SELECT
-                *
+                rls
             FROM
-                release rls
+                Release rls
             WHERE
-                rls.duplicated_release_id = :duplicatedReleaseId
+                rls.duplicatedReleaseId = :duplicatedReleaseId
                 AND rls.date > :date
             ORDER BY rls.id
-            """, nativeQuery = true)
+            """)
     List<Release> getNextDuplicatedReleases(long duplicatedReleaseId, @NonNull LocalDate date);
 
     @Query(value = """
             SELECT
-                *
+                rls
             FROM
-                release rls
+                Release rls
             WHERE
-                rls.duplicated_release_id = :duplicatedReleaseId
+                rls.duplicatedReleaseId = :duplicatedReleaseId
                 OR rls.id = :duplicatedReleaseId
             ORDER BY rls.id
-            """, nativeQuery = true)
+            """)
     List<Release> getAllDuplicatedReleases(long duplicatedReleaseId);
 
     @Query(value = """
             SELECT
-                rls.id,
-                rls.user_id AS userId,
-                rls.description,
+                rls.id AS id,
+                rls.userId AS userId,
+                rls.description AS description,
                 null AS accountId,
                 null AS accountName,
                 cc.id AS cardId,
                 cc.name AS cardName,
                 cc.image AS cardImg,
-                rls.amount,
-                rls.type,
-                rls.done,
+                rls.amount AS amount,
+                rls.type AS type,
+                rls.done AS done,
                 '' AS targetAccountId,
                 '' AS targetAccountName,
-                rls.category_id AS categoryId,
+                rls.categoryId AS categoryId,
                 ctg.name AS categoryName,
                 ctg.color AS categoryColor,
                 ctg.icon AS categoryIcon,
-                rls.date,
-                rls.time,
-                rls.observation,
-                rls.s3_file_name AS attachmentS3FileName,
-                rls.attachment_name AS attachmentName,
-                rls.duplicated_release_id AS duplicatedReleaseId,
+                rls.date AS date,
+                rls.time AS time,
+                rls.observation AS observation,
+                rls.s3FileName AS attachmentS3FileName,
+                rls.attachmentName AS attachmentName,
+                rls.duplicatedReleaseId AS duplicatedReleaseId,
                 (CASE WHEN
-                        EXISTS (SELECT 1 FROM release WHERE duplicated_release_id = rls.id)
+                        EXISTS (SELECT 1 FROM Release r WHERE r.duplicatedReleaseId = rls.id)
                             OR
-                        rls.duplicated_release_id IS NOT NULL
+                        rls.duplicatedReleaseId IS NOT NULL
                     THEN true
                     ELSE false
                 END) AS isDuplicatedRelease,
-                rls.is_balance_adjustment AS isBalanceAdjustment
+                rls.isBalanceAdjustment AS isBalanceAdjustment
             FROM
-                release rls
-                JOIN credit_card cc ON rls.credit_card_id = cc.id
-                LEFT JOIN category ctg ON rls.category_id = ctg.id
+                Release rls
+                JOIN CreditCard cc ON rls.creditCardId = cc.id
+                LEFT JOIN Category ctg ON rls.categoryId = ctg.id
             WHERE
-                rls.user_id = :userId
-                AND rls.credit_card_id = :creditCardId
+                rls.userId = :userId
+                AND rls.creditCardId = :creditCardId
                 AND rls.date BETWEEN :firstDt AND :lastDt
             ORDER BY
                 rls.date, rls.time, rls.id
-            """, nativeQuery = true)
+            """)
     List<MonthlyRelease> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
-                *
+                rls
             FROM
-                release rls
+                Release rls
             WHERE
-                rls.user_id = :userId
+                rls.userId = :userId
                 AND rls.date between :firstDt AND :lastDt
                 AND rls.type = 'E'
                 AND rls.done is true
-                AND rls.is_balance_adjustment is false
-            """, nativeQuery = true)
+                AND rls.isBalanceAdjustment is false
+            """)
     List<Release> getReleasesForHomeSpendsCategory(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query("""
-            SELECT r.s3FileName
-            FROM Release r
+            SELECT
+                r.s3FileName AS attachmentS3FileName
+            FROM
+                Release r
             WHERE
             	r.s3FileName is not null
             	AND r.s3FileName <> ''
