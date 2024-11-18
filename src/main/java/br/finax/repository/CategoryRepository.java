@@ -11,16 +11,15 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query(value = """
             SELECT
-                *
+                ctg
             FROM
-                category ctg
+                Category ctg
             WHERE
-                ctg.user_id = :userId
+                ctg.userId = :userId
                 AND ctg.active = true
             ORDER BY
                 ctg.id
-            """, nativeQuery = true
-    )
+            """)
     List<Category> findByUser(long userId);
 
     List<Category> findByIdIn(@NonNull List<Long> id);

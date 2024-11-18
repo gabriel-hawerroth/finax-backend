@@ -14,49 +14,49 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
     @Query(value = """
             SELECT
-                cc.id,
-                cc.user_id AS userId,
-                cc.name,
-                cc.card_limit AS cardLimit,
-                cc.close_day AS closeDay,
-                cc.expires_day AS expiresDay,
-                cc.image,
-                cc.standard_payment_account_id AS standardPaymentAccountId,
-                cc.active,
+                cc.id AS id,
+                cc.userId AS userId,
+                cc.name AS name,
+                cc.cardLimit AS cardLimit,
+                cc.closeDay AS closeDay,
+                cc.expiresDay AS expiresDay,
+                cc.image AS image,
+                cc.standardPaymentAccountId AS standardPaymentAccountId,
+                cc.active AS active,
                 ac.name AS accountName,
                 ac.image AS accountImage
             FROM
-                credit_card cc
-                JOIN account ac ON cc.standard_payment_account_id = ac.id
+                CreditCard cc
+                JOIN Account ac ON cc.standardPaymentAccountId = ac.id
             WHERE
-                cc.user_id = :userId
+                cc.userId = :userId
             ORDER BY
                 cc.id
-            """, nativeQuery = true)
+            """)
     List<UserCreditCard> getAllByUser(long userId);
 
     @Query(value = """
             SELECT
-                cc.id,
-                cc.name,
-                cc.image
+                cc.id AS id,
+                cc.name AS name,
+                cc.image AS image
             FROM
-                credit_card cc
+                CreditCard cc
             WHERE
-                cc.user_id = :userId
+                cc.userId = :userId
                 AND cc.active = true
             ORDER BY
                 cc.id
-            """, nativeQuery = true)
+            """)
     List<BasicCard> getBasicList(long userId);
 
     @Query(value = """
             SELECT
-                cc.user_id
+                cc.userId AS userId
             FROM
-                credit_card cc
+                CreditCard cc
             WHERE
                 cc.id = :id
-            """, nativeQuery = true)
+            """)
     long findUserIdById(long id);
 }
