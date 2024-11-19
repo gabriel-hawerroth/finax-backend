@@ -57,4 +57,7 @@ public class Account {
 
     @Enumerated(EnumType.STRING)
     private AccountType type;
+
+    @Column(name = "primary_account_id")
+    private Long primaryAccountId;
 }

@@ -52,12 +52,23 @@ public class AccountService {
     public Account createNew(Account account) {
         account.setId(null);
         account.setUserId(getAuthUser().getId());
+
+        if (account.getPrimaryAccountId() != null) {
+            final Account primaryAccount = findById(account.getPrimaryAccountId());
+            checkPermission(primaryAccount);
+        }
+
         return accountRepository.save(account);
     }
 
     @Transactional
     public Account edit(Account account) {
         checkPermission(account);
+
+        if (account.getPrimaryAccountId() != null) {
+            final Account primaryAccount = findById(account.getPrimaryAccountId());
+            checkPermission(primaryAccount);
+        }
 
         return accountRepository.save(account);
     }
