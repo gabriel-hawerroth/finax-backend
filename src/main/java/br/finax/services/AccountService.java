@@ -2,8 +2,10 @@ package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.InterfacesSQL.HomeAccount;
+import br.finax.enums.ErrorCategory;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Account;
 import br.finax.models.Release;
@@ -66,6 +68,9 @@ public class AccountService {
         checkPermission(account);
 
         if (account.getPrimaryAccountId() != null) {
+            if (account.getPrimaryAccountId().equals(account.getId()))
+                throw new ServiceException(ErrorCategory.BAD_REQUEST, "The account cannot be a sub-account of itself");
+
             final Account primaryAccount = findById(account.getPrimaryAccountId());
             checkPermission(primaryAccount);
         }
