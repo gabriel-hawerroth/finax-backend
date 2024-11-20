@@ -1,5 +1,6 @@
 package br.finax.dto;
 
+import br.finax.enums.AccountType;
 import br.finax.enums.release.ReleaseType;
 
 import java.math.BigDecimal;
@@ -105,6 +106,8 @@ public class InterfacesSQL {
         String getImage();
 
         BigDecimal getBalance();
+
+        AccountType getType();
     }
 
     public interface BasicCard {
@@ -143,6 +146,8 @@ public class InterfacesSQL {
         String getImage();
 
         BigDecimal getBalance();
+
+        AccountType getType();
     }
 
     public interface HomeUpcomingRelease {

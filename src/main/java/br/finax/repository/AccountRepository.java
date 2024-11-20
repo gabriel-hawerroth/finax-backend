@@ -16,7 +16,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             SELECT
                 ac.name AS name,
                 ac.image AS image,
-                ac.balance AS balance
+                ac.balance AS balance,
+                ac.type AS type
             FROM
                 Account ac
             WHERE
@@ -34,7 +35,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 ac.id AS id,
                 ac.name AS name,
                 ac.image AS image,
-                ac.balance AS balance
+                ac.balance AS balance,
+                ac.type AS type
             FROM
                 Account ac
             WHERE
