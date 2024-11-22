@@ -66,7 +66,6 @@ public class ReleaseController {
             @RequestBody @Valid Release release,
             @RequestParam String duplicatedReleaseAction
     ) {
-        log.info("date-recebido: {}", release.getDate());
         return ResponseEntity.ok(
                 releaseService.editRelease(
                         release, DuplicatedReleaseAction.valueOf(duplicatedReleaseAction)
