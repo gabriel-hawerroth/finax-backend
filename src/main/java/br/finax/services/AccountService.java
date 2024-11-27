@@ -3,6 +3,7 @@ package br.finax.services;
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.enums.ErrorCategory;
+import br.finax.enums.ExclusionProcess;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
@@ -30,6 +31,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final ReleaseService releaseService;
+    private final AccountService accountService;
 
     @Transactional(readOnly = true)
     public Account findById(long id) {
@@ -89,6 +91,19 @@ public class AccountService {
         account.setBalance(newBalance);
 
         return accountRepository.save(account);
+    }
+
+    public ExclusionProcess delete(long accountId) {
+        final Account account = accountService.findById(accountId);
+
+        try {
+            accountRepository.delete(account);
+            return ExclusionProcess.DELETED;
+        } catch (Exception e) {
+            account.setActive(false);
+            accountRepository.save(account);
+            return ExclusionProcess.INACTIVATED;
+        }
     }
 
     @Transactional(readOnly = true)

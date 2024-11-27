@@ -1,12 +1,22 @@
 package br.finax.controllers;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
+import br.finax.enums.ExclusionProcess;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -60,6 +70,13 @@ public class AccountController {
     public ResponseEntity<Account> adjustBalance(@PathVariable long id, @RequestParam BigDecimal newBalance) {
         return ResponseEntity.ok(
                 accountService.adjustBalance(id, newBalance)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ExclusionProcess> delete(@PathVariable long id) {
+        return ResponseEntity.ok(
+                accountService.delete(id)
         );
     }
 }
