@@ -20,9 +20,23 @@ jobs:
       matrix:
         language: [ 'java' ]
 
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # required to fetch internal or private CodeQL packs
+      packages: read
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Verify repository integrity
+        run: git fsck --full
 
       - name: Set up Java 22
         uses: actions/setup-java@v3
