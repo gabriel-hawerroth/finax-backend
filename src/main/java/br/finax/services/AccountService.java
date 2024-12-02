@@ -3,7 +3,6 @@ package br.finax.services;
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.enums.ErrorCategory;
-import br.finax.enums.ExclusionProcess;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
@@ -14,6 +13,7 @@ import br.finax.repository.AccountRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
 import java.util.List;
 
 import static br.finax.utils.UtilsService.getAuthUser;
@@ -93,17 +94,35 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    public ExclusionProcess delete(long accountId) {
+    public void delete(long accountId) {
         final Account account = accountService.findById(accountId);
 
         try {
-            accountRepository.delete(account);
-            return ExclusionProcess.DELETED;
-        } catch (Exception e) {
-            account.setActive(false);
-            accountRepository.save(account);
-            return ExclusionProcess.INACTIVATED;
+            if (account.getPrimaryAccountId() == null)
+                accountRepository.deleteSubAccounts(accountId);
+
+            accountRepository.deleteById(accountId);
+        } catch (DataIntegrityViolationException e) {
+            throw new ServiceException(ErrorCategory.BAD_REQUEST, "linked registers, cannot exclude");
         }
+    }
+
+    @Transactional
+    public void inactivateAccount(long accountId) {
+        final var _ = accountService.findById(accountId);
+
+        accountRepository.inactivateAccount(accountId);
+    }
+
+    @Transactional
+    public void activateAccount(long accountId, List<Long> subAccountIds) {
+        final var _ = accountService.findById(accountId);
+
+        final List<Long> accountIds = new LinkedList<>();
+        accountIds.add(accountId);
+        accountIds.addAll(subAccountIds);
+
+        accountRepository.activateAccounts(accountIds);
     }
 
     @Transactional(readOnly = true)
