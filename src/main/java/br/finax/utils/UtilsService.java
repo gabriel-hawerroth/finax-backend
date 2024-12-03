@@ -10,9 +10,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @UtilityClass
 public class UtilsService {
+
+    private static final Pattern errorMessageHandlePattern = Pattern.compile("ERROR:\\s([^\\n\\[$]++)");
 
     public static String generateHash(String text) {
         MessageDigest digest;
@@ -51,5 +55,19 @@ public class UtilsService {
             case List<?> list -> !list.isEmpty();
             default -> false;
         };
+    }
+
+    public static String extractRelevantErrorMessage(String exceptionMessage) {
+        if (exceptionMessage == null || exceptionMessage.isBlank()) {
+            return null;
+        }
+
+        Matcher matcher = errorMessageHandlePattern.matcher(exceptionMessage);
+
+        if (matcher.find()) {
+            return matcher.group(1) != null ? matcher.group(1).trim() : matcher.group(2).trim();
+        }
+
+        return "Error message not found";
     }
 }

@@ -83,7 +83,6 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    @Transactional
     public Account edit(Account account) {
         checkPermission(account);
 

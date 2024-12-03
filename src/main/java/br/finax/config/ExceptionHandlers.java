@@ -2,9 +2,23 @@ package br.finax.config;
 
 import br.finax.dto.ResponseError;
 import br.finax.enums.ErrorCategory;
-import br.finax.exceptions.*;
+import br.finax.exceptions.BadCredentialsException;
+import br.finax.exceptions.CannotChangePasswordException;
+import br.finax.exceptions.EmailAlreadyExistsException;
+import br.finax.exceptions.EmailSendingException;
+import br.finax.exceptions.EmptyFileException;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.InvalidFileException;
+import br.finax.exceptions.InvalidHashAlgorithmException;
+import br.finax.exceptions.InvalidParametersException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.TokenCreationException;
+import br.finax.exceptions.WithoutPermissionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +26,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.logging.Logger;
+
+import static br.finax.utils.UtilsService.extractRelevantErrorMessage;
 
 @RestControllerAdvice
 public class ExceptionHandlers {
@@ -50,6 +66,13 @@ public class ExceptionHandlers {
         return ResponseEntity.status(ex.getErrorCategory().getHttpStatusCode()).body(
                 new ResponseError(ex.getMessage())
         );
+    }
+
+    @ExceptionHandler(JpaSystemException.class)
+    public ResponseEntity<ResponseError> jpaSystemException(JpaSystemException ex) {
+        return ResponseEntity.badRequest().body(new ResponseError(
+                extractRelevantErrorMessage(ex.getMessage())
+        ));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
