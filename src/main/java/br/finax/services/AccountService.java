@@ -31,15 +31,18 @@ import static br.finax.utils.UtilsService.getAuthUser;
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class AccountService {
 
-    private final AccountService accountService;
+    private final AccountService service;
     private final AccountRepository accountRepository;
     private final ReleaseService releaseService;
 
+    private static void checkPermission(Account account) {
+        if (account.getUserId() != getAuthUser().getId())
+            throw new WithoutPermissionException();
+    }
+
     @Transactional(readOnly = true)
     public GetAccountById getAccountById(long id) {
-        final Account account = accountRepository.findById(id).orElseThrow(NotFoundException::new);
-
-        checkPermission(account);
+        final Account account = service.findById(id);
 
         final Account primaryAccount = account.getPrimaryAccountId() != null
                 ? accountRepository.findById(account.getPrimaryAccountId()).orElseThrow(NotFoundException::new)
@@ -73,7 +76,7 @@ public class AccountService {
         account.setUserId(getAuthUser().getId());
 
         if (account.getPrimaryAccountId() != null) {
-            final Account primaryAccount = findById(account.getPrimaryAccountId());
+            final Account primaryAccount = service.findById(account.getPrimaryAccountId());
             checkPermission(primaryAccount);
         }
 
@@ -88,7 +91,7 @@ public class AccountService {
             if (account.getPrimaryAccountId().equals(account.getId()))
                 throw new ServiceException(ErrorCategory.BAD_REQUEST, "The account cannot be a sub-account of itself");
 
-            final Account primaryAccount = findById(account.getPrimaryAccountId());
+            final Account primaryAccount = service.findById(account.getPrimaryAccountId());
             checkPermission(primaryAccount);
         }
 
@@ -97,9 +100,7 @@ public class AccountService {
 
     @Transactional
     public Account adjustBalance(long accountId, @NonNull BigDecimal newBalance) {
-        final Account account = findById(accountId);
-
-        checkPermission(account);
+        final Account account = service.findById(accountId);
 
         createNewCashFlowRelease(account, newBalance);
 
@@ -109,7 +110,7 @@ public class AccountService {
     }
 
     public void delete(long accountId) {
-        final Account account = accountService.findById(accountId);
+        final Account account = service.findById(accountId);
 
         try {
             if (account.getPrimaryAccountId() == null)
@@ -123,14 +124,14 @@ public class AccountService {
 
     @Transactional
     public void inactivateAccount(long accountId) {
-        final var _ = accountService.findById(accountId);
+        final var _ = service.findById(accountId);
 
         accountRepository.inactivateAccount(accountId);
     }
 
     @Transactional
     public void activateAccount(long accountId, List<Long> subAccountIds) {
-        final var _ = accountService.findById(accountId);
+        final var _ = service.findById(accountId);
 
         final List<Long> accountIds = new LinkedList<>();
         accountIds.add(accountId);
@@ -165,10 +166,5 @@ public class AccountService {
         release.setTime(LocalDateTime.now().minusHours(3).format(DateTimeFormatter.ofPattern("HH:mm")));
 
         releaseService.addRelease(release, 0);
-    }
-
-    private void checkPermission(Account account) {
-        if (account.getUserId() != getAuthUser().getId())
-            throw new WithoutPermissionException();
     }
 }
