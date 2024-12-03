@@ -28,19 +28,19 @@ public class Account {
     @Column(nullable = false, length = 40)
     private String name;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 2, columnDefinition = "numeric(15,2) default 0.00")
     private BigDecimal balance;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean investments;
 
-    @Column(name = "add_overall_balance", nullable = false)
+    @Column(name = "add_overall_balance", nullable = false, columnDefinition = "boolean default true")
     private boolean addOverallBalance;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean archived;
 
     @Column(length = 30)
@@ -60,4 +60,10 @@ public class Account {
 
     @Column(name = "primary_account_id")
     private Long primaryAccountId;
+
+    @Column(name = "add_to_cash_flow", nullable = false, columnDefinition = "boolean default true")
+    private boolean addToCashFlow;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean grouper;
 }

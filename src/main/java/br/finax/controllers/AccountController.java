@@ -1,6 +1,7 @@
 package br.finax.controllers;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
+import br.finax.dto.account.GetAccountById;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
 import jakarta.validation.Valid;
@@ -20,9 +21,9 @@ public class AccountController {
     public final AccountService accountService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> findById(@PathVariable long id) {
+    public ResponseEntity<GetAccountById> findById(@PathVariable long id) {
         return ResponseEntity.ok(
-                accountService.findById(id)
+                accountService.getAccountById(id)
         );
     }
 

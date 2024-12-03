@@ -2,6 +2,7 @@ package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.InterfacesSQL.HomeAccount;
+import br.finax.dto.account.GetAccountById;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.NotFoundException;
@@ -30,9 +31,22 @@ import static br.finax.utils.UtilsService.getAuthUser;
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class AccountService {
 
+    private final AccountService accountService;
     private final AccountRepository accountRepository;
     private final ReleaseService releaseService;
-    private final AccountService accountService;
+
+    @Transactional(readOnly = true)
+    public GetAccountById getAccountById(long id) {
+        final Account account = accountRepository.findById(id).orElseThrow(NotFoundException::new);
+
+        checkPermission(account);
+
+        final Account primaryAccount = account.getPrimaryAccountId() != null
+                ? accountRepository.findById(account.getPrimaryAccountId()).orElseThrow(NotFoundException::new)
+                : null;
+
+        return new GetAccountById(account, primaryAccount);
+    }
 
     @Transactional(readOnly = true)
     public Account findById(long id) {
