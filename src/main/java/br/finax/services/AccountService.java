@@ -161,7 +161,7 @@ public class AccountService {
         release.setCategoryId(null);
         release.setDate(LocalDate.now());
         release.setRepeat(null);
-        release.setTime(LocalDateTime.now().minusHours(3).format(DateTimeFormatter.ofPattern("HH:mm")));
+        release.setTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
 
         releaseService.addRelease(release, 0);
     }
