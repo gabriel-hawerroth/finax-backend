@@ -37,6 +37,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             WHERE
                 ac.userId = :userId
                 AND ac.active is true
+                AND ac.grouper is false
             ORDER BY
                 ac.id
             """)
