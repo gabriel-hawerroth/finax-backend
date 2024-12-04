@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.home;
 
 import java.math.BigDecimal;
 

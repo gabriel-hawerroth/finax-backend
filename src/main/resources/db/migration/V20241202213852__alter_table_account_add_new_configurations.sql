@@ -4,6 +4,9 @@ ALTER TABLE account
 ALTER TABLE account
     ADD COLUMN grouper BOOLEAN NOT NULL DEFAULT FALSE;
 
+ALTER TABLE account
+    DROP COLUMN archived;
+
 -----------------------------------------------------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.fu_before_events_account()

@@ -140,16 +140,6 @@ public class InterfacesSQL {
         String getPaymentAccountImage();
     }
 
-    public interface HomeAccount {
-        String getName();
-
-        String getImage();
-
-        BigDecimal getBalance();
-
-        AccountType getType();
-    }
-
     public interface HomeUpcomingRelease {
         String getCategoryColor();
 

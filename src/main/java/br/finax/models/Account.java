@@ -40,9 +40,6 @@ public class Account {
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private boolean archived;
-
     @Column(length = 30)
     private String image;
 

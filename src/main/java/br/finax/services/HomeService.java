@@ -1,12 +1,13 @@
 package br.finax.services;
 
-import br.finax.dto.HomeCreditCard;
-import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategory;
 import br.finax.dto.SpendByCategoryOutput;
+import br.finax.dto.home.HomeAccount;
+import br.finax.dto.home.HomeCreditCard;
 import br.finax.enums.home.SpendByCategoryInterval;
+import br.finax.models.Account;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
 import br.finax.models.Release;
@@ -49,7 +50,28 @@ public class HomeService {
 
     @Transactional(readOnly = true)
     public List<HomeAccount> getAccountsList() {
-        return accountService.getHomeAccountsList();
+        final List<Account> accounts = accountService.findAllActiveByLoggedUser().stream()
+                .filter(Account::isAddOverallBalance)
+                .toList();
+
+        final List<Account> primaryAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() == null).toList();
+        final List<Account> subAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() != null).toList();
+
+        return primaryAccounts.stream().map(account -> {
+            final BigDecimal subAccountsBalance = subAccounts.stream().filter(subAccount -> subAccount.getPrimaryAccountId().equals(account.getId()))
+                    .map(Account::getBalance)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            final BigDecimal balance = account.isGrouper() ? subAccountsBalance : account.getBalance().add(subAccountsBalance);
+
+            return new HomeAccount(
+                    account.getId(),
+                    account.getName(),
+                    account.getImage(),
+                    balance,
+                    account.getType()
+            );
+        }).toList();
     }
 
     @Transactional(readOnly = true)

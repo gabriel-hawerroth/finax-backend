@@ -1,10 +1,10 @@
 package br.finax.controllers;
 
-import br.finax.dto.HomeCreditCard;
 import br.finax.dto.InterfacesSQL;
-import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.SpendByCategoryOutput;
+import br.finax.dto.home.HomeAccount;
+import br.finax.dto.home.HomeCreditCard;
 import br.finax.enums.home.SpendByCategoryInterval;
 import br.finax.services.HomeService;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,6 @@
 package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
-import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.models.Account;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,22 +15,15 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findAllByUserIdOrderByIdAsc(long userId);
 
     @Query(value = """
-            SELECT
-                ac.name AS name,
-                ac.image AS image,
-                ac.balance AS balance,
-                ac.type AS type
-            FROM
-                Account ac
+            SELECT ac
+            FROM Account ac
             WHERE
                 ac.userId = :userId
                 AND ac.active is true
-                AND ac.addOverallBalance is true
-                AND ac.archived is false
             ORDER BY
                 ac.id
             """)
-    List<HomeAccount> getHomeAccountsList(long userId);
+    List<Account> findAllActiveByUserId(long userId);
 
     @Query(value = """
             SELECT
@@ -45,7 +37,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             WHERE
                 ac.userId = :userId
                 AND ac.active is true
-                AND ac.archived is false
             ORDER BY
                 ac.id
             """)

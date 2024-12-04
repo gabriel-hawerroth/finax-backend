@@ -1,7 +1,6 @@
 package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
-import br.finax.dto.InterfacesSQL.HomeAccount;
 import br.finax.dto.account.GetAccountById;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.release.ReleaseType;
@@ -140,8 +139,8 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<HomeAccount> getHomeAccountsList() {
-        return accountRepository.getHomeAccountsList(
+    public List<Account> findAllActiveByLoggedUser() {
+        return accountRepository.findAllActiveByUserId(
                 getAuthUser().getId()
         );
     }
