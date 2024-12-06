@@ -81,11 +81,13 @@ public class LoginService {
         final Token token = userTokenService.generateToken(user);
 
         try {
+            final String mailContent = emailService.buildEmailContent(EmailType.CHANGE_PASSWORD, user, token.getToken());
+
             emailService.sendMail(
                     new EmailDTO(
                             email,
                             "Alteração da senha Finax",
-                            emailService.buildEmailTemplate(EmailType.CHANGE_PASSWORD, user.getId(), token.getToken())
+                            emailService.buildEmailTemplate(mailContent)
                     )
             );
         } catch (Exception e) {

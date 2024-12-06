@@ -88,7 +88,7 @@ public class AuthService {
 
         final Token token = userTokenService.generateToken(user);
 
-        sendActivateAccountEmail(user.getEmail(), user.getId(), token.getToken());
+        sendActivateAccountEmail(user.getEmail(), user, token.getToken());
 
         return user;
     }
@@ -102,11 +102,13 @@ public class AuthService {
         );
     }
 
-    private void sendActivateAccountEmail(String userMail, Long userId, String token) {
+    private void sendActivateAccountEmail(String userMail, User user, String token) {
+        final String mailContent = emailService.buildEmailContent(EmailType.ACTIVATE_ACCOUNT, user, token);
+
         final EmailDTO emailDTO = new EmailDTO(
                 userMail,
                 "Ativação da conta Finax",
-                emailService.buildEmailTemplate(EmailType.ACTIVATE_ACCOUNT, userId, token)
+                emailService.buildEmailTemplate(mailContent)
         );
 
         emailService.sendMail(emailDTO);

@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 public enum EmailType {
     ACTIVATE_ACCOUNT("activate-account"),
-    CHANGE_PASSWORD("permit-change-password");
+    CHANGE_PASSWORD("permit-change-password"),
+    SYSTEM_UPDATE("system-update");
 
     private final String value;
 

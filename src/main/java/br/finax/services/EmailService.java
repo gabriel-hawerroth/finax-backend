@@ -5,6 +5,7 @@ import br.finax.dto.HunterResponse;
 import br.finax.email.EmailProvider;
 import br.finax.enums.EmailType;
 import br.finax.external.HunterIoService;
+import br.finax.models.User;
 import br.finax.utils.ServiceUrls;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,14 +59,38 @@ public class EmailService {
         emailProvider.sendMail(emailDTO);
     }
 
-    public String buildEmailTemplate(@NonNull EmailType emailType, long userId, @NonNull String token) {
-        final String url = serviceUrls.getApiUrl() + "/login/" + emailType.getValue() + "/" + userId + "/" + token;
+    public String buildEmailContent(@NonNull EmailType emailType, User user, String token) {
+        if (emailType == EmailType.SYSTEM_UPDATE) {
+            return String.format("""
+                    Olá, %s!
+                    <br>
+                    Temos uma ótima notícia para você: acabamos de liberar uma nova versão com uma novidade incrível!
+                    <br><br>
+                    
+                    Agora é possível criar e gerenciar subcontas!
+                    <br>
+                    Acesse a tela "Minhas contas" no sistema e confira todas as possibilidades dessa nova funcionalidade.
+                    <br><br>
+                    
+                    Além disso, implementamos outras melhorias gerais e corrigimos alguns bugs para tornar sua experiência ainda melhor.
+                    <br>
+                    
+                    Estamos sempre trabalhando para oferecer o melhor para você!
+                    """, user.getFirstName());
+        }
+
+        final String url = serviceUrls.getApiUrl() + "/login/" + emailType.getValue() + "/" + user.getId() + "/" + token;
 
         final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> " ativar sua conta.";
             case CHANGE_PASSWORD -> " redefinir sua senha.";
+            default -> "";
         };
 
+        return String.format("Clique <a id=\"link\" href='%s' target=\"_blank\">aqui</a> para %s", url, action);
+    }
+
+    public String buildEmailTemplate(@NonNull String mailContent) {
         return """
                 <!DOCTYPE html>
                 <html lang="pt-br">
@@ -124,14 +149,8 @@ public class EmailService {
                                 <h1>Finax</h1>
                 
                                 <p class="line">
-                                    Clique <a id="link" href='
                 """
-                + url +
-                """
-                                        ' target="_blank">aqui</a>
-                                        para
-                        """
-                + action +
+                + mailContent +
                 """
                                         </p>
                         
@@ -139,6 +158,11 @@ public class EmailService {
                                             Para entrar em contato com nosso suporte, envie uma mensagem para
                                             suporte@appfinax.com.br, ficaremos felizes em receber sugestões de melhorias,
                                             dúvidas ou qualquer problema que você encontrar no sistema!
+                                            <br><br>
+                        
+                                            Abraços,
+                                            <br>
+                                            Equipe Finax
                                         </p>
                                     </div>
                                 </div>
