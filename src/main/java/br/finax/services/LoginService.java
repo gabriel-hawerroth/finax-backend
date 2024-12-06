@@ -86,7 +86,7 @@ public class LoginService {
             emailService.sendMail(
                     new EmailDTO(
                             email,
-                            "Alteração da senha Finax",
+                            "Alteração de senha",
                             emailService.buildEmailTemplate(mailContent)
                     )
             );

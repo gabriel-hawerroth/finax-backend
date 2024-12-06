@@ -107,7 +107,7 @@ public class AuthService {
 
         final EmailDTO emailDTO = new EmailDTO(
                 userMail,
-                "Ativação da conta Finax",
+                "Ativação da conta",
                 emailService.buildEmailTemplate(mailContent)
         );
 

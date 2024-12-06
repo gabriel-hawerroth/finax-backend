@@ -9,7 +9,6 @@ import br.finax.repository.UserRepository;
 import br.finax.services.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +23,6 @@ public class EmailSendController {
     UserRepository userRepository;
     EmailService emailService;
 
-    @PostMapping("/send-update-notification")
     public void sendEmail() {
         List<User> users = userRepository.findAll().stream().filter(User::isActive).toList();
 

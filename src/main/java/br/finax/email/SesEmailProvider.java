@@ -9,7 +9,11 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.*;
+import software.amazon.awssdk.services.ses.model.Body;
+import software.amazon.awssdk.services.ses.model.Content;
+import software.amazon.awssdk.services.ses.model.Message;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 @Component("SesEmailProvider")
 public class SesEmailProvider implements EmailProvider {
@@ -27,7 +31,7 @@ public class SesEmailProvider implements EmailProvider {
 
     @Override
     public void sendMail(EmailDTO emailDTO) {
-        final String from = "noreply@appfinax.com.br";
+        final String from = "Finax <noreply@appfinax.com.br>";
 
         final Content subjectContent = Content.builder()
                 .data(emailDTO.subject())
