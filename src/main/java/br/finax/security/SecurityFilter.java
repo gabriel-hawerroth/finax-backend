@@ -1,8 +1,6 @@
 package br.finax.security;
 
-import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -37,8 +35,12 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if (token != null) {
             final String userMail = tokenService.validateToken(token);
-            if (userMail == null)
-                throw new ServiceException(ErrorCategory.UNAUTHORIZED, "token expired or invalid");
+            if (userMail == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token expired or invalid");
+                response.getWriter().flush();
+                return; // Interrompe a cadeia de filtros
+            }
 
             final User user = findUserByMail(userMail);
 
