@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.cash_flow;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.InterfacesSQL.BasicCard;

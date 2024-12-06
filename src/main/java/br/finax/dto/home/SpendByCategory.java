@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.home;
 
 import br.finax.models.Category;
 import jakarta.validation.constraints.Min;

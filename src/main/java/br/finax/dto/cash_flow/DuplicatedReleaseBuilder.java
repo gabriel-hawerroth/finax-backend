@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.cash_flow;
 
 import br.finax.enums.release.ReleaseRepeat;
 import br.finax.models.Release;

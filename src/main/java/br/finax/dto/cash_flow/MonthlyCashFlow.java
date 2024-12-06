@@ -1,5 +1,6 @@
-package br.finax.dto;
+package br.finax.dto.cash_flow;
 
+import br.finax.dto.InterfacesSQL;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;

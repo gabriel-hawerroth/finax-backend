@@ -60,6 +60,17 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             """)
     List<MonthlyRelease> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
+    @Query("""
+            SELECT rls
+            FROM Release rls
+            WHERE
+                rls.userId = :userId
+                AND rls.date between :firstDt and :lastDt
+            ORDER BY
+                rls.date, rls.time, rls.id
+            """)
+    List<Release> findAllByUserAndDatesBetween(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+
     @Query(value = """
             SELECT
                 COALESCE(SUM(CASE WHEN rls.type = 'R' THEN rls.amount ELSE 0 END), 0) AS revenues,

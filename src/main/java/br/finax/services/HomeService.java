@@ -2,10 +2,10 @@ package br.finax.services;
 
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.SpendByCategory;
-import br.finax.dto.SpendByCategoryOutput;
 import br.finax.dto.home.HomeAccount;
 import br.finax.dto.home.HomeCreditCard;
+import br.finax.dto.home.SpendByCategory;
+import br.finax.dto.home.SpendByCategoryOutput;
 import br.finax.enums.home.SpendByCategoryInterval;
 import br.finax.models.Account;
 import br.finax.models.Category;

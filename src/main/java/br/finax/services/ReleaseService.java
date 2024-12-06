@@ -1,11 +1,14 @@
 package br.finax.services;
 
-import br.finax.dto.CashFlowValues;
-import br.finax.dto.DuplicatedReleaseBuilder;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.InterfacesSQL.MonthlyRelease;
-import br.finax.dto.MonthlyCashFlow;
+import br.finax.dto.cash_flow.CashFlowValues;
+import br.finax.dto.cash_flow.DuplicatedReleaseBuilder;
+import br.finax.dto.cash_flow.MonthlyCashFlow;
+import br.finax.dto.cash_flow.MonthlyReleaseAccount;
+import br.finax.dto.cash_flow.MonthlyReleaseCard;
+import br.finax.dto.cash_flow.MonthlyReleaseCategory;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
@@ -32,6 +35,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
@@ -72,6 +76,63 @@ public class ReleaseService {
                 ),
                 0
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<br.finax.dto.cash_flow.MonthlyRelease> getMonthlyReleases(final String monthYear) {
+        final var firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
+
+        final var releases = releaseRepository.findAllByUserAndDatesBetween(
+                getAuthUser().getId(),
+                firstAndLastDate.firstDay(),
+                firstAndLastDate.lastDay()
+        );
+
+        final var accounts = accountService.getByUser();
+        final var cards = creditCardService.getByUser();
+        final var categories = categoryService.getByUser();
+
+        return releases.stream().map(release -> {
+            final MonthlyReleaseAccount account = accounts.stream()
+                    .filter(account1 -> Objects.equals(account1.getId(), release.getAccountId()))
+                    .findFirst().map(ac -> new MonthlyReleaseAccount(ac.getId(), ac.getName()))
+                    .orElse(null);
+
+            final var targetAccount = accounts.stream()
+                    .filter(targetAccount1 -> Objects.equals(targetAccount1.getId(), release.getAccountId()))
+                    .findFirst().map(tac -> new MonthlyReleaseAccount(tac.getId(), tac.getName()))
+                    .orElse(null);
+
+            final var card = cards.stream()
+                    .filter(card1 -> Objects.equals(card1.getId(), release.getCreditCardId()))
+                    .findFirst().map(cd -> new MonthlyReleaseCard(cd.getId(), cd.getName(), cd.getImage()))
+                    .orElse(null);
+
+            final var category = categories.stream()
+                    .filter(category1 -> Objects.equals(category1.getId(), release.getCategoryId()))
+                    .findFirst().map(ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
+                    .orElse(null);
+
+            return new br.finax.dto.cash_flow.MonthlyRelease(
+                    release.getId(),
+                    release.getUserId(),
+                    release.getType(),
+                    release.getDescription(),
+                    release.getAmount(),
+                    release.getDate(),
+                    release.isDone(),
+                    account,
+                    card,
+                    targetAccount,
+                    category,
+                    release.getObservation(),
+                    release.getS3FileName(),
+                    release.getAttachmentName(),
+                    release.getDuplicatedReleaseId(),
+                    release.getDuplicatedReleaseId() != null,
+                    release.isBalanceAdjustment()
+            );
+        }).toList();
     }
 
     @Transactional(readOnly = true)

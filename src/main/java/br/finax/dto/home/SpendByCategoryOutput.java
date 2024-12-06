@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.home;
 
 import java.time.LocalDate;
 import java.util.List;

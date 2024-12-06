@@ -1,7 +1,7 @@
 package br.finax.controllers;
 
-import br.finax.dto.CashFlowValues;
-import br.finax.dto.MonthlyCashFlow;
+import br.finax.dto.cash_flow.CashFlowValues;
+import br.finax.dto.cash_flow.MonthlyCashFlow;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.models.Release;
 import br.finax.services.ReleaseService;
