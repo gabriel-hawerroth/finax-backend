@@ -23,32 +23,11 @@ public class DateUtils {
     /**
      * Returns the current month and year in MM/yyyy format
      */
-    public static String getCurrentMonthYear() {
-        final int intCurrentMonth = LocalDate.now().getMonthValue();
-        final int intCurrentYear = LocalDate.now().getYear();
-
-        final String stringCurrentMonth = intCurrentMonth < 10 ? "0" + intCurrentMonth : String.valueOf(intCurrentMonth);
-
-        return stringCurrentMonth + "/" + intCurrentYear;
-    }
-
-    /**
-     * Returns the current month and year in MM/yyyy format
-     */
     public static String getNextMonthYear() {
-        final String currentMonthYear = getCurrentMonthYear();
+        LocalDate nextMonthDate = LocalDate.now().plusMonths(1);
 
-        final String month = currentMonthYear.split("/")[0];
-
-        final String nextMonth;
-        if (month.equals("12")) {
-            nextMonth = "01";
-        } else {
-            final int intMonth = Integer.parseInt(month) + 1;
-            nextMonth = intMonth < 10 ? "0" + intMonth : String.valueOf(intMonth);
-        }
-
-        return nextMonth + "/" + currentMonthYear.split("/")[1];
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
+        return nextMonthDate.format(formatter);
     }
 
     /**
