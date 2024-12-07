@@ -53,11 +53,13 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 COALESCE(SUM(CASE WHEN rls.type = 'E' THEN rls.amount ELSE 0 END), 0) AS expenses
             FROM
                 release rls
+                LEFT JOIN account ac ON rls.account_id = ac.id
             WHERE
                 rls.user_id = :userId
                 AND rls.done = true
                 AND rls.date between :firstDt and :lastDt
                 AND rls.is_balance_adjustment is false
+                AND case when rls.account_id is not null then ac.add_to_cash_flow else true end
             LIMIT 1
             """, nativeQuery = true)
     HomeRevenueExpense getHomeBalances(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
@@ -119,12 +121,14 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls
             FROM
                 Release rls
+                LEFT join Account ac on rls.accountId = ac.id
             WHERE
                 rls.userId = :userId
                 AND rls.date between :firstDt AND :lastDt
                 AND rls.type = 'E'
                 AND rls.done is true
                 AND rls.isBalanceAdjustment is false
+                AND case when rls.accountId is not null then ac.addToCashFlow else true end
             """)
     List<Release> getReleasesForHomeSpendsCategory(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
