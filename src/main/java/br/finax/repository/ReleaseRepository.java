@@ -2,7 +2,6 @@ package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.models.Release;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,52 +12,17 @@ import java.util.List;
 
 public interface ReleaseRepository extends JpaRepository<Release, Long> {
 
-    @Query(value = """
+    @Query("""
             SELECT
-                rls.id AS id,
-                rls.userId AS userId,
-                rls.description AS description,
-                rls.accountId AS accountId,
-                ac.name AS accountName,
-                rls.creditCardId AS cardId,
-                cc.name AS cardName,
-                cc.image AS cardImg,
-                rls.amount AS amount,
-                rls.type AS type,
-                rls.done AS done,
-                rls.targetAccountId AS targetAccountId,
-                ac2.name AS targetAccountName,
-                rls.categoryId AS categoryId,
-                ctg.name AS categoryName,
-                ctg.color AS categoryColor,
-                ctg.icon AS categoryIcon,
-                rls.date AS date,
-                rls.time AS time,
-                rls.observation AS observation,
-                rls.s3FileName AS attachmentS3FileName,
-                rls.attachmentName AS attachmentName,
-                rls.duplicatedReleaseId AS duplicatedReleaseId,
-                (CASE WHEN
-                        EXISTS (SELECT 1 FROM Release r WHERE r.duplicatedReleaseId = rls.id)
-                            OR
-                        rls.duplicatedReleaseId IS NOT NULL
-                    THEN true
-                    ELSE false
-                END) AS isDuplicatedRelease,
-                rls.isBalanceAdjustment AS isBalanceAdjustment
+                (rls.duplicatedReleaseId is not null
+                    OR
+                EXISTS (SELECT 1 FROM Release r WHERE r.duplicatedReleaseId = rls.id))
             FROM
                 Release rls
-                LEFT JOIN Account ac ON rls.accountId = ac.id
-                LEFT JOIN Account ac2 ON rls.targetAccountId  = ac2.id
-                LEFT JOIN CreditCard cc ON rls.creditCardId = cc.id
-                LEFT JOIN Category ctg ON rls.categoryId = ctg.id
             WHERE
-                rls.userId = :userId
-                AND rls.date between :firstDt and :lastDt
-            ORDER BY
-                rls.date, rls.time, rls.id
+                rls.id = :releaseId
             """)
-    List<MonthlyRelease> getMonthlyReleases(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    boolean isDuplicatedRelease(long releaseId);
 
     @Query("""
             SELECT rls
@@ -70,6 +34,18 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 rls.date, rls.time, rls.id
             """)
     List<Release> findAllByUserAndDatesBetween(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+
+    @Query("""
+            SELECT rls
+            FROM Release rls
+            WHERE
+                rls.userId = :userId
+                AND rls.creditCardId = :creditCardId
+                AND rls.date between :firstDt and :lastDt
+            ORDER BY
+                rls.date, rls.time, rls.id
+            """)
+    List<Release> findAllByUserAndCreditCardAndDatesBetween(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT
@@ -137,52 +113,6 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             ORDER BY rls.id
             """)
     List<Release> getAllDuplicatedReleases(long duplicatedReleaseId);
-
-    @Query(value = """
-            SELECT
-                rls.id AS id,
-                rls.userId AS userId,
-                rls.description AS description,
-                null AS accountId,
-                null AS accountName,
-                cc.id AS cardId,
-                cc.name AS cardName,
-                cc.image AS cardImg,
-                rls.amount AS amount,
-                rls.type AS type,
-                rls.done AS done,
-                '' AS targetAccountId,
-                '' AS targetAccountName,
-                rls.categoryId AS categoryId,
-                ctg.name AS categoryName,
-                ctg.color AS categoryColor,
-                ctg.icon AS categoryIcon,
-                rls.date AS date,
-                rls.time AS time,
-                rls.observation AS observation,
-                rls.s3FileName AS attachmentS3FileName,
-                rls.attachmentName AS attachmentName,
-                rls.duplicatedReleaseId AS duplicatedReleaseId,
-                (CASE WHEN
-                        EXISTS (SELECT 1 FROM Release r WHERE r.duplicatedReleaseId = rls.id)
-                            OR
-                        rls.duplicatedReleaseId IS NOT NULL
-                    THEN true
-                    ELSE false
-                END) AS isDuplicatedRelease,
-                rls.isBalanceAdjustment AS isBalanceAdjustment
-            FROM
-                Release rls
-                JOIN CreditCard cc ON rls.creditCardId = cc.id
-                LEFT JOIN Category ctg ON rls.categoryId = ctg.id
-            WHERE
-                rls.userId = :userId
-                AND rls.creditCardId = :creditCardId
-                AND rls.date BETWEEN :firstDt AND :lastDt
-            ORDER BY
-                rls.date, rls.time, rls.id
-            """)
-    List<MonthlyRelease> getByInvoice(long userId, long creditCardId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 
     @Query(value = """
             SELECT

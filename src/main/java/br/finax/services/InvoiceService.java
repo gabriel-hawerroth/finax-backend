@@ -1,8 +1,8 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.dto.InvoiceMonthValues;
 import br.finax.dto.InvoiceValues;
+import br.finax.dto.cash_flow.MonthlyRelease;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CreditCard;
 import br.finax.repository.InvoiceRepository;
@@ -42,8 +42,8 @@ public class InvoiceService {
         final BigDecimal previousAmount = invoiceRepository.getInvoicePreviousAmount(userId, creditCardId, invoiceDays.firstDay());
 
         final BigDecimal amount = releases.stream()
-                .filter(MonthlyRelease::getDone)
-                .map(MonthlyRelease::getAmount)
+                .filter(MonthlyRelease::done)
+                .map(MonthlyRelease::amount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .add(previousAmount);
 

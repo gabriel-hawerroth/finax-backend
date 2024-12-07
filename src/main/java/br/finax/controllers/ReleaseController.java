@@ -1,7 +1,7 @@
 package br.finax.controllers;
 
 import br.finax.dto.cash_flow.CashFlowValues;
-import br.finax.dto.cash_flow.MonthlyCashFlow;
+import br.finax.dto.cash_flow.MonthlyRelease;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.models.Release;
 import br.finax.services.ReleaseService;
@@ -9,19 +9,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -31,12 +23,12 @@ public class ReleaseController {
 
     public final ReleaseService releaseService;
 
-    @GetMapping
-    public ResponseEntity<MonthlyCashFlow> getMonthlyFlow(
-            @RequestParam String monthYear // should be in MM/yyyy format
+    @GetMapping("/get-monthly-releases")
+    public ResponseEntity<List<MonthlyRelease>> getMonthlyReleases(
+            @RequestParam String monthYear // should be in yyyy-MM format
     ) {
         return ResponseEntity.ok(
-                releaseService.getMonthlyFlow(monthYear)
+                releaseService.getMonthlyReleases(monthYear)
         );
     }
 

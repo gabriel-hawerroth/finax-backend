@@ -1,7 +1,7 @@
 package br.finax.dto;
 
 import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
-import br.finax.dto.InterfacesSQL.MonthlyRelease;
+import br.finax.dto.cash_flow.MonthlyRelease;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;

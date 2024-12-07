@@ -12,6 +12,7 @@ public record MonthlyRelease(
         String description,
         BigDecimal amount,
         LocalDate date,
+        String time,
         boolean done,
         MonthlyReleaseAccount account,
         MonthlyReleaseCard card,

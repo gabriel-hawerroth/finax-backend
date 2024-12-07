@@ -1,11 +1,11 @@
 package br.finax.services;
 
+import br.finax.dto.FirstAndLastDate;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.InterfacesSQL.MonthlyRelease;
 import br.finax.dto.cash_flow.CashFlowValues;
 import br.finax.dto.cash_flow.DuplicatedReleaseBuilder;
-import br.finax.dto.cash_flow.MonthlyCashFlow;
+import br.finax.dto.cash_flow.MonthlyRelease;
 import br.finax.dto.cash_flow.MonthlyReleaseAccount;
 import br.finax.dto.cash_flow.MonthlyReleaseCard;
 import br.finax.dto.cash_flow.MonthlyReleaseCategory;
@@ -20,6 +20,9 @@ import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
+import br.finax.models.Account;
+import br.finax.models.Category;
+import br.finax.models.CreditCard;
 import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import lombok.NonNull;
@@ -33,15 +36,14 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.FileUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -65,74 +67,22 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public MonthlyCashFlow getMonthlyFlow(final String monthYear) {
-        final var firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
-
-        return new MonthlyCashFlow(
-                releaseRepository.getMonthlyReleases(
-                        getAuthUser().getId(),
-                        firstAndLastDate.firstDay(),
-                        firstAndLastDate.lastDay()
-                ),
-                0
-        );
-    }
-
-    @Transactional(readOnly = true)
-    public List<br.finax.dto.cash_flow.MonthlyRelease> getMonthlyReleases(final String monthYear) {
-        final var firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
+    public List<MonthlyRelease> getMonthlyReleases(final String monthYear) {
+        final long userId = getAuthUser().getId();
+        final FirstAndLastDate firstAndLastDate;
+        try {
+            firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
+        } catch (DateTimeParseException ex) {
+            throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid date format");
+        }
 
         final var releases = releaseRepository.findAllByUserAndDatesBetween(
-                getAuthUser().getId(),
+                userId,
                 firstAndLastDate.firstDay(),
                 firstAndLastDate.lastDay()
         );
 
-        final var accounts = accountService.getByUser();
-        final var cards = creditCardService.getByUser();
-        final var categories = categoryService.getByUser();
-
-        return releases.stream().map(release -> {
-            final MonthlyReleaseAccount account = accounts.stream()
-                    .filter(account1 -> Objects.equals(account1.getId(), release.getAccountId()))
-                    .findFirst().map(ac -> new MonthlyReleaseAccount(ac.getId(), ac.getName()))
-                    .orElse(null);
-
-            final var targetAccount = accounts.stream()
-                    .filter(targetAccount1 -> Objects.equals(targetAccount1.getId(), release.getAccountId()))
-                    .findFirst().map(tac -> new MonthlyReleaseAccount(tac.getId(), tac.getName()))
-                    .orElse(null);
-
-            final var card = cards.stream()
-                    .filter(card1 -> Objects.equals(card1.getId(), release.getCreditCardId()))
-                    .findFirst().map(cd -> new MonthlyReleaseCard(cd.getId(), cd.getName(), cd.getImage()))
-                    .orElse(null);
-
-            final var category = categories.stream()
-                    .filter(category1 -> Objects.equals(category1.getId(), release.getCategoryId()))
-                    .findFirst().map(ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
-                    .orElse(null);
-
-            return new br.finax.dto.cash_flow.MonthlyRelease(
-                    release.getId(),
-                    release.getUserId(),
-                    release.getType(),
-                    release.getDescription(),
-                    release.getAmount(),
-                    release.getDate(),
-                    release.isDone(),
-                    account,
-                    card,
-                    targetAccount,
-                    category,
-                    release.getObservation(),
-                    release.getS3FileName(),
-                    release.getAttachmentName(),
-                    release.getDuplicatedReleaseId(),
-                    release.getDuplicatedReleaseId() != null,
-                    release.isBalanceAdjustment()
-            );
-        }).toList();
+        return mapToMonthlyReleases(releases, userId);
     }
 
     @Transactional(readOnly = true)
@@ -361,7 +311,9 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public List<MonthlyRelease> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
-        return releaseRepository.getByInvoice(userId, creditCardId, firstDt, lastDt);
+        final var releases = releaseRepository.findAllByUserAndCreditCardAndDatesBetween(userId, creditCardId, firstDt, lastDt);
+
+        return mapToMonthlyReleases(releases, getAuthUser().getId());
     }
 
     private void checkPermission(final Release release) {
@@ -371,5 +323,53 @@ public class ReleaseService {
 
     private String concatS3FolderPath(String filename) {
         return S3FolderPath.RELEASE_ATTACHMENTS.getPath().concat(filename);
+    }
+
+    private List<MonthlyRelease> mapToMonthlyReleases(List<Release> releases, long userId) {
+        var accounts = accountService.findAllActiveByLoggedUser()
+                .stream().collect(Collectors.toUnmodifiableMap(
+                        Account::getId,
+                        ac -> new MonthlyReleaseAccount(ac.getId(), ac.getName(), ac.isAddToCashFlow())
+                ));
+
+        var cards = creditCardService.findAllByUserId(userId)
+                .stream().collect(Collectors.toUnmodifiableMap(
+                        CreditCard::getId,
+                        cd -> new MonthlyReleaseCard(cd.getId(), cd.getName(), cd.getImage()))
+                );
+
+        var categories = categoryService.getByUser()
+                .stream().collect(Collectors.toUnmodifiableMap(
+                        Category::getId,
+                        ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
+                );
+
+        return releases.stream().map(release -> {
+            var account = release.getAccountId() != null ? accounts.get(release.getAccountId()) : null;
+            var card = release.getCreditCardId() != null ? cards.get(release.getCreditCardId()) : null;
+            var targetAccount = release.getTargetAccountId() != null ? accounts.get(release.getTargetAccountId()) : null;
+            var category = release.getCategoryId() != null ? categories.get(release.getCategoryId()) : null;
+
+            return new MonthlyRelease(
+                    release.getId(),
+                    release.getUserId(),
+                    release.getType(),
+                    release.getDescription(),
+                    release.getAmount(),
+                    release.getDate(),
+                    release.getTime(),
+                    release.isDone(),
+                    account,
+                    card,
+                    targetAccount,
+                    category,
+                    release.getObservation(),
+                    release.getS3FileName(),
+                    release.getAttachmentName(),
+                    release.getDuplicatedReleaseId(),
+                    releaseRepository.isDuplicatedRelease(release.getId()),
+                    release.isBalanceAdjustment()
+            );
+        }).toList();
     }
 }
