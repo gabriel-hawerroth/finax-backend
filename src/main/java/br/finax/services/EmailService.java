@@ -52,7 +52,8 @@ public class EmailService {
         if (responseBody == null || responseBody.data() == null || responseBody.data().result() == null)
             return true;
 
-        return responseBody.data().result().equalsIgnoreCase("deliverable");
+        var result = responseBody.data().result();
+        return result.equals(AcceptedEmailVerificationResults.DELIVERABLE.value) || result.equals(AcceptedEmailVerificationResults.RISKY.value);
     }
 
     public void sendMail(EmailDTO emailDTO) {
@@ -272,5 +273,16 @@ public class EmailService {
                             </body>
                         </html>
                         """;
+    }
+
+    private enum AcceptedEmailVerificationResults {
+        DELIVERABLE,
+        RISKY;
+
+        private final String value;
+
+        AcceptedEmailVerificationResults() {
+            this.value = this.name().toLowerCase();
+        }
     }
 }
