@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
+    List<Category> findAllByUserId(long userId);
+
     @Query(value = """
             SELECT
                 ctg
@@ -20,7 +22,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             ORDER BY
                 ctg.id
             """)
-    List<Category> findByUser(long userId);
+    List<Category> findAllActiveByUser(long userId);
 
     List<Category> findByIdIn(@NonNull List<Long> id);
 }

@@ -89,7 +89,7 @@ public class ReleaseService {
     public CashFlowValues getValues() {
         return new CashFlowValues(
                 accountService.getBasicList(),
-                categoryService.getByUser(),
+                categoryService.findAllActiveByUser(),
                 creditCardService.getBasicList()
         );
     }
@@ -326,13 +326,13 @@ public class ReleaseService {
     }
 
     private List<MonthlyRelease> mapToMonthlyReleases(List<Release> releases, long userId) {
-        var accounts = accountService.findAllActiveByLoggedUser()
+        var accounts = accountService.getByUser()
                 .stream().collect(Collectors.toUnmodifiableMap(
                         Account::getId,
                         ac -> new MonthlyReleaseAccount(ac.getId(), ac.getName(), ac.isAddToCashFlow())
                 ));
 
-        var cards = creditCardService.findAllByUserId(userId)
+        var cards = creditCardService.getByUser(userId)
                 .stream().collect(Collectors.toUnmodifiableMap(
                         CreditCard::getId,
                         cd -> new MonthlyReleaseCard(cd.getId(), cd.getName(), cd.getImage()))

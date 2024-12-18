@@ -58,7 +58,7 @@ public class InvoiceService {
     public InvoiceValues getValues() {
         return new InvoiceValues(
                 accountService.getBasicList(),
-                categoryService.getByUser(),
+                categoryService.findAllActiveByUser(),
                 creditCardService.getBasicList()
         );
     }

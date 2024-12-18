@@ -90,7 +90,7 @@ public class CreditCardService {
     }
 
     @Transactional(readOnly = true)
-    public List<CreditCard> findAllByUserId(long userId) {
+    public List<CreditCard> getByUser(long userId) {
         return creditCardRepository.findAllByUserId(userId);
     }
 

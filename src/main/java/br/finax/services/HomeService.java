@@ -141,7 +141,7 @@ public class HomeService {
     public List<HomeCreditCard> getCreditCardsList() {
         final long userId = getAuthUser().getId();
 
-        final List<CreditCard> userCreditCards = creditCardService.findAllByUserId(userId);
+        final List<CreditCard> userCreditCards = creditCardService.getByUser(userId);
 
         final List<HomeCreditCard> cardsLists = new LinkedList<>();
 

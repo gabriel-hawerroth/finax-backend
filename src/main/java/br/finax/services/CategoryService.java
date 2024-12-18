@@ -33,7 +33,14 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<Category> getByUser() {
-        return categoryRepository.findByUser(
+        return categoryRepository.findAllByUserId(
+                getAuthUser().getId()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<Category> findAllActiveByUser() {
+        return categoryRepository.findAllActiveByUser(
                 getAuthUser().getId()
         );
     }
