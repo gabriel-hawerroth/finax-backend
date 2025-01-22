@@ -16,6 +16,8 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
+    private static final String ISSUER = "api-finax";
+
     @Value("${finax.security.secret-token}")
     private String secretToken;
 
@@ -24,7 +26,7 @@ public class TokenService {
 
         try {
             return JWT.create()
-                    .withIssuer("api-finax")
+                    .withIssuer(ISSUER)
                     .withSubject(user.getEmail())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
@@ -38,7 +40,7 @@ public class TokenService {
 
         try {
             return JWT.require(algorithm)
-                    .withIssuer("api-finax")
+                    .withIssuer(ISSUER)
                     .build()
                     .verify(token)
                     .getSubject();
@@ -47,7 +49,7 @@ public class TokenService {
         }
     }
 
-    private Instant genExpirationDate() {
+    private static Instant genExpirationDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
 }

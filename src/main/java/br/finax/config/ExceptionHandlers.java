@@ -2,20 +2,9 @@ package br.finax.config;
 
 import br.finax.dto.ResponseError;
 import br.finax.enums.ErrorCategory;
-import br.finax.exceptions.BadCredentialsException;
-import br.finax.exceptions.CannotChangePasswordException;
-import br.finax.exceptions.EmailAlreadyExistsException;
-import br.finax.exceptions.EmailSendingException;
-import br.finax.exceptions.EmptyFileException;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidFileException;
-import br.finax.exceptions.InvalidHashAlgorithmException;
-import br.finax.exceptions.InvalidParametersException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.TokenCreationException;
-import br.finax.exceptions.WithoutPermissionException;
+import br.finax.exceptions.*;
+import br.finax.utils.ServiceUrls;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -25,16 +14,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.net.URI;
 import java.util.logging.Logger;
 
 import static br.finax.utils.UtilsService.extractRelevantErrorMessage;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ExceptionHandlers {
 
     private static final String INTERNAL_ERROR = "An internal error has occurred";
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private final ServiceUrls serviceUrls;
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseError> generalException(Exception ex) {
@@ -160,6 +153,15 @@ public class ExceptionHandlers {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
                 new ResponseError("Method not allowed")
         );
+    }
+
+    @ExceptionHandler(ExpiredLinkException.class)
+    public ResponseEntity<ResponseError> expiredLinkException(ExpiredLinkException ex) {
+        final URI uri = URI.create(serviceUrls.getSiteUrl() + "/link-expirado");
+
+        return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                .location(uri)
+                .build();
     }
 
     private ResponseEntity<ResponseError> internalError() {

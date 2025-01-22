@@ -3,6 +3,7 @@ package br.finax.services;
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
+import br.finax.exceptions.ExpiredLinkException;
 import br.finax.exceptions.ServiceException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Token;
@@ -55,12 +56,13 @@ public class LoginService {
 
     @Transactional
     public void activateUser(Long userId, String token) {
-        final String savedToken = userTokenService.findByUserId(userId).getToken();
-
         final User user = userService.findById(userId);
+        final String userMail = tokenService.validateToken(token);
 
-        if (savedToken.equals(token))
-            userService.activeUser(user.getId());
+        if (!user.getEmail().equals(userMail))
+            throw new ExpiredLinkException();
+
+        userService.activeUser(user.getId());
 
         Thread.ofVirtual().start(() -> {
             categoryService.insertNewUserCategories(userId);
@@ -78,10 +80,10 @@ public class LoginService {
 
         final User user = userService.findByEmail(email);
 
-        final Token token = userTokenService.generateToken(user);
+        final String token = tokenService.generateToken(user);
 
         try {
-            final String mailContent = emailService.buildEmailContent(EmailType.CHANGE_PASSWORD, user, token.getToken());
+            final String mailContent = emailService.buildEmailContent(EmailType.CHANGE_PASSWORD, user, token);
 
             emailService.sendMail(
                     new EmailDTO(
@@ -97,16 +99,14 @@ public class LoginService {
 
     @Transactional
     public void permitChangePassword(long userId, String token) {
-        final String savedToken = userTokenService.findByUserId(userId).getToken();
-
         final User user = userService.findById(userId);
+        final String userMail = tokenService.validateToken(token);
 
-        if (savedToken.equals(token)) {
-            user.setCanChangePassword(true);
-            userService.save(user);
-        } else {
-            throw new WithoutPermissionException();
-        }
+        if (!user.getEmail().equals(userMail))
+            throw new ExpiredLinkException();
+
+        user.setCanChangePassword(true);
+        userService.save(user);
     }
 
     @Transactional

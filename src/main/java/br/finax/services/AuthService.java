@@ -86,9 +86,9 @@ public class AuthService {
 
         user = userService.save(user);
 
-        final Token token = userTokenService.generateToken(user);
+        final String token = tokenService.generateToken(user);
 
-        sendActivateAccountEmail(user.getEmail(), user, token.getToken());
+        sendActivateAccountEmail(user.getEmail(), user, token);
 
         return user;
     }
