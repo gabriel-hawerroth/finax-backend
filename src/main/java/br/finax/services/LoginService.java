@@ -53,11 +53,12 @@ public class LoginService {
 
     @Transactional
     public void activateUser(Long userId, String token) {
-        final User user = userService.findById(userId);
         final String userMail = tokenService.validateToken(token);
 
-        if (!user.getEmail().equals(userMail))
+        if (userMail == null)
             throw new ExpiredLinkException();
+
+        final User user = userService.findById(userId);
 
         userService.activeUser(user.getId());
 
