@@ -11,7 +11,6 @@ import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.exceptions.ServiceException;
 import br.finax.models.AccessLog;
-import br.finax.models.Token;
 import br.finax.models.User;
 import br.finax.security.SecurityFilter;
 import br.finax.security.TokenService;
@@ -36,7 +35,6 @@ public class AuthService {
 
     private final SecurityFilter securityFilter;
     private final AccessLogService accessLogService;
-    private final UserTokenService userTokenService;
     private final TokenService tokenService;
     private final EmailService emailService;
 

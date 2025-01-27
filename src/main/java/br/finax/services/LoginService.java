@@ -5,8 +5,6 @@ import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ExpiredLinkException;
 import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
-import br.finax.models.Token;
 import br.finax.models.User;
 import br.finax.security.TokenService;
 import jakarta.persistence.EntityManager;
@@ -43,7 +41,6 @@ public class LoginService {
             """;
 
     private final UserConfigsService userConfigsService;
-    private final UserTokenService userTokenService;
     private final CategoryService categoryService;
     private final EmailService emailService;
     private final UserService userService;
