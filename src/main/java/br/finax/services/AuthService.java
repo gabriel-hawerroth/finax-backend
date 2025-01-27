@@ -7,6 +7,7 @@ import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.user.UserAccess;
 import br.finax.enums.user.UserSignature;
+import br.finax.events.user_created.UserCreatedEvent;
 import br.finax.exceptions.BadCredentialsException;
 import br.finax.exceptions.EmailAlreadyExistsException;
 import br.finax.exceptions.ServiceException;
@@ -15,6 +16,7 @@ import br.finax.models.User;
 import br.finax.security.SecurityFilter;
 import br.finax.security.TokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +42,8 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public LoginResponseDTO doLogin(AuthenticationDTO authDTO) {
@@ -87,6 +91,9 @@ public class AuthService {
         final String token = tokenService.generateToken(user);
 
         sendActivateAccountEmail(user.getEmail(), user, token);
+
+        final var userCreatedEvent = new UserCreatedEvent(user);
+        applicationEventPublisher.publishEvent(userCreatedEvent);
 
         return user;
     }
