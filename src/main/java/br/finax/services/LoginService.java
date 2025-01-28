@@ -24,7 +24,6 @@ public class LoginService {
     private static final String DELETE_ALL_FROM_USER = """
                 DELETE FROM user_configs WHERE user_id = :userId;
                 DELETE FROM access_log WHERE user_id = :userId;
-                DELETE FROM token WHERE user_id = :userId;
             
                 DELETE FROM invoice_payment ip
                     WHERE credit_card_id in (
