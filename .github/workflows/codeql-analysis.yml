@@ -38,11 +38,11 @@ jobs:
       - name: Verify repository integrity
         run: git fsck --full
 
-      - name: Set up Java 22
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'corretto'
-          java-version: '22'
+          java-version: '23'
           cache: 'maven'
 
       - name: Initialize CodeQL
