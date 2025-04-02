@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'corretto'
-          java-version: '23'
+          java-version: '24'
           cache: 'maven'
 
       - name: Initialize CodeQL
