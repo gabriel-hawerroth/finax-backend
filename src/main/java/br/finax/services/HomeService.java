@@ -18,12 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static br.finax.utils.DateUtils.getFirstDayOfMonth;
 import static br.finax.utils.DateUtils.getLastDayOfMonth;
@@ -101,10 +100,14 @@ public class HomeService {
                 lastDay
         );
 
-        final Map<Long, Category> categoryMap = new HashMap<>();
-        final List<Long> categoryIds = expenses.stream().map(Release::getCategoryId).toList();
-        final List<Category> categories = categoryService.findByIdIn(categoryIds);
-        categories.forEach(category -> categoryMap.put(category.getId(), category));
+        final List<Long> categoryIds = expenses.stream()
+                .map(Release::getCategoryId)
+                .distinct()
+                .toList();
+
+        final Map<Long, Category> categoryMap = categoryService.findByIdIn(categoryIds)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(Category::getId, category -> category));
 
         final BigDecimal totalExpense = expenses.stream()
                 .map(Release::getAmount)
@@ -117,18 +120,16 @@ public class HomeService {
             categoryExpenseMap.put(expense.getCategoryId(), categoryExpense);
         });
 
-        final List<SpendByCategory> spendByCategories = new ArrayList<>();
-
-        categoryExpenseMap.forEach((categoryId, expense) -> {
-            final Category category = categoryMap.get(categoryId);
-
-            final BigDecimal percent = expense.divide(totalExpense, RoundingMode.HALF_EVEN)
-                    .multiply(BigDecimal.valueOf(100));
-
-            spendByCategories.add(new SpendByCategory(category, percent, expense));
-        });
-
-        spendByCategories.sort(Comparator.comparing(SpendByCategory::value).reversed());
+        final List<SpendByCategory> spendByCategories = categoryExpenseMap.entrySet().stream()
+                .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .map(entry -> {
+                    final Category category = categoryMap.get(entry.getKey());
+                    final BigDecimal percent = entry.getValue().divide(totalExpense, RoundingMode.HALF_EVEN)
+                            .multiply(BigDecimal.valueOf(100));
+                    return new SpendByCategory(category, percent, entry.getValue());
+                })
+                .sorted(Comparator.comparing(SpendByCategory::value).reversed())
+                .toList();
 
         return new SpendByCategoryOutput(
                 spendByCategories,
@@ -143,21 +144,17 @@ public class HomeService {
 
         final List<CreditCard> userCreditCards = creditCardService.getByUser(userId);
 
-        final List<HomeCreditCard> cardsLists = new LinkedList<>();
-
-        userCreditCards.forEach(card -> {
+        return userCreditCards.stream().map(card -> {
             final var currentInvoiceAmount = invoiceService.getCurrentInvoiceAmount(card);
             final var availableLimit = creditCardService.getCardAvailableLimit(card);
 
-            cardsLists.add(new HomeCreditCard(
+            return new HomeCreditCard(
                     card.getId(),
                     card.getName(),
                     card.getImage(),
                     currentInvoiceAmount,
                     availableLimit
-            ));
-        });
-
-        return cardsLists;
+            );
+        }).toList();
     }
 }
