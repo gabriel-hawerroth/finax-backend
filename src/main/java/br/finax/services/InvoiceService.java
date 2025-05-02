@@ -57,7 +57,7 @@ public class InvoiceService {
     @Transactional(readOnly = true)
     public InvoiceValues getValues() {
         return new InvoiceValues(
-                accountService.getBasicList(),
+                accountService.getBasicList(false),
                 categoryService.findAllActiveByUser(),
                 creditCardService.getBasicList()
         );
