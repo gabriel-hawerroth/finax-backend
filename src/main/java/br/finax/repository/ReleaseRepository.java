@@ -87,6 +87,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND rls.type <> 'T'
                 AND rls.done is false
                 AND rls.isBalanceAdjustment is false
+                AND ac.active is true
             ORDER BY
                 rls.date, rls.time, rls.id
             """)
