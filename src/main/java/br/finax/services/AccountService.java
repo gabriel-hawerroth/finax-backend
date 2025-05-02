@@ -65,8 +65,8 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public List<BasicAccount> getBasicList() {
-        return accountRepository.getBasicList(getAuthUser().getId());
+    public List<BasicAccount> getBasicList(boolean showSubAccounts) {
+        return accountRepository.getBasicList(getAuthUser().getId(), showSubAccounts);
     }
 
     @Transactional

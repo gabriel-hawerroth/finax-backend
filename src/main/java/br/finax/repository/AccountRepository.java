@@ -33,15 +33,19 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 ac.balance AS balance,
                 ac.type AS type
             FROM
-                Account ac
+                account ac
             WHERE
-                ac.userId = :userId
+                ac.user_id = :userId
                 AND ac.active is true
                 AND ac.grouper is false
+                AND CASE WHEN :showSubAccounts
+                    THEN ac.primary_account_id is null
+                    ELSE true
+                END
             ORDER BY
                 ac.id
-            """)
-    List<BasicAccount> getBasicList(long userId);
+            """, nativeQuery = true)
+    List<BasicAccount> getBasicList(long userId, boolean showSubAccounts);
 
     @Transactional
     @Modifying

@@ -43,7 +43,9 @@ import java.util.stream.Collectors;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.*;
+import static br.finax.utils.FileUtils.compressFile;
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -88,7 +90,7 @@ public class ReleaseService {
     @Transactional(readOnly = true)
     public CashFlowValues getValues() {
         return new CashFlowValues(
-                accountService.getBasicList(),
+                accountService.getBasicList(true),
                 categoryService.findAllActiveByUser(),
                 creditCardService.getBasicList()
         );
