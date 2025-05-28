@@ -18,7 +18,7 @@ De preferência fazer a instalação em um WSL com ubuntu 24 (se estiver usando 
 
 Para rodar o projeto é necessário ter o Java e o maven instalados nas versões:
 
-- Java 22
+- Java 24
 - Maven 3.9.9
 
 # Git
