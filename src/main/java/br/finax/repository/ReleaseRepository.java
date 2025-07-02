@@ -2,6 +2,7 @@ package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.enums.release.ReleaseType;
 import br.finax.models.Release;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -130,12 +131,12 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
             WHERE
                 rls.userId = :userId
                 AND rls.date between :firstDt AND :lastDt
-                AND rls.type = 'E'
+                AND rls.type = :releaseType
                 AND rls.done is true
                 AND rls.isBalanceAdjustment is false
                 AND case when rls.accountId is not null then ac.addToCashFlow else true end
             """)
-    List<Release> getReleasesForHomeSpendsCategory(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    List<Release> getReleasesForReleasesByCategoryReport(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, @NonNull ReleaseType releaseType);
 
     @Query("""
             SELECT

@@ -14,6 +14,7 @@ import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
+import br.finax.enums.release.ReleaseType;
 import br.finax.exceptions.FileCompressionErrorException;
 import br.finax.exceptions.FileIOException;
 import br.finax.exceptions.NotFoundException;
@@ -43,9 +44,7 @@ import java.util.stream.Collectors;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.FileUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -307,8 +306,8 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public List<Release> findReleasesForHomeSpendsCategory(long id, LocalDate startDate, LocalDate endDate) {
-        return releaseRepository.getReleasesForHomeSpendsCategory(id, startDate, endDate);
+    public List<Release> findReleasesForReleasesByCategoryReport(long id, LocalDate startDate, LocalDate endDate, ReleaseType releaseType) {
+        return releaseRepository.getReleasesForReleasesByCategoryReport(id, startDate, endDate, releaseType);
     }
 
     @Transactional(readOnly = true)
