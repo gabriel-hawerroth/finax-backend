@@ -38,8 +38,7 @@ public class HomeService {
         return releaseService.getHomeBalances(
                 getAuthUser().getId(),
                 getFirstDayOfMonth(),
-                getLastDayOfMonth()
-        );
+                getLastDayOfMonth());
     }
 
     @Transactional(readOnly = true)
@@ -48,23 +47,26 @@ public class HomeService {
                 .filter(Account::isAddOverallBalance)
                 .toList();
 
-        final List<Account> primaryAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() == null).toList();
-        final List<Account> subAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() != null).toList();
+        final List<Account> primaryAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() == null)
+                .toList();
+        final List<Account> subAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() != null)
+                .toList();
 
         return primaryAccounts.stream().map(account -> {
-            final BigDecimal subAccountsBalance = subAccounts.stream().filter(subAccount -> subAccount.getPrimaryAccountId().equals(account.getId()))
+            final BigDecimal subAccountsBalance = subAccounts.stream()
+                    .filter(subAccount -> subAccount.getPrimaryAccountId().equals(account.getId()))
                     .map(Account::getBalance)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            final BigDecimal balance = account.isGrouper() ? subAccountsBalance : account.getBalance().add(subAccountsBalance);
+            final BigDecimal balance = account.isGrouper() ? subAccountsBalance
+                    : account.getBalance().add(subAccountsBalance);
 
             return new HomeAccount(
                     account.getId(),
                     account.getName(),
                     account.getImage(),
                     balance,
-                    account.getType()
-            );
+                    account.getType());
         }).toList();
     }
 
@@ -73,8 +75,7 @@ public class HomeService {
         final long userId = getAuthUser().getId();
 
         return releaseService.getPayableAndReceivableAccounts(
-                userId, LocalDate.now().minusMonths(1), LocalDate.now().plusDays(20)
-        );
+                userId, LocalDate.now().minusMonths(1), LocalDate.now().plusDays(20));
     }
 
     @Transactional(readOnly = true)
@@ -94,8 +95,7 @@ public class HomeService {
                 monthYear = null;
                 firstAndLastDate = new FirstAndLastDate(
                         LocalDate.now().minusDays(30),
-                        LocalDate.now()
-                );
+                        LocalDate.now());
             }
             default -> throw new IllegalArgumentException("Unsupported interval: " + interval);
         }
@@ -103,10 +103,9 @@ public class HomeService {
         var releases = reportsService.getReleasesByCategory(intervalEnum, ReleaseType.E, monthYear);
 
         return new SpendByCategoryOutput(
-                releases.spendByCategories(),
+                releases.releasesByCategories(),
                 firstAndLastDate.firstDay(),
-                firstAndLastDate.lastDay()
-        );
+                firstAndLastDate.lastDay());
     }
 
     @Transactional(readOnly = true)
@@ -124,8 +123,7 @@ public class HomeService {
                     card.getName(),
                     card.getImage(),
                     currentInvoiceAmount,
-                    availableLimit
-            );
+                    availableLimit);
         }).toList();
     }
 }

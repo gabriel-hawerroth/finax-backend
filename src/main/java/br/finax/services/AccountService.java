@@ -60,6 +60,13 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
+    public List<Account> findByIdIn(List<Long> id) {
+        final List<Account> accounts = accountRepository.findAllById(id);
+        accounts.forEach(AccountService::checkPermission);
+        return accounts;
+    }
+
+    @Transactional(readOnly = true)
     public List<Account> getByUser() {
         return accountRepository.findAllByUserIdOrderByIdAsc(getAuthUser().getId());
     }

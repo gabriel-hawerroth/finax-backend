@@ -311,6 +311,11 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
+    public List<Release> findReleasesForReleasesByAccountReport(long userId, LocalDate firstDt, LocalDate lastDt, ReleaseType releaseType) {
+        return releaseRepository.getReleasesForReleasesByAccountReport(userId, firstDt, lastDt, releaseType);
+    }
+
+    @Transactional(readOnly = true)
     public List<MonthlyRelease> getByInvoice(long userId, long creditCardId, LocalDate firstDt, LocalDate lastDt) {
         final var releases = releaseRepository.findAllByUserAndCreditCardAndDatesBetween(userId, creditCardId, firstDt, lastDt);
 

@@ -1,14 +1,14 @@
-package br.finax.dto.home;
-
-import br.finax.models.Category;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+package br.finax.dto.reports;
 
 import java.math.BigDecimal;
 
-public record SpendByCategory(
+import br.finax.models.Account;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+public record ReleasesByAccount(
         @NotNull
-        Category category,
+        Account account,
 
         @NotNull
         BigDecimal percent,

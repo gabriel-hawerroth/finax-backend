@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.dto.reports.ReportReleasesByAccountOutput;
 import br.finax.dto.reports.ReportReleasesByCategoryOutput;
 import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
@@ -26,6 +27,17 @@ public class ReportsController {
     ) {
         return ResponseEntity.ok(
                 reportsService.getReleasesByCategory(interval, releaseType, monthYear)
+        );
+    }
+
+    @GetMapping("/releases-by-account")
+    public ResponseEntity<ReportReleasesByAccountOutput> getReleasesByAccount(
+            @RequestParam ReportReleasesByInterval interval,
+            @RequestParam ReleaseType releaseType,
+            @RequestParam(required = false) String monthYear
+    ) {
+        return ResponseEntity.ok(
+                reportsService.getReleasesByAccount(interval, releaseType, monthYear)
         );
     }
 }
