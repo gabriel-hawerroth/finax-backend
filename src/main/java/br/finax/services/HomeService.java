@@ -1,31 +1,26 @@
 package br.finax.services;
 
+import br.finax.dto.FirstAndLastDate;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.home.HomeAccount;
 import br.finax.dto.home.HomeCreditCard;
-import br.finax.dto.home.SpendByCategory;
 import br.finax.dto.home.SpendByCategoryOutput;
 import br.finax.enums.home.SpendByCategoryInterval;
+import br.finax.enums.release.ReleaseType;
+import br.finax.enums.reports.ReportReleasesByInterval;
 import br.finax.models.Account;
-import br.finax.models.Category;
 import br.finax.models.CreditCard;
-import br.finax.models.Release;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import static br.finax.utils.DateUtils.getFirstDayOfMonth;
-import static br.finax.utils.DateUtils.getLastDayOfMonth;
+import static br.finax.utils.DateUtils.*;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -33,18 +28,17 @@ import static br.finax.utils.UtilsService.getAuthUser;
 public class HomeService {
 
     private final ReleaseService releaseService;
-    private final CategoryService categoryService;
     private final AccountService accountService;
     private final CreditCardService creditCardService;
     private final InvoiceService invoiceService;
+    private final ReportsService reportsService;
 
     @Transactional(readOnly = true)
     public HomeRevenueExpense getRevenueExpense() {
         return releaseService.getHomeBalances(
                 getAuthUser().getId(),
                 getFirstDayOfMonth(),
-                getLastDayOfMonth()
-        );
+                getLastDayOfMonth());
     }
 
     @Transactional(readOnly = true)
@@ -53,23 +47,26 @@ public class HomeService {
                 .filter(Account::isAddOverallBalance)
                 .toList();
 
-        final List<Account> primaryAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() == null).toList();
-        final List<Account> subAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() != null).toList();
+        final List<Account> primaryAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() == null)
+                .toList();
+        final List<Account> subAccounts = accounts.stream().filter(account -> account.getPrimaryAccountId() != null)
+                .toList();
 
         return primaryAccounts.stream().map(account -> {
-            final BigDecimal subAccountsBalance = subAccounts.stream().filter(subAccount -> subAccount.getPrimaryAccountId().equals(account.getId()))
+            final BigDecimal subAccountsBalance = subAccounts.stream()
+                    .filter(subAccount -> subAccount.getPrimaryAccountId().equals(account.getId()))
                     .map(Account::getBalance)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            final BigDecimal balance = account.isGrouper() ? subAccountsBalance : account.getBalance().add(subAccountsBalance);
+            final BigDecimal balance = account.isGrouper() ? subAccountsBalance
+                    : account.getBalance().add(subAccountsBalance);
 
             return new HomeAccount(
                     account.getId(),
                     account.getName(),
                     account.getImage(),
                     balance,
-                    account.getType()
-            );
+                    account.getType());
         }).toList();
     }
 
@@ -78,64 +75,37 @@ public class HomeService {
         final long userId = getAuthUser().getId();
 
         return releaseService.getPayableAndReceivableAccounts(
-                userId, LocalDate.now().minusMonths(1), LocalDate.now().plusDays(20)
-        );
+                userId, LocalDate.now().minusMonths(1), LocalDate.now().plusDays(20));
     }
 
     @Transactional(readOnly = true)
     public SpendByCategoryOutput getSpendsByCategory(SpendByCategoryInterval interval) {
-        final LocalDate firstDay = switch (interval) {
-            case CURRENT_MONTH -> getFirstDayOfMonth();
-            case LAST_30_DAYS -> LocalDate.now().minusDays(30);
-        };
+        final ReportReleasesByInterval intervalEnum;
+        final String monthYear;
+        final FirstAndLastDate firstAndLastDate;
 
-        final LocalDate lastDay = switch (interval) {
-            case CURRENT_MONTH -> getLastDayOfMonth();
-            case LAST_30_DAYS -> LocalDate.now();
-        };
+        switch (interval) {
+            case CURRENT_MONTH -> {
+                intervalEnum = ReportReleasesByInterval.MONTHLY;
+                monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+                firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
+            }
+            case LAST_30_DAYS -> {
+                intervalEnum = ReportReleasesByInterval.LAST_30_DAYS;
+                monthYear = null;
+                firstAndLastDate = new FirstAndLastDate(
+                        LocalDate.now().minusDays(30),
+                        LocalDate.now());
+            }
+            default -> throw new IllegalArgumentException("Unsupported interval: " + interval);
+        }
 
-        final List<Release> expenses = releaseService.findReleasesForHomeSpendsCategory(
-                getAuthUser().getId(),
-                firstDay,
-                lastDay
-        );
-
-        final List<Long> categoryIds = expenses.stream()
-                .map(Release::getCategoryId)
-                .distinct()
-                .toList();
-
-        final Map<Long, Category> categoryMap = categoryService.findByIdIn(categoryIds)
-                .stream()
-                .collect(Collectors.toUnmodifiableMap(Category::getId, category -> category));
-
-        final BigDecimal totalExpense = expenses.stream()
-                .map(Release::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final Map<Long, BigDecimal> categoryExpenseMap = new HashMap<>();
-        expenses.forEach(expense -> {
-            final BigDecimal categoryExpense = categoryExpenseMap.getOrDefault(expense.getCategoryId(), BigDecimal.ZERO)
-                    .add(expense.getAmount());
-            categoryExpenseMap.put(expense.getCategoryId(), categoryExpense);
-        });
-
-        final List<SpendByCategory> spendByCategories = categoryExpenseMap.entrySet().stream()
-                .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
-                .map(entry -> {
-                    final Category category = categoryMap.get(entry.getKey());
-                    final BigDecimal percent = entry.getValue().divide(totalExpense, RoundingMode.HALF_EVEN)
-                            .multiply(BigDecimal.valueOf(100));
-                    return new SpendByCategory(category, percent, entry.getValue());
-                })
-                .sorted(Comparator.comparing(SpendByCategory::value).reversed())
-                .toList();
+        var releases = reportsService.getReleasesByCategory(intervalEnum, ReleaseType.E, monthYear);
 
         return new SpendByCategoryOutput(
-                spendByCategories,
-                firstDay,
-                lastDay
-        );
+                releases.releasesByCategories(),
+                firstAndLastDate.firstDay(),
+                firstAndLastDate.lastDay());
     }
 
     @Transactional(readOnly = true)
@@ -153,8 +123,7 @@ public class HomeService {
                     card.getName(),
                     card.getImage(),
                     currentInvoiceAmount,
-                    availableLimit
-            );
+                    availableLimit);
         }).toList();
     }
 }
