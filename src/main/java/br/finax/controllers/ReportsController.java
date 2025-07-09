@@ -6,6 +6,9 @@ import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
 import br.finax.services.ReportsService;
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDate;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +26,11 @@ public class ReportsController {
     public ResponseEntity<ReportReleasesByCategoryOutput> getReleasesByCategory(
             @RequestParam ReportReleasesByInterval interval,
             @RequestParam ReleaseType releaseType,
-            @RequestParam(required = false) String monthYear
+            @RequestParam(required = false) LocalDate initialDate,
+            @RequestParam(required = false) LocalDate finalDate
     ) {
         return ResponseEntity.ok(
-                reportsService.getReleasesByCategory(interval, releaseType, monthYear)
+                reportsService.getReleasesByCategory(interval, releaseType, initialDate, finalDate)
         );
     }
 
@@ -34,10 +38,11 @@ public class ReportsController {
     public ResponseEntity<ReportReleasesByAccountOutput> getReleasesByAccount(
             @RequestParam ReportReleasesByInterval interval,
             @RequestParam ReleaseType releaseType,
-            @RequestParam(required = false) String monthYear
+            @RequestParam(required = false) LocalDate initialDate,
+            @RequestParam(required = false) LocalDate finalDate
     ) {
         return ResponseEntity.ok(
-                reportsService.getReleasesByAccount(interval, releaseType, monthYear)
+                reportsService.getReleasesByAccount(interval, releaseType, initialDate, finalDate)
         );
     }
 }

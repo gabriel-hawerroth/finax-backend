@@ -39,14 +39,15 @@ public class ReportsService {
     private static void validateGetReleasesByParameters(
             ReportReleasesByInterval interval,
             ReleaseType releaseType,
-            String monthYear
+            LocalDate initialDate,
+            LocalDate finalDate
     ) {
         if (releaseType == ReleaseType.T) {
             throw new IllegalArgumentException("Release type T is not supported for this report.");
         }
 
-        if (interval == ReportReleasesByInterval.MONTHLY && monthYear == null) {
-            throw new IllegalArgumentException("Month and year must be provided for monthly reports.");
+        if (interval != ReportReleasesByInterval.LAST_30_DAYS && (initialDate == null || finalDate == null)) {
+            throw new IllegalArgumentException("Initial and final date must be provided for monthly and custom reports.");
         }
     }
 
@@ -54,10 +55,11 @@ public class ReportsService {
     public ReportReleasesByCategoryOutput getReleasesByCategory(
             @NonNull ReportReleasesByInterval interval,
             @NonNull ReleaseType releaseType,
-            String monthYear
+            LocalDate initialDate,
+            LocalDate finalDate
     ) {
-        validateGetReleasesByParameters(interval, releaseType, monthYear);
-        final FirstAndLastDate firstAndLastDate = getFirstAndLastDate(interval, monthYear);
+        validateGetReleasesByParameters(interval, releaseType, initialDate, finalDate);
+        final FirstAndLastDate firstAndLastDate = getFirstAndLastDate(interval, initialDate, finalDate);
         final List<Release> releases = releaseService.findReleasesForReleasesByCategoryReport(
                 getAuthUser().getId(),
                 firstAndLastDate.firstDay(),
@@ -72,10 +74,11 @@ public class ReportsService {
     public ReportReleasesByAccountOutput getReleasesByAccount(
             @NonNull ReportReleasesByInterval interval,
             @NonNull ReleaseType releaseType,
-            String monthYear
+            LocalDate initialDate,
+            LocalDate finalDate
     ) {
-        validateGetReleasesByParameters(interval, releaseType, monthYear);
-        final FirstAndLastDate firstAndLastDate = getFirstAndLastDate(interval, monthYear);
+        validateGetReleasesByParameters(interval, releaseType, initialDate, finalDate);
+        final FirstAndLastDate firstAndLastDate = getFirstAndLastDate(interval, initialDate, finalDate);
         final List<Release> releases = releaseService.findReleasesForReleasesByAccountReport(
                 getAuthUser().getId(),
                 firstAndLastDate.firstDay(),
@@ -86,18 +89,12 @@ public class ReportsService {
         return new ReportReleasesByAccountOutput(releasesByAccounts);
     }
 
-    private FirstAndLastDate getFirstAndLastDate(ReportReleasesByInterval interval, String monthYear) {
+    private FirstAndLastDate getFirstAndLastDate(ReportReleasesByInterval interval, LocalDate initialDate, LocalDate finalDate) {
         return switch (interval) {
-            case MONTHLY -> {
-                try {
-                    yield getFirstAndLastDayOfMonth(monthYear);
-                } catch (DateTimeParseException e) {
-                    throw new IllegalArgumentException("Invalid month and year format. Use MM/yyyy.");
-                }
-            }
+            case MONTHLY, CUSTOM -> new FirstAndLastDate(initialDate, finalDate);
             case LAST_30_DAYS -> new FirstAndLastDate(
-                    LocalDate.now().minusDays(30),
-                    LocalDate.now()
+                LocalDate.now().minusDays(30),
+                LocalDate.now()
             );
         };
     }
