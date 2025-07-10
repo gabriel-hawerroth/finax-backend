@@ -81,18 +81,16 @@ public class HomeService {
     @Transactional(readOnly = true)
     public SpendByCategoryOutput getSpendsByCategory(SpendByCategoryInterval interval) {
         final ReportReleasesByInterval intervalEnum;
-        final String monthYear;
         final FirstAndLastDate firstAndLastDate;
 
         switch (interval) {
             case CURRENT_MONTH -> {
+                String monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
                 intervalEnum = ReportReleasesByInterval.MONTHLY;
-                monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
                 firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
             }
             case LAST_30_DAYS -> {
                 intervalEnum = ReportReleasesByInterval.LAST_30_DAYS;
-                monthYear = null;
                 firstAndLastDate = new FirstAndLastDate(
                         LocalDate.now().minusDays(30),
                         LocalDate.now());
@@ -100,7 +98,12 @@ public class HomeService {
             default -> throw new IllegalArgumentException("Unsupported interval: " + interval);
         }
 
-        var releases = reportsService.getReleasesByCategory(intervalEnum, ReleaseType.E, monthYear);
+        var releases = reportsService.getReleasesByCategory(
+            intervalEnum,
+            ReleaseType.E,
+            firstAndLastDate.firstDay(),
+            firstAndLastDate.lastDay()
+        );
 
         return new SpendByCategoryOutput(
                 releases.releasesByCategories(),
