@@ -13,22 +13,6 @@ import java.util.List;
 
 public interface ReleaseRepository extends JpaRepository<Release, Long> {
 
-    @Query(value = """
-            SELECT
-                rls
-            FROM
-                Release rls
-                LEFT join Account ac on rls.accountId = ac.id
-            WHERE
-                rls.userId = :userId
-                AND rls.date between :firstDt AND :lastDt
-                AND rls.type = :releaseType
-                AND rls.done is true
-                AND rls.isBalanceAdjustment is false
-                AND case when rls.accountId is not null then ac.addToCashFlow else true end
-            """)
-    List<Release> getReleasesForReleasesByAccountReport(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, @NonNull ReleaseType releaseType);
-
     @Query("""
             SELECT
                 (rls.duplicatedReleaseId is not null
@@ -153,6 +137,24 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND case when rls.accountId is not null then ac.addToCashFlow else true end
             """)
     List<Release> getReleasesForReleasesByCategoryReport(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, @NonNull ReleaseType releaseType);
+
+    @Query(value = """
+            SELECT
+                rls
+            FROM
+                Release rls
+                LEFT join Account ac on rls.accountId = ac.id
+            WHERE
+                rls.userId = :userId
+                AND rls.date between :firstDt AND :lastDt
+                AND rls.type = :releaseType
+                AND rls.done is true
+                AND rls.isBalanceAdjustment is false
+                AND case when rls.accountId is not null then ac.addToCashFlow else true end
+            ORDER BY
+                rls.date, rls.time, rls.id
+            """)
+    List<Release> getReleasesForReleasesByAccountReport(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, @NonNull ReleaseType releaseType);
 
     @Query("""
             SELECT
