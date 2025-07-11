@@ -35,6 +35,13 @@ public class CreditCardService {
     }
 
     @Transactional(readOnly = true)
+    public List<CreditCard> findByIdIn(List<Long> ids) {
+        final List<CreditCard> card = creditCardRepository.findAllById(ids);
+        card.forEach(this::checkPermission);
+        return card;
+    }
+
+    @Transactional(readOnly = true)
     public List<UserCreditCard> getByUser() {
         return creditCardRepository.getAllByUser(getAuthUser().getId());
     }

@@ -6,6 +6,7 @@ import br.finax.dto.reports.ReleasesByAccount;
 import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
 import br.finax.models.Category;
+import br.finax.models.CreditCard;
 import br.finax.models.Account;
 import br.finax.models.Release;
 import lombok.NonNull;
@@ -31,6 +32,7 @@ public class ReportsService {
     private final ReleaseService releaseService;
     private final CategoryService categoryService;
     private final AccountService accountService;
+    private final CreditCardService creditCardService;
 
     private static void validateGetReleasesByParameters(
             ReportReleasesByInterval interval,
@@ -127,25 +129,48 @@ public class ReportsService {
 
     private List<ReleasesByAccount> groupAndMapReleasesByAccount(List<Release> releases) {
         if (releases.isEmpty()) return List.of();
+
         final List<Long> accountIds = releases.stream()
+                .filter(release -> release.getAccountId() != null)
                 .map(Release::getAccountId)
-                .filter(id -> id != null)
                 .distinct()
                 .toList();
+
+        final List<Long> creditCardsId = releases.stream()
+                .filter(release -> release.getCreditCardId() != null)
+                .map(Release::getCreditCardId)
+                .distinct()
+                .toList();
+
         final Map<Long, Account> accountMap = accountService.findByIdIn(accountIds)
                 .stream()
                 .collect(Collectors.toUnmodifiableMap(Account::getId, ac -> ac));
+
+        final Map<Long, CreditCard> creditCardMap = creditCardService.findByIdIn(creditCardsId)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(CreditCard::getId, cc -> cc));
+
         final BigDecimal totalAmount = releases.stream()
                 .map(Release::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         final Map<Long, BigDecimal> accountReleaseMap = new HashMap<>();
+        final Map<Long, BigDecimal> creditCardReleaseMap = new HashMap<>();
+
         releases.forEach(release -> {
-            if (release.getAccountId() == null) return;
-            final BigDecimal accountValue = accountReleaseMap.getOrDefault(release.getAccountId(), BigDecimal.ZERO)
-                    .add(release.getAmount());
-            accountReleaseMap.put(release.getAccountId(), accountValue);
+            if (release.getAccountId() != null) {
+                final BigDecimal accountValue = accountReleaseMap.getOrDefault(release.getAccountId(), BigDecimal.ZERO)
+                        .add(release.getAmount());
+                accountReleaseMap.put(release.getAccountId(), accountValue);
+            }
+            if (release.getCreditCardId() != null) {
+                final BigDecimal cardValue = creditCardReleaseMap.getOrDefault(release.getCreditCardId(), BigDecimal.ZERO)
+                        .add(release.getAmount());
+                creditCardReleaseMap.put(release.getCreditCardId(), cardValue);
+            }
         });
-        return accountReleaseMap.entrySet().stream()
+
+        List<ReleasesByAccount> accountResults = accountReleaseMap.entrySet().stream()
                 .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
                 .map(entry -> {
                     final Account account = accountMap.get(entry.getKey());
@@ -153,6 +178,19 @@ public class ReportsService {
                             .multiply(BigDecimal.valueOf(100));
                     return new ReleasesByAccount(account.getName(), percent, entry.getValue());
                 })
+                .collect(Collectors.toList());
+
+        List<ReleasesByAccount> creditCardResults = creditCardReleaseMap.entrySet().stream()
+                .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .map(entry -> {
+                    final CreditCard card = creditCardMap.get(entry.getKey());
+                    final BigDecimal percent = entry.getValue().divide(totalAmount, RoundingMode.HALF_EVEN)
+                            .multiply(BigDecimal.valueOf(100));
+                    return new ReleasesByAccount(card.getName(), percent, entry.getValue());
+                })
+                .collect(Collectors.toList());
+
+        return java.util.stream.Stream.concat(accountResults.stream(), creditCardResults.stream())
                 .sorted(Comparator.comparing(ReleasesByAccount::value).reversed())
                 .toList();
     }
