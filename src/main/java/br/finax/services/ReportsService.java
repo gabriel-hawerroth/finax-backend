@@ -2,6 +2,7 @@ package br.finax.services;
 
 import br.finax.dto.FirstAndLastDate;
 import br.finax.dto.reports.ReleasesByCategory;
+import br.finax.dto.reports.CategoryRec;
 import br.finax.dto.reports.ReleasesByAccount;
 import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
@@ -99,29 +100,36 @@ public class ReportsService {
 
     private List<ReleasesByCategory> groupAndMapReleasesByCategory(List<Release> releases) {
         if (releases.isEmpty()) return List.of();
+
         final List<Long> categoryIds = releases.stream()
                 .map(Release::getCategoryId)
                 .distinct()
                 .toList();
+
         final Map<Long, Category> categoryMap = categoryService.findByIdIn(categoryIds)
                 .stream()
                 .collect(Collectors.toUnmodifiableMap(Category::getId, category -> category));
+
         final BigDecimal totalAmount = releases.stream()
                 .map(Release::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         final Map<Long, BigDecimal> categoryReleaseMap = new HashMap<>();
+
         releases.forEach(expense -> {
             final BigDecimal categoryExpense = categoryReleaseMap.getOrDefault(expense.getCategoryId(), BigDecimal.ZERO)
                     .add(expense.getAmount());
             categoryReleaseMap.put(expense.getCategoryId(), categoryExpense);
         });
+
         return categoryReleaseMap.entrySet().stream()
                 .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
                 .map(entry -> {
                     final Category category = categoryMap.get(entry.getKey());
+                    final CategoryRec categoryRec = new CategoryRec(category.getName(), category.getColor(), category.getIcon());
                     final BigDecimal percent = entry.getValue().divide(totalAmount, RoundingMode.HALF_EVEN)
                             .multiply(BigDecimal.valueOf(100));
-                    return new ReleasesByCategory(category, percent, entry.getValue());
+                    return new ReleasesByCategory(categoryRec, percent, entry.getValue());
                 })
                 .sorted(Comparator.comparing(ReleasesByCategory::value).reversed())
                 .toList();
