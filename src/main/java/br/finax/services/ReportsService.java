@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static br.finax.utils.UtilsService.getAuthUser;
 
@@ -198,8 +199,8 @@ public class ReportsService {
                 })
                 .collect(Collectors.toList());
 
-        return java.util.stream.Stream.concat(accountResults.stream(), creditCardResults.stream())
-                .sorted(Comparator.comparing(ReleasesByAccount::value).reversed())
+        return Stream.concat(accountResults.stream(), creditCardResults.stream())
+                .sorted(Comparator.comparing(ReleasesByAccount::accountName))
                 .toList();
     }
 }
