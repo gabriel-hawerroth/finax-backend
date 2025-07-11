@@ -106,7 +106,7 @@ public class HomeService {
         );
 
         return new SpendByCategoryOutput(
-                releases.releasesByCategories(),
+                releases,
                 firstAndLastDate.firstDay(),
                 firstAndLastDate.lastDay());
     }

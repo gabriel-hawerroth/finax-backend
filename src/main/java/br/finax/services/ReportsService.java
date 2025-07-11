@@ -1,9 +1,7 @@
 package br.finax.services;
 
 import br.finax.dto.FirstAndLastDate;
-import br.finax.dto.reports.ReportReleasesByCategoryOutput;
 import br.finax.dto.reports.ReleasesByCategory;
-import br.finax.dto.reports.ReportReleasesByAccountOutput;
 import br.finax.dto.reports.ReleasesByAccount;
 import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
@@ -18,14 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -52,7 +48,7 @@ public class ReportsService {
     }
 
     @Transactional(readOnly = true)
-    public ReportReleasesByCategoryOutput getReleasesByCategory(
+    public List<ReleasesByCategory> getReleasesByCategory(
             @NonNull ReportReleasesByInterval interval,
             @NonNull ReleaseType releaseType,
             LocalDate initialDate,
@@ -67,11 +63,11 @@ public class ReportsService {
                 releaseType
         );
         final List<ReleasesByCategory> releasesByCategories = groupAndMapReleasesByCategory(releases);
-        return new ReportReleasesByCategoryOutput(releasesByCategories);
+        return releasesByCategories;
     }
 
     @Transactional(readOnly = true)
-    public ReportReleasesByAccountOutput getReleasesByAccount(
+    public List<ReleasesByAccount> getReleasesByAccount(
             @NonNull ReportReleasesByInterval interval,
             @NonNull ReleaseType releaseType,
             LocalDate initialDate,
@@ -86,7 +82,7 @@ public class ReportsService {
                 releaseType
         );
         final List<ReleasesByAccount> releasesByAccounts = groupAndMapReleasesByAccount(releases);
-        return new ReportReleasesByAccountOutput(releasesByAccounts);
+        return releasesByAccounts;
     }
 
     private FirstAndLastDate getFirstAndLastDate(ReportReleasesByInterval interval, LocalDate initialDate, LocalDate finalDate) {
@@ -155,7 +151,7 @@ public class ReportsService {
                     final Account account = accountMap.get(entry.getKey());
                     final BigDecimal percent = entry.getValue().divide(totalAmount, RoundingMode.HALF_EVEN)
                             .multiply(BigDecimal.valueOf(100));
-                    return new ReleasesByAccount(account, percent, entry.getValue());
+                    return new ReleasesByAccount(account.getName(), percent, entry.getValue());
                 })
                 .sorted(Comparator.comparing(ReleasesByAccount::value).reversed())
                 .toList();
