@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.5.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <packaging>jar</packaging>
@@ -18,10 +18,10 @@
     <properties>
         <java.version>24</java.version>
         <lombok.version>1.18.38</lombok.version>
-        <flyway.version>11.5.0</flyway.version>
+        <flyway.version>11.10.1</flyway.version>
         <java-jwt.version>4.5.0</java-jwt.version>
         <thumbnailator.version>0.4.20</thumbnailator.version>
-        <software.amazon.awssdk.bom.version>2.31.12</software.amazon.awssdk.bom.version>
+        <software.amazon.awssdk.bom.version>2.31.78</software.amazon.awssdk.bom.version>
     </properties>
 
     <dependencies>
@@ -174,5 +174,4 @@
         </plugins>
         <finalName>finax</finalName>
     </build>
-
 </project>
