@@ -1,14 +1,14 @@
 package br.finax.services;
 
 import br.finax.dto.FirstAndLastDate;
-import br.finax.dto.reports.ReleasesByCategory;
 import br.finax.dto.reports.CategoryRec;
 import br.finax.dto.reports.ReleasesByAccount;
+import br.finax.dto.reports.ReleasesByCategory;
 import br.finax.enums.release.ReleaseType;
 import br.finax.enums.reports.ReportReleasesByInterval;
+import br.finax.models.Account;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
-import br.finax.models.Account;
 import br.finax.models.Release;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,7 +47,10 @@ public class ReportsService {
             throw new IllegalArgumentException("Release type T is not supported for this report.");
         }
 
-        if (interval != ReportReleasesByInterval.LAST_30_DAYS && (initialDate == null || finalDate == null)) {
+        if (
+                !List.of(ReportReleasesByInterval.LAST_30_DAYS, ReportReleasesByInterval.LAST_12_MONTHS).contains(interval)
+                        && (initialDate == null || finalDate == null)
+        ) {
             throw new IllegalArgumentException("Initial and final date must be provided for monthly and custom reports.");
         }
     }
@@ -66,8 +70,7 @@ public class ReportsService {
                 firstAndLastDate.lastDay(),
                 releaseType
         );
-        final List<ReleasesByCategory> releasesByCategories = groupAndMapReleasesByCategory(releases);
-        return releasesByCategories;
+        return groupAndMapReleasesByCategory(releases);
     }
 
     @Transactional(readOnly = true)
@@ -85,16 +88,19 @@ public class ReportsService {
                 firstAndLastDate.lastDay(),
                 releaseType
         );
-        final List<ReleasesByAccount> releasesByAccounts = groupAndMapReleasesByAccount(releases);
-        return releasesByAccounts;
+        return groupAndMapReleasesByAccount(releases);
     }
 
     private FirstAndLastDate getFirstAndLastDate(ReportReleasesByInterval interval, LocalDate initialDate, LocalDate finalDate) {
         return switch (interval) {
-            case MONTHLY, CUSTOM -> new FirstAndLastDate(initialDate, finalDate);
+            case MONTHLY, YEARLY, CUSTOM -> new FirstAndLastDate(initialDate, finalDate);
             case LAST_30_DAYS -> new FirstAndLastDate(
-                LocalDate.now().minusDays(30),
-                LocalDate.now()
+                    LocalDate.now().minusDays(30),
+                    LocalDate.now()
+            );
+            case LAST_12_MONTHS -> new FirstAndLastDate(
+                    LocalDate.now().minusMonths(12),
+                    LocalDate.now()
             );
         };
     }
@@ -140,14 +146,14 @@ public class ReportsService {
         if (releases.isEmpty()) return List.of();
 
         final List<Long> accountIds = releases.stream()
-                .filter(release -> release.getAccountId() != null)
                 .map(Release::getAccountId)
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
         final List<Long> creditCardsId = releases.stream()
-                .filter(release -> release.getCreditCardId() != null)
                 .map(Release::getCreditCardId)
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
@@ -187,7 +193,7 @@ public class ReportsService {
                             .multiply(BigDecimal.valueOf(100));
                     return new ReleasesByAccount(account.getName(), percent, entry.getValue());
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         List<ReleasesByAccount> creditCardResults = creditCardReleaseMap.entrySet().stream()
                 .filter(entry -> entry.getValue().compareTo(BigDecimal.ZERO) > 0)
@@ -197,7 +203,7 @@ public class ReportsService {
                             .multiply(BigDecimal.valueOf(100));
                     return new ReleasesByAccount(card.getName(), percent, entry.getValue());
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         return Stream.concat(accountResults.stream(), creditCardResults.stream())
                 .sorted(Comparator.comparing(ReleasesByAccount::accountName))
