@@ -17,19 +17,30 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+
+import static java.time.ZoneId.systemDefault;
 
 @Slf4j
 @Service
 public class AwsS3Service {
 
+    private static final int DB_BACKUP_RETENTION_DAYS = 10;
+
     private final S3Client s3Client;
 
-    @Value("${aws.s3.bucket}")
-    private String BUCKET;
+    private final String BUCKET;
 
-    public AwsS3Service(@Value("${aws.iam.access-key}") String accessKey, @Value("${aws.iam.secret-key}") String secretKey) {
+    public AwsS3Service(
+            @Value("${aws.iam.access-key}") String accessKey,
+            @Value("${aws.iam.secret-key}") String secretKey,
+            @Value("${aws.s3.bucket}") String bucketName
+    ) {
+        this.BUCKET = bucketName;
+
         final var awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
 
         this.s3Client = S3Client.builder()
@@ -129,6 +140,42 @@ public class AwsS3Service {
                     .toList();
         } catch (S3Exception | SdkClientException e) {
             throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Failed to list objects in S3", e);
+        }
+    }
+
+    public void cleanOldBackups() {
+        try {
+            final List<S3Object> backupObjects = getAllObjectsInPath(S3FolderPath.DATABASE_BACKUPS);
+            final LocalDateTime cutoffDate = LocalDateTime.now().minusDays(DB_BACKUP_RETENTION_DAYS);
+
+            final List<S3Object> objectsToDelete = backupObjects.stream()
+                    .filter(obj -> obj.lastModified().isBefore(cutoffDate.atZone(systemDefault()).toInstant()))
+                    .toList();
+
+            if (!objectsToDelete.isEmpty()) {
+                deleteS3Files(objectsToDelete);
+                log.info("Cleaned {} old backup files from S3", objectsToDelete.size());
+            }
+        } catch (Exception e) {
+            log.error("Error cleaning old backup files", e);
+        }
+    }
+
+    public void checkUnusedObjects(S3FolderPath folderPath, List<String> dbObjects) {
+        final List<S3Object> s3Objects = getAllObjectsInPath(folderPath);
+
+        final var objectsToDelete = new LinkedList<S3Object>();
+
+        s3Objects.forEach(obj -> {
+            final String fileName = obj.key().replace(folderPath.getPath(), "");
+
+            if (!dbObjects.contains(fileName))
+                objectsToDelete.add(obj);
+        });
+
+        if (!objectsToDelete.isEmpty()) {
+            deleteS3Files(objectsToDelete);
+            log.info("Deleted {} unused objects in S3 - path: {}", objectsToDelete.size(), folderPath.getPath());
         }
     }
 }

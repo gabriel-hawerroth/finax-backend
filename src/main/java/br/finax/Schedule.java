@@ -8,6 +8,7 @@ import br.finax.repository.InvoicePaymentRepository;
 import br.finax.repository.ReleaseRepository;
 import br.finax.repository.UserRepository;
 import br.finax.security.SecurityFilter;
+import br.finax.services.DatabaseBackupService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -16,9 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -32,7 +31,8 @@ public class Schedule {
     private final InvoicePaymentRepository invoicePaymentRepository;
 
     private final SecurityFilter securityFilter;
-    private final AwsS3Service s3Service;
+    private final AwsS3Service awsS3Service;
+    private final DatabaseBackupService databaseBackupService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -53,7 +53,6 @@ public class Schedule {
     @Scheduled(cron = "0 0 3 * * *")
     public void clearUsersCache() {
         securityFilter.clearUsersCache();
-
         log.info("Cleared user cache in security filter");
     }
 
@@ -68,43 +67,27 @@ public class Schedule {
         log.info("Database optimized");
     }
 
+    @Scheduled(cron = "0 0 2 * * *")
+    public void backupDatabase() {
+        databaseBackupService.performBackup();
+    }
+
     @Transactional
     @Scheduled(cron = "0 0 4 1 * *")
     public void checkS3UnusedProfileImages() {
         final List<String> dbProfileImages = userRepository.getAllUserProfileImages();
-
-        checkS3UnusedObjects(S3FolderPath.USER_PROFILE_IMG, dbProfileImages);
+        awsS3Service.checkUnusedObjects(S3FolderPath.USER_PROFILE_IMG, dbProfileImages);
     }
 
     @Scheduled(cron = "0 05 4 1 * *")
     public void checkS3UnusedReleaseAttachments() {
         final List<String> dbAttachments = releaseRepository.getAllReleaseAttachments();
-
-        checkS3UnusedObjects(S3FolderPath.RELEASE_ATTACHMENTS, dbAttachments);
+        awsS3Service.checkUnusedObjects(S3FolderPath.RELEASE_ATTACHMENTS, dbAttachments);
     }
 
     @Scheduled(cron = "0 10 4 1 * *")
     public void checkS3UnusedInvoicePaymentAttachments() {
         final List<String> dbAttachments = invoicePaymentRepository.getAllInvoicePaymentAttachments();
-
-        checkS3UnusedObjects(S3FolderPath.INVOICE_PAYMENT_ATTACHMENTS, dbAttachments);
-    }
-
-    private void checkS3UnusedObjects(S3FolderPath folderPath, List<String> dbObjects) {
-        final List<S3Object> s3Objects = s3Service.getAllObjectsInPath(folderPath);
-
-        final var objectsToDelete = new LinkedList<S3Object>();
-
-        s3Objects.forEach(obj -> {
-            final String fileName = obj.key().replace(folderPath.getPath(), "");
-
-            if (!dbObjects.contains(fileName))
-                objectsToDelete.add(obj);
-        });
-
-        if (!objectsToDelete.isEmpty()) {
-            s3Service.deleteS3Files(objectsToDelete);
-            log.info("Deleted {} unused objects in S3 - path: {}", objectsToDelete.size(), folderPath.getPath());
-        }
+        awsS3Service.checkUnusedObjects(S3FolderPath.INVOICE_PAYMENT_ATTACHMENTS, dbAttachments);
     }
 }
