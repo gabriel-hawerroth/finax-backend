@@ -1,5 +1,11 @@
 package br.finax;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 import br.finax.enums.S3FolderPath;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Category;
@@ -14,11 +20,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Slf4j
 @Component
@@ -50,14 +51,14 @@ public class Schedule {
         }
     }
 
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 30 1 * * *")
     public void clearUsersCache() {
         securityFilter.clearUsersCache();
         log.info("Cleared user cache in security filter");
     }
 
     @Transactional
-    @Scheduled(cron = "0 05 3 * * *")
+    @Scheduled(cron = "0 0 2 * * *")
     public void optimizeDatabase() {
         final String dbName = databaseUrl.split("//")[1].split("/")[1].split("\\?")[0];
 
@@ -67,25 +68,25 @@ public class Schedule {
         log.info("Database optimized");
     }
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 30 2 * * *")
     public void backupDatabase() {
         databaseBackupService.performBackup();
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 4 1 * *")
+    @Scheduled(cron = "0 0 3 1 * *")
     public void checkS3UnusedProfileImages() {
         final List<String> dbProfileImages = userRepository.getAllUserProfileImages();
         awsS3Service.checkUnusedObjects(S3FolderPath.USER_PROFILE_IMG, dbProfileImages);
     }
 
-    @Scheduled(cron = "0 05 4 1 * *")
+    @Scheduled(cron = "0 05 3 1 * *")
     public void checkS3UnusedReleaseAttachments() {
         final List<String> dbAttachments = releaseRepository.getAllReleaseAttachments();
         awsS3Service.checkUnusedObjects(S3FolderPath.RELEASE_ATTACHMENTS, dbAttachments);
     }
 
-    @Scheduled(cron = "0 10 4 1 * *")
+    @Scheduled(cron = "0 10 3 1 * *")
     public void checkS3UnusedInvoicePaymentAttachments() {
         final List<String> dbAttachments = invoicePaymentRepository.getAllInvoicePaymentAttachments();
         awsS3Service.checkUnusedObjects(S3FolderPath.INVOICE_PAYMENT_ATTACHMENTS, dbAttachments);
