@@ -1,8 +1,10 @@
 package br.finax.controllers;
 
+import br.finax.dto.reports.BalanceEvolutionItem;
 import br.finax.dto.reports.ReleasesByAccount;
 import br.finax.dto.reports.ReleasesByCategory;
 import br.finax.enums.release.ReleaseType;
+import br.finax.enums.reports.BalanceEvolutionGrouper;
 import br.finax.enums.reports.ReportReleasesByInterval;
 import br.finax.services.ReportsService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,19 @@ public class ReportsController {
     ) {
         return ResponseEntity.ok(
                 reportsService.getReleasesByAccount(interval, releaseType, initialDate, finalDate)
+        );
+    }
+
+    @GetMapping("/balance-evolution")
+    public ResponseEntity<List<BalanceEvolutionItem>> getBalanceEvolution(
+            @RequestParam ReportReleasesByInterval interval,
+            @RequestParam(required = false) LocalDate initialDate,
+            @RequestParam(required = false) LocalDate finalDate,
+            @RequestParam(required = false) Long accountId,
+            @RequestParam BalanceEvolutionGrouper grouper
+    ) {
+        return ResponseEntity.ok(
+                reportsService.getBalanceEvolution(interval, initialDate, finalDate, accountId, grouper)
         );
     }
 }
