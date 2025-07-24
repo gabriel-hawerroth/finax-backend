@@ -322,6 +322,11 @@ public class ReleaseService {
         return mapToMonthlyReleases(releases, getAuthUser().getId());
     }
 
+    @Transactional(readOnly = true)
+    public List<Release> getReleasesForBalanceEvolution(long userId, LocalDate firstDt, LocalDate lastDt, Long accountId) {
+        return releaseRepository.getReleasesForBalanceEvolution(userId, firstDt, lastDt, accountId);
+    }
+
     private void checkPermission(final Release release) {
         if (release.getUserId() != getAuthUser().getId())
             throw new WithoutPermissionException();

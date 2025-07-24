@@ -166,4 +166,29 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND r.s3FileName <> ''
             """)
     List<String> getAllReleaseAttachments();
+
+    @Query("""
+            SELECT rls
+            FROM Release rls
+            LEFT JOIN Account ac ON rls.accountId = ac.id
+            WHERE
+                rls.userId = :userId
+                AND rls.date between :firstDt AND :lastDt
+                AND rls.done is true
+                AND rls.isBalanceAdjustment is false
+                AND (
+                    (:accountId IS NULL AND (
+                        (rls.accountId IS NOT NULL AND ac.addToCashFlow = true) OR
+                        (rls.creditCardId IS NOT NULL)
+                    )) OR
+                    (:accountId IS NOT NULL AND (
+                        rls.accountId = :accountId OR 
+                        rls.targetAccountId = :accountId OR
+                        rls.creditCardId IS NOT NULL
+                    ))
+                )
+            ORDER BY
+                rls.date, rls.time, rls.id
+            """)
+    List<Release> getReleasesForBalanceEvolution(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt, Long accountId);
 }
