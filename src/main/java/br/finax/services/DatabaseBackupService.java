@@ -1,12 +1,5 @@
 package br.finax.services;
 
-import br.finax.enums.S3FolderPath;
-import br.finax.external.AwsS3Service;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +7,14 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import br.finax.enums.S3FolderPath;
+import br.finax.external.AwsS3Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -44,9 +45,6 @@ public class DatabaseBackupService {
             final String host = hostAndPort.split(":")[0];
             final String port = hostAndPort.contains(":") ? hostAndPort.split(":")[1] : "5432";
 
-            log.info("Database connection details - Host: {}, Port: {}, Database: {}, User: {}",
-                    host, port, dbName, databaseUsername);
-
             // Gerar nome do arquivo de backup com timestamp
             final String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             final String backupFileName = String.format("finax_backup_%s.sql", timestamp);
@@ -63,8 +61,7 @@ public class DatabaseBackupService {
                     "-d", dbName,
                     "-f", backupFile.getAbsolutePath(),
                     "--verbose",
-                    "--no-password"
-            );
+                    "--no-password");
 
             // Configurar variáveis de ambiente para autenticação
             processBuilder.environment().put("PGPASSWORD", databasePassword);
@@ -72,7 +69,6 @@ public class DatabaseBackupService {
             // Redirecionar output para capturar erros
             processBuilder.redirectErrorStream(true);
 
-            log.info("Executing pg_dump command...");
             final Process process = processBuilder.start();
 
             // Capturar output do processo
@@ -86,8 +82,6 @@ public class DatabaseBackupService {
             final int exitCode = process.waitFor();
 
             if (exitCode == 0) {
-                log.info("pg_dump completed successfully. Backup file size: {} bytes", backupFile.length());
-
                 // Upload do backup para S3
                 final String s3Key = S3FolderPath.DATABASE_BACKUPS.getPath() + backupFileName;
                 awsS3Service.uploadS3File(s3Key, backupFile);
