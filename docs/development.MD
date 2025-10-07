@@ -12,14 +12,14 @@ Definir as envs no sistema ou configurar na própria IDE.
 # Database
 
 É necessário instalar o PostgreSQL v17.5 e criar um novo database.  
-De preferência fazer a instalação em um WSL com ubuntu 24 (se estiver usando windows).
+De preferência fazer a instalação em um WSL com ubuntu 25 (se estiver usando windows).
 
 # Java e maven
 
 Para rodar o projeto é necessário ter o Java e o maven instalados nas versões:
 
-- Java 24
-- Maven 3.9.9
+- Java 25
+- Maven 3.9.11
 
 # Git
 
