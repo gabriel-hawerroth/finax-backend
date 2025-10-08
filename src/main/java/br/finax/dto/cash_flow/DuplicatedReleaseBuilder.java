@@ -1,10 +1,9 @@
 package br.finax.dto.cash_flow;
 
-import br.finax.enums.release.ReleaseRepeat;
-import br.finax.models.Release;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import br.finax.models.Release;
 
 public class DuplicatedReleaseBuilder {
     private final Release duplicatedRelease;
@@ -17,7 +16,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setAccountId(original.getAccountId());
         duplicatedRelease.setAmount(BigDecimal.ZERO);
         duplicatedRelease.setType(original.getType());
-        duplicatedRelease.setDone(original.getRepeat() == ReleaseRepeat.INSTALLMENTS);
+        duplicatedRelease.setDone(original.isDone());
         duplicatedRelease.setTargetAccountId(original.getTargetAccountId());
         duplicatedRelease.setCategoryId(original.getCategoryId());
         duplicatedRelease.setDate(null);
