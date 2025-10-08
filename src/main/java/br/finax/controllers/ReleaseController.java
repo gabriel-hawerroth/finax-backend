@@ -48,9 +48,9 @@ public class ReleaseController {
 
         final URI uri = URI.create("/cash-flow/" + cashFlow.getId());
 
-        return ResponseEntity.created(uri).body(
-                cashFlow
-        );
+        return ResponseEntity
+                .created(uri)
+                .body(cashFlow);
     }
 
     @PutMapping
