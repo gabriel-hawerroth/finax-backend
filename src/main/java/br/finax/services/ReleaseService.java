@@ -1,5 +1,26 @@
 package br.finax.services;
 
+import static br.finax.external.AwsS3Service.getS3FileName;
+import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
+import static br.finax.utils.FileUtils.compressFile;
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.UtilsService.getAuthUser;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.finax.dto.FirstAndLastDate;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
@@ -28,28 +49,12 @@ import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.*;
-import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class ReleaseService {
+
+    private static final int AMOUNT_SCALE = 2;
 
     private final ReleaseRepository releaseRepository;
     private final CreditCardService creditCardService;
@@ -104,7 +109,7 @@ public class ReleaseService {
             return releaseRepository.save(release);
 
         final boolean isFixedRepeat = release.getRepeat().equals(ReleaseRepeat.FIXED);
-        BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), RoundingMode.HALF_EVEN);
+        BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), AMOUNT_SCALE, RoundingMode.HALF_EVEN);
 
         if (!isFixedRepeat) {
             release.setAmount(installmentsAmount);
