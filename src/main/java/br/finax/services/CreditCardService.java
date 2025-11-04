@@ -1,26 +1,32 @@
 package br.finax.services;
 
-import br.finax.dto.InterfacesSQL.BasicCard;
-import br.finax.dto.InterfacesSQL.UserCreditCard;
-import br.finax.exceptions.NotFoundException;
-import br.finax.models.CreditCard;
-import br.finax.repository.CreditCardRepository;
-import br.finax.repository.InvoiceRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.List;
-
 import static br.finax.utils.DateUtils.getNextMonthYear;
 import static br.finax.utils.InvoiceUtils.getInvoiceCloseAndFirstDay;
 import static br.finax.utils.UtilsService.getAuthUser;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import br.finax.dto.InterfacesSQL.BasicCard;
+import br.finax.dto.InterfacesSQL.UserCreditCard;
+import br.finax.enums.ErrorCategory;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.models.CreditCard;
+import br.finax.repository.CreditCardRepository;
+import br.finax.repository.InvoiceRepository;
+import lombok.RequiredArgsConstructor;
+
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class CreditCardService {
 
+    private final CreditCardService service;
     private final CreditCardRepository creditCardRepository;
     private final InvoiceRepository invoiceRepository;
 
@@ -99,6 +105,29 @@ public class CreditCardService {
     @Transactional(readOnly = true)
     public List<CreditCard> getByUser(long userId) {
         return creditCardRepository.findAllByUserId(userId);
+    }
+
+    @Transactional
+    public void delete(long cardId) {
+        try {
+            creditCardRepository.deleteById(cardId);
+        } catch (DataIntegrityViolationException _) {
+            throw new ServiceException(ErrorCategory.BAD_REQUEST, "linked registers, cannot exclude");
+        }
+    }
+
+    @Transactional
+    public void inactivateCard(long cardId) {
+        final var _ = service.findById(cardId);
+
+        creditCardRepository.inactivateCard(cardId);
+    }
+
+    @Transactional
+    public void activateCard(long cardId) {
+        final var _ = service.findById(cardId);
+
+        creditCardRepository.activateCard(cardId);
     }
 
     private void checkPermission(CreditCard card) {

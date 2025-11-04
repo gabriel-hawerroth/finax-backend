@@ -1,12 +1,14 @@
 package br.finax.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
 import br.finax.dto.InterfacesSQL.BasicCard;
 import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.models.CreditCard;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-
-import java.util.List;
 
 public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
 
@@ -59,4 +61,20 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 cc.id = :id
             """)
     long findUserIdById(long id);
+
+    @Modifying
+    @Query("""
+            UPDATE CreditCard ac
+            SET ac.active = false
+            WHERE ac.id = :id
+            """)
+    void inactivateCard(long id);
+
+    @Modifying
+    @Query("""
+            UPDATE CreditCard ac
+            SET ac.active = true
+            WHERE ac.id in :id
+            """)
+    void activateCard(long id);
 }

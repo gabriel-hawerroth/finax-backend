@@ -1,16 +1,25 @@
 package br.finax.controllers;
 
+import java.net.URI;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import br.finax.dto.InterfacesSQL.BasicCard;
 import br.finax.dto.InterfacesSQL.UserCreditCard;
 import br.finax.models.CreditCard;
 import br.finax.services.CreditCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,5 +63,23 @@ public class CreditCardController {
         return ResponseEntity.ok(
                 creditCardService.edit(card)
         );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable long id) {
+        creditCardService.delete(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/inactivate/{id}")
+    public ResponseEntity<Void> inactivate(@PathVariable long id) {
+        creditCardService.inactivateCard(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/activate/{id}")
+    public ResponseEntity<Void> activate(@PathVariable long id) {
+        creditCardService.activateCard(id);
+        return ResponseEntity.ok().build();
     }
 }
