@@ -1,5 +1,19 @@
 package br.finax.services;
 
+import static br.finax.utils.UtilsService.getAuthUser;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.account.GetAccountById;
 import br.finax.enums.ErrorCategory;
@@ -12,19 +26,6 @@ import br.finax.models.Release;
 import br.finax.repository.AccountRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
-
-import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -114,6 +115,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @Transactional
     public void delete(long accountId) {
         final Account account = service.findById(accountId);
 
@@ -122,7 +124,7 @@ public class AccountService {
                 accountRepository.deleteSubAccounts(accountId);
 
             accountRepository.deleteById(accountId);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException _) {
             throw new ServiceException(ErrorCategory.BAD_REQUEST, "linked registers, cannot exclude");
         }
     }
