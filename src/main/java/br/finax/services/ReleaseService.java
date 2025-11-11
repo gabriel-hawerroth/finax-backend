@@ -64,6 +64,10 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public Release findById(@NonNull Long id) {
+        return findByIdInternal(id);
+    }
+
+    private Release findByIdInternal(@NonNull Long id) {
         final Release release = releaseRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
 
@@ -78,7 +82,7 @@ public class ReleaseService {
         final FirstAndLastDate firstAndLastDate;
         try {
             firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
-        } catch (DateTimeParseException ex) {
+        } catch (DateTimeParseException _) {
             throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid date format");
         }
 
@@ -146,7 +150,7 @@ public class ReleaseService {
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
-        final Release existingRelease = findById(release.getId());
+        final Release existingRelease = findByIdInternal(release.getId());
 
         // things that can't change
         release.setUserId(existingRelease.getUserId());
@@ -194,7 +198,7 @@ public class ReleaseService {
 
     @Transactional
     public Release saveAttachment(long releaseId, final @NonNull MultipartFile attachment) {
-        final Release release = findById(releaseId);
+        final Release release = findByIdInternal(releaseId);
 
         checkPermission(release);
 
@@ -234,7 +238,7 @@ public class ReleaseService {
 
     @Transactional
     public Release removeAttachment(long releaseId) {
-        final Release release = findById(releaseId);
+        final Release release = findByIdInternal(releaseId);
 
         checkPermission(release);
 
@@ -248,7 +252,7 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public byte[] getAttachment(long releaseId) {
-        final Release release = findById(releaseId);
+        final Release release = findByIdInternal(releaseId);
 
         checkPermission(release);
 
@@ -259,7 +263,7 @@ public class ReleaseService {
 
     @Transactional
     public void delete(long releaseId, DuplicatedReleaseAction duplicatedReleasesAction) {
-        final Release release = findById(releaseId);
+        final Release release = findByIdInternal(releaseId);
 
         checkPermission(release);
 
@@ -325,6 +329,17 @@ public class ReleaseService {
         final var releases = releaseRepository.findAllByUserAndCreditCardAndDatesBetween(userId, creditCardId, firstDt, lastDt);
 
         return mapToMonthlyReleases(releases, getAuthUser().getId());
+    }
+
+    @Transactional
+    public void updateDone(long id, boolean done) {
+        final Release release = findByIdInternal(id);
+
+        checkPermission(release);
+
+        release.setDone(done);
+
+        releaseRepository.save(release);
     }
 
     private void checkPermission(final Release release) {
