@@ -24,6 +24,7 @@ public record MonthlyRelease(
         Long duplicatedReleaseId,
         boolean isDuplicatedRelease,
         boolean isBalanceAdjustment,
-        Integer installmentNumber
+        Integer installmentNumber,
+        Integer totalInstallments
 ) {
 }

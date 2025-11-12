@@ -286,7 +286,7 @@ public class ReleaseService {
 
         checkPermission(release);
 
-        final Long duplicatedReleaseId = release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId;
+        final long duplicatedReleaseId = release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId;
 
         switch (duplicatedReleasesAction) {
             case NEXTS -> {
@@ -380,7 +380,7 @@ public class ReleaseService {
     /**
      * Recalculates installment numbers for a group of releases based on their dates.
      * Only updates releases that are part of an installment plan (repeat = INSTALLMENTS).
-     * 
+     *
      * @param releases List of releases to recalculate installment numbers for
      */
     private void recalculateInstallmentNumbers(List<Release> releases) {
@@ -389,7 +389,7 @@ public class ReleaseService {
         }
 
         // Check if these are installment releases
-        Release first = releases.get(0);
+        Release first = releases.getFirst();
         if (first.getRepeat() == null || !first.getRepeat().equals(ReleaseRepeat.INSTALLMENTS)) {
             return;
         }
@@ -424,11 +424,35 @@ public class ReleaseService {
                         ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
                 );
 
+        // Build a map of duplicatedReleaseId to total count for installment plans
+        var installmentCounts = new java.util.HashMap<Long, Integer>();
+        for (Release release : releases) {
+            if (release.getInstallmentNumber() != null) {
+                Long duplicatedReleaseId = release.getDuplicatedReleaseId() != null
+                        ? release.getDuplicatedReleaseId()
+                        : release.getId();
+
+                if (!installmentCounts.containsKey(duplicatedReleaseId)) {
+                    long count = releaseRepository.countAllDuplicatedReleases(duplicatedReleaseId);
+                    installmentCounts.put(duplicatedReleaseId, (int) count);
+                }
+            }
+        }
+
         return releases.stream().map(release -> {
             var account = release.getAccountId() != null ? accounts.get(release.getAccountId()) : null;
             var card = release.getCreditCardId() != null ? cards.get(release.getCreditCardId()) : null;
             var targetAccount = release.getTargetAccountId() != null ? accounts.get(release.getTargetAccountId()) : null;
             var category = release.getCategoryId() != null ? categories.get(release.getCategoryId()) : null;
+
+            // Get total installments if this is part of an installment plan
+            Integer totalInstallments = null;
+            if (release.getInstallmentNumber() != null) {
+                Long duplicatedReleaseId = release.getDuplicatedReleaseId() != null
+                        ? release.getDuplicatedReleaseId()
+                        : release.getId();
+                totalInstallments = installmentCounts.get(duplicatedReleaseId);
+            }
 
             return new MonthlyRelease(
                     release.getId(),
@@ -449,7 +473,8 @@ public class ReleaseService {
                     release.getDuplicatedReleaseId(),
                     releaseRepository.isDuplicatedRelease(release.getId()),
                     release.isBalanceAdjustment(),
-                    release.getInstallmentNumber()
+                    release.getInstallmentNumber(),
+                    totalInstallments
             );
         }).toList();
     }
