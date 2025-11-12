@@ -81,4 +81,7 @@ public class Release {
 
     @Column(name = "is_balance_adjustment", nullable = false)
     private boolean isBalanceAdjustment;
+
+    @Column(name = "installment_number")
+    private Integer installmentNumber;
 }
