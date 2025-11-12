@@ -113,11 +113,17 @@ public class ReleaseService {
             return releaseRepository.save(release);
 
         final boolean isFixedRepeat = release.getRepeat().equals(ReleaseRepeat.FIXED);
+        final boolean isInstallments = release.getRepeat().equals(ReleaseRepeat.INSTALLMENTS);
         BigDecimal installmentsAmount = release.getAmount().divide(BigDecimal.valueOf(repeatFor), AMOUNT_SCALE, RoundingMode.HALF_EVEN);
 
         if (!isFixedRepeat) {
             release.setAmount(installmentsAmount);
             release.setFixedBy(null);
+        }
+
+        // Set installment number for the first release only if it's an installment plan
+        if (isInstallments) {
+            release.setInstallmentNumber(1);
         }
 
         final Release savedRelease = releaseRepository.save(release);
@@ -129,7 +135,8 @@ public class ReleaseService {
             final Release newRelease = createDuplicatedRelease(
                     savedRelease,
                     isFixedRepeat ? savedRelease.getAmount() : installmentsAmount,
-                    isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1)
+                    isFixedRepeat ? getNewDate(dt, release.getFixedBy()) : dt.plusMonths(1),
+                    isInstallments ? i + 2 : null  // installment number: 2, 3, 4, ...
             );
 
             releases.add(newRelease);
@@ -151,6 +158,7 @@ public class ReleaseService {
         final boolean updatingNexts = duplicatedReleaseAction == DuplicatedReleaseAction.NEXTS;
 
         final Release existingRelease = findByIdInternal(release.getId());
+        final boolean dateChanged = !release.getDate().equals(existingRelease.getDate());
 
         // things that can't change
         release.setUserId(existingRelease.getUserId());
@@ -160,6 +168,7 @@ public class ReleaseService {
         release.setDuplicatedReleaseId(existingRelease.getDuplicatedReleaseId());
         release.setRepeat(existingRelease.getRepeat());
         release.setFixedBy(existingRelease.getFixedBy());
+        release.setInstallmentNumber(existingRelease.getInstallmentNumber());
 
         if (!updatingAll)
             release = releaseRepository.save(release);
@@ -191,6 +200,16 @@ public class ReleaseService {
             }
 
             releaseRepository.saveAll(duplicatedReleases);
+
+            // Recalculate installment numbers if date changed and it's an installment release
+            if (dateChanged && updatingAll) {
+                recalculateInstallmentNumbers(duplicatedReleases);
+            }
+        } else if (dateChanged && duplicatedReleaseAction == DuplicatedReleaseAction.JUST_THIS) {
+            // If only this release is being updated and date changed, recalculate all related releases
+            final Long duplicatedReleaseId = release.getDuplicatedReleaseId() == null ? release.getId() : release.getDuplicatedReleaseId();
+            final List<Release> allRelated = releaseRepository.getAllDuplicatedReleases(duplicatedReleaseId);
+            recalculateInstallmentNumbers(allRelated);
         }
 
         return release;
@@ -267,28 +286,35 @@ public class ReleaseService {
 
         checkPermission(release);
 
+        final long duplicatedReleaseId = release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId;
+
         switch (duplicatedReleasesAction) {
-            case NEXTS -> releaseRepository.deleteAll(
-                    releaseRepository.getNextDuplicatedReleases(
-                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId,
-                            release.getDate()
-                    )
-            );
+            case NEXTS -> {
+                releaseRepository.deleteAll(
+                        releaseRepository.getNextDuplicatedReleases(duplicatedReleaseId, release.getDate())
+                );
+                // Recalculate installment numbers for remaining releases
+                final List<Release> remaining = releaseRepository.getAllDuplicatedReleases(duplicatedReleaseId);
+                recalculateInstallmentNumbers(remaining);
+            }
             case ALL -> releaseRepository.deleteAll(
-                    releaseRepository.getAllDuplicatedReleases(
-                            release.getDuplicatedReleaseId() != null ? release.getDuplicatedReleaseId() : releaseId
-                    )
+                    releaseRepository.getAllDuplicatedReleases(duplicatedReleaseId)
             );
         }
 
-        if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL)
+        if (duplicatedReleasesAction != DuplicatedReleaseAction.ALL) {
             releaseRepository.deleteById(releaseId);
+            // Recalculate installment numbers for remaining releases
+            final List<Release> remaining = releaseRepository.getAllDuplicatedReleases(duplicatedReleaseId);
+            recalculateInstallmentNumbers(remaining);
+        }
     }
 
-    private Release createDuplicatedRelease(final Release original, BigDecimal newAmount, final LocalDate newDate) {
+    private Release createDuplicatedRelease(final Release original, BigDecimal newAmount, final LocalDate newDate, Integer installmentNumber) {
         return new DuplicatedReleaseBuilder(original)
                 .amount(newAmount)
                 .date(newDate)
+                .installmentNumber(installmentNumber)
                 .build();
     }
 
@@ -351,6 +377,34 @@ public class ReleaseService {
         return S3FolderPath.RELEASE_ATTACHMENTS.getPath().concat(filename);
     }
 
+    /**
+     * Recalculates installment numbers for a group of releases based on their dates.
+     * Only updates releases that are part of an installment plan (repeat = INSTALLMENTS).
+     *
+     * @param releases List of releases to recalculate installment numbers for
+     */
+    private void recalculateInstallmentNumbers(List<Release> releases) {
+        if (releases.isEmpty()) {
+            return;
+        }
+
+        // Check if these are installment releases
+        Release first = releases.getFirst();
+        if (first.getRepeat() == null || !first.getRepeat().equals(ReleaseRepeat.INSTALLMENTS)) {
+            return;
+        }
+
+        // Sort by date to assign installment numbers in chronological order
+        releases.sort((r1, r2) -> r1.getDate().compareTo(r2.getDate()));
+
+        // Assign installment numbers starting from 1
+        for (int i = 0; i < releases.size(); i++) {
+            releases.get(i).setInstallmentNumber(i + 1);
+        }
+
+        releaseRepository.saveAll(releases);
+    }
+
     private List<MonthlyRelease> mapToMonthlyReleases(List<Release> releases, long userId) {
         var accounts = accountService.getByUser()
                 .stream().collect(Collectors.toUnmodifiableMap(
@@ -370,11 +424,35 @@ public class ReleaseService {
                         ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
                 );
 
+        // Build a map of duplicatedReleaseId to total count for installment plans
+        var installmentCounts = new java.util.HashMap<Long, Integer>();
+        for (Release release : releases) {
+            if (release.getInstallmentNumber() != null) {
+                Long duplicatedReleaseId = release.getDuplicatedReleaseId() != null
+                        ? release.getDuplicatedReleaseId()
+                        : release.getId();
+
+                if (!installmentCounts.containsKey(duplicatedReleaseId)) {
+                    long count = releaseRepository.countAllDuplicatedReleases(duplicatedReleaseId);
+                    installmentCounts.put(duplicatedReleaseId, (int) count);
+                }
+            }
+        }
+
         return releases.stream().map(release -> {
             var account = release.getAccountId() != null ? accounts.get(release.getAccountId()) : null;
             var card = release.getCreditCardId() != null ? cards.get(release.getCreditCardId()) : null;
             var targetAccount = release.getTargetAccountId() != null ? accounts.get(release.getTargetAccountId()) : null;
             var category = release.getCategoryId() != null ? categories.get(release.getCategoryId()) : null;
+
+            // Get total installments if this is part of an installment plan
+            Integer totalInstallments = null;
+            if (release.getInstallmentNumber() != null) {
+                Long duplicatedReleaseId = release.getDuplicatedReleaseId() != null
+                        ? release.getDuplicatedReleaseId()
+                        : release.getId();
+                totalInstallments = installmentCounts.get(duplicatedReleaseId);
+            }
 
             return new MonthlyRelease(
                     release.getId(),
@@ -394,7 +472,9 @@ public class ReleaseService {
                     release.getAttachmentName(),
                     release.getDuplicatedReleaseId(),
                     releaseRepository.isDuplicatedRelease(release.getId()),
-                    release.isBalanceAdjustment()
+                    release.isBalanceAdjustment(),
+                    release.getInstallmentNumber(),
+                    totalInstallments
             );
         }).toList();
     }

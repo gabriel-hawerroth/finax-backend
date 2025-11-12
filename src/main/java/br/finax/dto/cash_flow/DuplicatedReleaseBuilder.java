@@ -29,6 +29,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setFixedBy(original.getFixedBy());
         duplicatedRelease.setCreditCardId(original.getCreditCardId());
         duplicatedRelease.setBalanceAdjustment(original.isBalanceAdjustment());
+        duplicatedRelease.setInstallmentNumber(null); // Will be set explicitly
     }
 
     public DuplicatedReleaseBuilder amount(BigDecimal amount) {
@@ -38,6 +39,11 @@ public class DuplicatedReleaseBuilder {
 
     public DuplicatedReleaseBuilder date(LocalDate date) {
         duplicatedRelease.setDate(date);
+        return this;
+    }
+
+    public DuplicatedReleaseBuilder installmentNumber(Integer installmentNumber) {
+        duplicatedRelease.setInstallmentNumber(installmentNumber);
         return this;
     }
 

@@ -166,4 +166,15 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND r.s3FileName <> ''
             """)
     List<String> getAllReleaseAttachments();
+
+    @Query("""
+            SELECT
+                COUNT(rls)
+            FROM
+                Release rls
+            WHERE
+                rls.duplicatedReleaseId = :duplicatedReleaseId
+                OR rls.id = :duplicatedReleaseId
+            """)
+    long countAllDuplicatedReleases(long duplicatedReleaseId);
 }
