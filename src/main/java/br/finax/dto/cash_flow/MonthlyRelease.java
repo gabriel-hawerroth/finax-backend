@@ -23,6 +23,8 @@ public record MonthlyRelease(
         String attachmentName,
         Long duplicatedReleaseId,
         boolean isDuplicatedRelease,
-        boolean isBalanceAdjustment
+        boolean isBalanceAdjustment,
+        Integer installmentNumber,
+        Integer totalInstallments
 ) {
 }
