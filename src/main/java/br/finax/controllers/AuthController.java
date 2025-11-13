@@ -1,11 +1,7 @@
 package br.finax.controllers;
 
-import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.LoginResponseDTO;
-import br.finax.models.User;
-import br.finax.services.AuthService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.util.TimeZone;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.TimeZone;
+import br.finax.dto.AuthenticationDTO;
+import br.finax.dto.LoginResponseDTO;
+import br.finax.dto.auth.ResendActivationEmailDTO;
+import br.finax.models.User;
+import br.finax.services.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +36,12 @@ public class AuthController {
         return ResponseEntity.ok(
                 authService.registerNewUser(user)
         );
+    }
+
+    @PostMapping("/resend-activation-email")
+    public ResponseEntity<Void> resendActivationEmail(@RequestBody @Valid ResendActivationEmailDTO email) {
+        authService.resendActivationEmail(email.email());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/timezone")
