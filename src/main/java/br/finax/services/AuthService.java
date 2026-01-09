@@ -1,5 +1,18 @@
 package br.finax.services;
 
+import java.time.LocalDateTime;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
+
 import br.finax.dto.AuthenticationDTO;
 import br.finax.dto.EmailDTO;
 import br.finax.dto.LoginResponseDTO;
@@ -16,18 +29,6 @@ import br.finax.models.User;
 import br.finax.security.SecurityFilter;
 import br.finax.security.TokenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.HtmlUtils;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +97,20 @@ public class AuthService {
         applicationEventPublisher.publishEvent(userCreatedEvent);
 
         return user;
+    }
+
+    @Transactional(readOnly = true)
+    public void resendActivationEmail(String userMail) {
+        final User user = userService.findByEmail(
+                HtmlUtils.htmlEscape(userMail)
+        );
+
+        if (user.isActive())
+            throw new ServiceException(ErrorCategory.BAD_REQUEST, "User already active");
+
+        final String token = tokenService.generateToken(user);
+
+        sendActivateAccountEmail(user.getEmail(), user, token);
     }
 
     private void saveAccessLog(User user) {

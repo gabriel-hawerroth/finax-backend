@@ -1,5 +1,11 @@
 package br.finax.services;
 
+import java.util.logging.Logger;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
+
 import br.finax.dto.EmailDTO;
 import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
@@ -11,11 +17,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.HtmlUtils;
-
-import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -52,12 +53,14 @@ public class LoginService {
 
     @Transactional
     public void activateUser(Long userId, String token) {
+        final User user = userService.findById(userId);
+        if (user.isActive())
+            return;
+
         final String userMail = tokenService.validateToken(token);
 
         if (userMail == null)
             throw new ExpiredLinkException();
-
-        final User user = userService.findById(userId);
 
         userService.activeUser(user.getId());
 
@@ -89,7 +92,7 @@ public class LoginService {
                             emailService.buildEmailTemplate(mailContent)
                     )
             );
-        } catch (Exception e) {
+        } catch (Exception _) {
             throw new ServiceException(ErrorCategory.BAD_GATEWAY, "Error sending email");
         }
     }
