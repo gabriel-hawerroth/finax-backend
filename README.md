@@ -1,7 +1,7 @@
 # Finax Backend
 
 ![Java](https://img.shields.io/badge/Java-25-blue?logo=java)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=springboot)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4-brightgreen?logo=springboot)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
 Finax é um sistema de controle financeiro que auxilia no gerenciamento de receitas, despesas e investimentos.
@@ -11,7 +11,7 @@ Finax é um sistema de controle financeiro que auxilia no gerenciamento de recei
 ## 🚀 Tecnologias Utilizadas
 
 - Java 25
-- Spring Boot 3
+- Spring Boot 4
 - JPA/Hibernate
 - PostgreSQL
 - Flyway (migração de banco)
