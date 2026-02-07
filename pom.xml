@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.2</version>
     <relativePath/>
   </parent>
   <packaging>jar</packaging>
@@ -18,10 +18,10 @@
   <properties>
     <java.version>25</java.version>
     <lombok.version>1.18.42</lombok.version>
-    <flyway.version>11.16.0</flyway.version>
+    <flyway.version>12.0.0</flyway.version>
     <java-jwt.version>4.5.0</java-jwt.version>
     <thumbnailator.version>0.4.21</thumbnailator.version>
-    <software.amazon.awssdk.bom.version>2.38.2</software.amazon.awssdk.bom.version>
+    <software.amazon.awssdk.bom.version>2.41.23</software.amazon.awssdk.bom.version>
   </properties>
 
   <dependencies>
