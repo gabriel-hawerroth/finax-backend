@@ -64,10 +64,8 @@ public class LoginService {
 
         userService.activeUser(user.getId());
 
-        Thread.ofVirtual().start(() -> {
-            categoryService.insertNewUserCategories(userId);
-            userConfigsService.insertNewUserConfigs(userId);
-        });
+        categoryService.insertNewUserCategories(userId);
+        userConfigsService.insertNewUserConfigs(userId);
     }
 
     @Transactional

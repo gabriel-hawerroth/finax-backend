@@ -17,9 +17,9 @@ import br.finax.security.SecurityFilter;
 import br.finax.services.DatabaseBackupService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -42,6 +42,7 @@ public class Schedule {
     private String databaseUrl;
 
     // Method for not leaving the machine idle
+    @Transactional(readOnly = true)
     @Scheduled(cron = "45 * * * * *")
     public void stayActive() {
         List<Category> categories = categoryRepository.findAll();
@@ -80,12 +81,14 @@ public class Schedule {
         awsS3Service.checkUnusedObjects(S3FolderPath.USER_PROFILE_IMG, dbProfileImages);
     }
 
+    @Transactional(readOnly = true)
     @Scheduled(cron = "0 05 3 1 * *")
     public void checkS3UnusedReleaseAttachments() {
         final List<String> dbAttachments = releaseRepository.getAllReleaseAttachments();
         awsS3Service.checkUnusedObjects(S3FolderPath.RELEASE_ATTACHMENTS, dbAttachments);
     }
 
+    @Transactional(readOnly = true)
     @Scheduled(cron = "0 10 3 1 * *")
     public void checkS3UnusedInvoicePaymentAttachments() {
         final List<String> dbAttachments = invoicePaymentRepository.getAllInvoicePaymentAttachments();

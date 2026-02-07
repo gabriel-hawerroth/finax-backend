@@ -64,7 +64,7 @@ public class AuthService {
 
         final String token = tokenService.generateToken(user);
 
-        Thread.ofVirtual().start(() -> saveAccessLog(user));
+        saveAccessLog(user);
 
         return new LoginResponseDTO(user, token);
     }
