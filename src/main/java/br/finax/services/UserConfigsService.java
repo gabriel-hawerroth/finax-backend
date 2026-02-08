@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
@@ -36,7 +38,10 @@ public class UserConfigsService {
     }
 
     @Transactional
-    public void insertNewUserConfigs(long userId) {
+    public void insertUserConfigsIfNotExists(long userId) {
+        Optional<UserConfigs> userConfigs = userConfigsRepository.findByUserId(userId);
+        if (userConfigs.isPresent()) return;
+
         userConfigsRepository.save(getDefaultUserConfigs(userId));
     }
 

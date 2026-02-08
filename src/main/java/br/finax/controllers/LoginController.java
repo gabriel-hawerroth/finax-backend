@@ -1,5 +1,8 @@
 package br.finax.controllers;
 
+import br.finax.enums.ErrorCategory;
+import br.finax.exceptions.ExpiredLinkException;
+import br.finax.exceptions.ServiceException;
 import br.finax.services.LoginService;
 import br.finax.utils.ServiceUrls;
 import jakarta.validation.constraints.NotNull;
@@ -20,9 +23,19 @@ public class LoginController {
 
     @GetMapping("/activate-account/{userId}/{token}")
     public ResponseEntity<Void> activateUser(@PathVariable Long userId, @PathVariable @NotNull String token) {
-        loginService.activateUser(userId, token);
+        URI uri;
 
-        final URI uri = URI.create(serviceUrls.getSiteUrl() + "/ativacao-da-conta");
+        try {
+            loginService.activateUser(userId, token);
+
+            uri = URI.create(serviceUrls.getSiteUrl() + "/ativacao-da-conta");
+        } catch (Exception e) {
+            final String siteUrl = e instanceof ExpiredLinkException
+                    ? "/link-expirado"
+                    : "/erro-ativacao";
+
+            uri = URI.create(serviceUrls.getSiteUrl() + siteUrl);
+        }
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(uri)

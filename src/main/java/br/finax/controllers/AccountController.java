@@ -2,6 +2,7 @@ package br.finax.controllers;
 
 import br.finax.dto.InterfacesSQL.BasicAccount;
 import br.finax.dto.account.GetAccountById;
+import br.finax.dto.account.SaveAccountDTO;
 import br.finax.models.Account;
 import br.finax.services.AccountService;
 import jakarta.validation.Valid;
@@ -51,7 +52,7 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<Account> createNew(@RequestBody @Valid Account account) {
+    public ResponseEntity<Account> createNew(@RequestBody @Valid SaveAccountDTO account) {
         final Account savedAccount = accountService.createNew(account);
 
         final URI uri = URI.create("/account/" + savedAccount.getId());
@@ -60,9 +61,9 @@ public class AccountController {
     }
 
     @PutMapping
-    public ResponseEntity<Account> edit(@RequestBody @Valid Account account) {
+    public ResponseEntity<Account> edit(@RequestParam long accountId, @RequestBody @Valid SaveAccountDTO account) {
         return ResponseEntity.ok(
-                accountService.edit(account)
+                accountService.edit(accountId, account)
         );
     }
 
