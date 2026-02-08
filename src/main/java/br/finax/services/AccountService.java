@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 
+import br.finax.dto.account.SaveAccountDTO;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -78,9 +79,10 @@ public class AccountService {
     }
 
     @Transactional
-    public Account createNew(Account account) {
-        account.setId(null);
+    public Account createNew(SaveAccountDTO accountDto) {
+        final Account account = accountDto.convertToEntity();
         account.setUserId(getAuthUser().getId());
+        account.setActive(true);
 
         if (account.getPrimaryAccountId() != null) {
             final Account primaryAccount = service.findById(account.getPrimaryAccountId());
@@ -90,7 +92,16 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    public Account edit(Account account) {
+    @Transactional
+    public Account edit(long accountId, SaveAccountDTO accountDto) {
+        final Account account = accountDto.convertToEntity();
+
+        final Account oldAccount = service.findById(accountId);
+
+        account.setId(accountId);
+        account.setActive(oldAccount.isActive());
+        account.setUserId(oldAccount.getUserId());
+
         checkPermission(account);
 
         if (account.getPrimaryAccountId() != null) {
