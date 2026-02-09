@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.dto.SaveCategoryDTO;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;
@@ -46,14 +47,23 @@ public class CategoryService {
     }
 
     @Transactional
-    public Category createNew(Category category) {
-        category.setId(null);
+    public Category createNew(SaveCategoryDTO categoryDto) {
+        final Category category = categoryDto.toEntity();
         category.setUserId(getAuthUser().getId());
+        category.setActive(true);
         return categoryRepository.save(category);
     }
 
     @Transactional
-    public Category edit(Category category) {
+    public Category edit(long categoryId, SaveCategoryDTO categoryDto) {
+        final Category category = categoryDto.toEntity();
+
+        final Category oldCategory = findById(categoryId);
+
+        category.setId(categoryId);
+        category.setUserId(oldCategory.getUserId());
+        category.setActive(oldCategory.isActive());
+
         checkPermission(category);
 
         return categoryRepository.save(category);
