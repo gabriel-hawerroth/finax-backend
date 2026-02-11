@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.LoginResponseDTO;
+import br.finax.dto.LoginDTO;
 import br.finax.dto.auth.ResendActivationEmailDTO;
 import br.finax.models.User;
 import br.finax.security.JwtCookieService;
@@ -28,13 +28,13 @@ public class AuthController {
     private final JwtCookieService jwtCookieService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(
+    public ResponseEntity<User> login(
             @RequestBody @Valid AuthenticationDTO authDTO,
             HttpServletResponse response
     ) {
-        final LoginResponseDTO loginResponse = authService.doLogin(authDTO);
+        final LoginDTO loginResponse = authService.doLogin(authDTO);
         jwtCookieService.addTokenCookie(response, loginResponse.token());
-        return ResponseEntity.ok(loginResponse);
+        return ResponseEntity.ok(loginResponse.user());
     }
 
     @PostMapping("/logout")

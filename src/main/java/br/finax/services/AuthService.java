@@ -15,7 +15,7 @@ import org.springframework.web.util.HtmlUtils;
 
 import br.finax.dto.AuthenticationDTO;
 import br.finax.dto.EmailDTO;
-import br.finax.dto.LoginResponseDTO;
+import br.finax.dto.LoginDTO;
 import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.user.UserAccess;
@@ -47,7 +47,7 @@ public class AuthService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public LoginResponseDTO doLogin(AuthenticationDTO authDTO) {
+    public LoginDTO doLogin(AuthenticationDTO authDTO) {
         final var usernamePassword = new UsernamePasswordAuthenticationToken(authDTO.login(), authDTO.password());
 
         final Authentication auth;
@@ -66,7 +66,7 @@ public class AuthService {
 
         saveAccessLog(user);
 
-        return new LoginResponseDTO(user, token);
+        return new LoginDTO(user, token);
     }
 
     @Transactional
