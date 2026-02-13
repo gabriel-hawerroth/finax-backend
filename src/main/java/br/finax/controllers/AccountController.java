@@ -60,10 +60,10 @@ public class AccountController {
         return ResponseEntity.created(uri).body(savedAccount);
     }
 
-    @PutMapping
-    public ResponseEntity<Account> edit(@RequestParam long accountId, @RequestBody @Valid SaveAccountDTO account) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Account> edit(@PathVariable long id, @RequestBody @Valid SaveAccountDTO account) {
         return ResponseEntity.ok(
-                accountService.edit(accountId, account)
+                accountService.edit(id, account)
         );
     }
 

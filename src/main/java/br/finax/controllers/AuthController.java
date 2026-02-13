@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.LoginResponseDTO;
+import br.finax.dto.LoginDTO;
 import br.finax.dto.auth.ResendActivationEmailDTO;
 import br.finax.models.User;
+import br.finax.security.JwtCookieService;
 import br.finax.services.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -23,12 +25,22 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtCookieService jwtCookieService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO authDTO) {
-        return ResponseEntity.ok(
-                authService.doLogin(authDTO)
-        );
+    public ResponseEntity<User> login(
+            @RequestBody @Valid AuthenticationDTO authDTO,
+            HttpServletResponse response
+    ) {
+        final LoginDTO loginResponse = authService.doLogin(authDTO);
+        jwtCookieService.addTokenCookie(response, loginResponse.token());
+        return ResponseEntity.ok(loginResponse.user());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        jwtCookieService.clearTokenCookie(response);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/register")

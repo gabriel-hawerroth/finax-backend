@@ -7,6 +7,7 @@ import static br.finax.utils.UtilsService.getAuthUser;
 import java.math.BigDecimal;
 import java.util.List;
 
+import br.finax.dto.credit_card.SaveCreditCardDto;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -53,14 +54,23 @@ public class CreditCardService {
     }
 
     @Transactional
-    public CreditCard createNew(CreditCard card) {
-        card.setId(null);
+    public CreditCard createNew(SaveCreditCardDto cardDto) {
+        final CreditCard card = cardDto.toEntity();
         card.setUserId(getAuthUser().getId());
+        card.setActive(true);
         return creditCardRepository.save(card);
     }
 
     @Transactional
-    public CreditCard edit(CreditCard card) {
+    public CreditCard edit(long cardId, SaveCreditCardDto cardDto) {
+        final CreditCard card = cardDto.toEntity();
+
+        final CreditCard oldCard = service.findById(cardId);
+
+        card.setId(cardId);
+        card.setActive(oldCard.isActive());
+        card.setUserId(oldCard.getUserId());
+
         checkPermission(card);
 
         return creditCardRepository.save(card);

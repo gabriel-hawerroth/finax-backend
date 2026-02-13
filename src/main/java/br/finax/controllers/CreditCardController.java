@@ -3,6 +3,7 @@ package br.finax.controllers;
 import java.net.URI;
 import java.util.List;
 
+import br.finax.dto.credit_card.SaveCreditCardDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +51,7 @@ public class CreditCardController {
     }
 
     @PostMapping
-    public ResponseEntity<CreditCard> createNew(@RequestBody @Valid CreditCard card) {
+    public ResponseEntity<CreditCard> createNew(@RequestBody @Valid SaveCreditCardDto card) {
         final CreditCard creditCard = creditCardService.createNew(card);
 
         final URI uri = URI.create("/credit-card/" + creditCard.getId());
@@ -58,10 +59,10 @@ public class CreditCardController {
         return ResponseEntity.created(uri).body(creditCard);
     }
 
-    @PutMapping
-    public ResponseEntity<CreditCard> edit(@RequestBody @Valid CreditCard card) {
+    @PutMapping("/{id}")
+    public ResponseEntity<CreditCard> edit(@PathVariable long id, @RequestBody @Valid SaveCreditCardDto card) {
         return ResponseEntity.ok(
-                creditCardService.edit(card)
+                creditCardService.edit(id, card)
         );
     }
 

@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.dto.SaveCategoryDTO;
 import br.finax.models.Category;
 import br.finax.services.CategoryService;
 import jakarta.validation.Valid;
@@ -39,18 +40,18 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Category> createNew(@RequestBody @Valid Category category) {
+    public ResponseEntity<Category> createNew(@RequestBody @Valid SaveCategoryDTO category) {
         final Category savedCategory = categoryService.createNew(category);
 
         final URI uri = URI.create("/category/" + savedCategory.getId());
 
-        return ResponseEntity.created(uri).body(category);
+        return ResponseEntity.created(uri).body(savedCategory);
     }
 
-    @PutMapping
-    public ResponseEntity<Category> edit(@RequestBody @Valid Category category) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Category> edit(@PathVariable long id, @RequestBody @Valid SaveCategoryDTO category) {
         return ResponseEntity.ok(
-                categoryService.edit(category)
+                categoryService.edit(id, category)
         );
     }
 
