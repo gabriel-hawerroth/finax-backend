@@ -1,7 +1,25 @@
 package br.finax.services;
 
-import java.time.LocalDateTime;
-
+import br.finax.dto.AuthenticationDTO;
+import br.finax.dto.EmailDTO;
+import br.finax.dto.LoginDTO;
+import br.finax.dto.auth.GoogleAuthDTO;
+import br.finax.enums.EmailType;
+import br.finax.enums.ErrorCategory;
+import br.finax.enums.user.AuthProvider;
+import br.finax.enums.user.UserAccess;
+import br.finax.enums.user.UserSignature;
+import br.finax.events.user_created.UserCreatedEvent;
+import br.finax.exceptions.BadCredentialsException;
+import br.finax.exceptions.EmailAlreadyExistsException;
+import br.finax.exceptions.ServiceException;
+import br.finax.models.AccessLog;
+import br.finax.models.User;
+import br.finax.security.GoogleTokenVerifierService;
+import br.finax.security.SecurityFilter;
+import br.finax.security.TokenService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
@@ -13,33 +31,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
-import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.EmailDTO;
-import br.finax.dto.LoginDTO;
-import br.finax.enums.EmailType;
-import br.finax.enums.ErrorCategory;
-import br.finax.enums.user.UserAccess;
-import br.finax.enums.user.UserSignature;
-import br.finax.events.user_created.UserCreatedEvent;
-import br.finax.exceptions.BadCredentialsException;
-import br.finax.exceptions.EmailAlreadyExistsException;
-import br.finax.exceptions.ServiceException;
-import br.finax.models.AccessLog;
-import br.finax.models.User;
-import br.finax.security.SecurityFilter;
-import br.finax.security.TokenService;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserService userService;
+    private final CategoryService categoryService;
+    private final UserConfigsService userConfigsService;
 
     private final SecurityFilter securityFilter;
     private final AccessLogService accessLogService;
     private final TokenService tokenService;
     private final EmailService emailService;
+    private final GoogleTokenVerifierService googleTokenVerifierService;
 
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -48,6 +54,11 @@ public class AuthService {
 
     @Transactional
     public LoginDTO doLogin(AuthenticationDTO authDTO) {
+        final var existingUser = userService.findByEmailOptional(authDTO.login()).orElse(null);
+        if (existingUser != null && existingUser.getPassword() == null) {
+            throw new BadCredentialsException("Use Google to sign in");
+        }
+
         final var usernamePassword = new UsernamePasswordAuthenticationToken(authDTO.login(), authDTO.password());
 
         final Authentication auth;
@@ -111,6 +122,67 @@ public class AuthService {
         final String token = tokenService.generateToken(user);
 
         sendActivateAccountEmail(user.getEmail(), user, token);
+    }
+
+    @Transactional
+    public LoginDTO doGoogleLogin(GoogleAuthDTO googleAuthDTO) {
+        final GoogleIdToken.Payload payload = googleTokenVerifierService.verifyToken(googleAuthDTO.credential());
+
+        if (payload == null) {
+            throw new BadCredentialsException("Invalid Google token");
+        }
+
+        final String email = payload.getEmail();
+        final String googleId = payload.getSubject();
+        final String firstName = (String) payload.get("given_name");
+        final String lastName = (String) payload.get("family_name");
+
+        if (email == null || !Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new BadCredentialsException("Google account email not verified");
+        }
+
+        User user = userService.findByEmailOptional(email).orElse(null);
+
+        if (user != null) {
+            if (user.getProvider() == AuthProvider.LOCAL) {
+                user.setProvider(AuthProvider.GOOGLE);
+                user.setProviderId(googleId);
+                user = userService.save(user);
+            }
+
+            if (!user.isActive()) {
+                userService.activeUser(user.getId());
+                user.setActive(true);
+                categoryService.insertNewUserCategories(user.getId());
+                userConfigsService.insertUserConfigsIfNotExists(user.getId());
+            }
+        } else {
+            user = new User();
+            user.setEmail(email);
+            user.setPassword(null);
+            user.setFirstName(firstName != null ? firstName : email.split("@")[0]);
+            user.setLastName(lastName);
+            user.setProvider(AuthProvider.GOOGLE);
+            user.setProviderId(googleId);
+            user.setActive(true);
+            user.setAccess(UserAccess.PREMIUM);
+            user.setCanChangePassword(false);
+            user.setSignature(UserSignature.MONTH);
+            user.setCreatedAt(LocalDateTime.now());
+
+            user = userService.save(user);
+
+            categoryService.insertNewUserCategories(user.getId());
+            userConfigsService.insertUserConfigsIfNotExists(user.getId());
+        }
+
+        securityFilter.updateCachedUser(user);
+
+        final String token = tokenService.generateToken(user);
+
+        saveAccessLog(user);
+
+        return new LoginDTO(user, token);
     }
 
     private void saveAccessLog(User user) {
