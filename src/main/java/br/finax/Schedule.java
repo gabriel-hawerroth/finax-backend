@@ -1,11 +1,5 @@
 package br.finax;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
 import br.finax.enums.S3FolderPath;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Category;
@@ -19,7 +13,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Component

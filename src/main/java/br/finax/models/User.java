@@ -1,5 +1,6 @@
 package br.finax.models;
 
+import br.finax.enums.user.AuthProvider;
 import br.finax.enums.user.UserAccess;
 import br.finax.enums.user.UserSignature;
 import jakarta.persistence.Column;
@@ -33,8 +34,15 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "auth_provider")
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(name = "provider_id")
+    private String providerId;
 
     @Column(name = "first_name", nullable = false, length = 30)
     private String firstName;
