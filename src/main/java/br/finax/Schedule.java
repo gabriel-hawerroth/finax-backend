@@ -14,12 +14,10 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -36,8 +34,6 @@ public class Schedule {
     private final AwsS3Service awsS3Service;
     private final DatabaseBackupService databaseBackupService;
 
-    private final Environment env;
-
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -48,10 +44,6 @@ public class Schedule {
     @Transactional(readOnly = true)
     @Scheduled(cron = "45 * * * * *")
     public void stayActive() {
-        if (!Arrays.asList(env.getActiveProfiles()).contains("prod")) {
-            return;
-        }
-
         List<Category> categories = categoryRepository.findAll();
 
         for (var i = 0; i < categories.size(); i++) {

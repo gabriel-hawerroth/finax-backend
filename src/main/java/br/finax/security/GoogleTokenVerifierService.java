@@ -2,9 +2,10 @@ package br.finax.security;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 
+@Slf4j
 @Service
 public class GoogleTokenVerifierService {
 
@@ -21,9 +23,9 @@ public class GoogleTokenVerifierService {
     private GoogleIdTokenVerifier verifier;
 
     @PostConstruct
-    void init() {
+    void init() throws GeneralSecurityException, IOException {
         verifier = new GoogleIdTokenVerifier.Builder(
-                new NetHttpTransport(),
+                GoogleNetHttpTransport.newTrustedTransport(),
                 GsonFactory.getDefaultInstance()
         )
                 .setAudience(Collections.singletonList(googleClientId))
@@ -34,10 +36,12 @@ public class GoogleTokenVerifierService {
         try {
             final GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken == null) {
+                log.error("Invalid ID token");
                 return null;
             }
             return idToken.getPayload();
         } catch (GeneralSecurityException | IOException e) {
+            log.error("Error verifying ID token", e);
             return null;
         }
     }

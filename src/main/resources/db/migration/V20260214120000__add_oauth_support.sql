@@ -9,4 +9,8 @@ ALTER TABLE users
 ALTER TABLE users
     ALTER COLUMN password DROP NOT NULL;
 
-CREATE INDEX users_provider_provider_id_idx ON users (provider, provider_id);
+CREATE UNIQUE INDEX users_provider_provider_id_idx ON users (provider, provider_id);
+
+ALTER TABLE users
+    ADD CONSTRAINT users_password_required_for_local
+    CHECK (provider <> 'LOCAL' OR password IS NOT NULL);

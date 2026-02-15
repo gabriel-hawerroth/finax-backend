@@ -148,6 +148,8 @@ public class AuthService {
                 user.setProvider(AuthProvider.GOOGLE);
                 user.setProviderId(googleId);
                 user = userService.save(user);
+            } else if (user.getProvider() == AuthProvider.GOOGLE && !user.getProviderId().equals(googleId)) {
+                throw new BadCredentialsException("Google account does not match the registered account");
             }
 
             if (!user.isActive()) {
@@ -160,7 +162,7 @@ public class AuthService {
             user = new User();
             user.setEmail(email);
             user.setPassword(null);
-            user.setFirstName(firstName != null ? firstName : email.split("@")[0]);
+            user.setFirstName(getFirstName(firstName, email));
             user.setLastName(lastName);
             user.setProvider(AuthProvider.GOOGLE);
             user.setProviderId(googleId);
@@ -183,6 +185,19 @@ public class AuthService {
         saveAccessLog(user);
 
         return new LoginDTO(user, token);
+    }
+
+    private static String getFirstName(String firstName, String email) {
+        String resolvedFirstName = firstName;
+        if (resolvedFirstName == null) {
+            int atIndex = email.indexOf('@');
+            if (atIndex > 0) {
+                resolvedFirstName = email.substring(0, atIndex);
+            } else {
+                resolvedFirstName = email;
+            }
+        }
+        return resolvedFirstName;
     }
 
     private void saveAccessLog(User user) {
