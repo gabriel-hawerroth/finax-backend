@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.finax.dto.AuthenticationDTO;
 import br.finax.dto.LoginDTO;
+import br.finax.dto.auth.GoogleAuthDTO;
 import br.finax.dto.auth.ResendActivationEmailDTO;
 import br.finax.models.User;
 import br.finax.security.JwtCookieService;
@@ -33,6 +34,16 @@ public class AuthController {
             HttpServletResponse response
     ) {
         final LoginDTO loginResponse = authService.doLogin(authDTO);
+        jwtCookieService.addTokenCookie(response, loginResponse.token());
+        return ResponseEntity.ok(loginResponse.user());
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<User> googleLogin(
+            @RequestBody @Valid GoogleAuthDTO googleAuthDTO,
+            HttpServletResponse response
+    ) {
+        final LoginDTO loginResponse = authService.doGoogleLogin(googleAuthDTO);
         jwtCookieService.addTokenCookie(response, loginResponse.token());
         return ResponseEntity.ok(loginResponse.user());
     }

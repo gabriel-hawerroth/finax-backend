@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.Optional;
 
 import static br.finax.external.AwsS3Service.getS3FileName;
 import static br.finax.utils.FileUtils.convertByteArrayToFile;
@@ -43,6 +44,11 @@ public class UserService {
     public User findByEmail(@NotNull String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmailOptional(@NotNull String email) {
+        return userRepository.findByEmail(email);
     }
 
     @Transactional(readOnly = true)
