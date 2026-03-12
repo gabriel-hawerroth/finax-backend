@@ -1,7 +1,7 @@
 package br.finax.services;
 
-import br.finax.dto.InvoiceMonthValues;
-import br.finax.dto.InvoiceValues;
+import br.finax.dto.credit_card.InvoiceMonthValues;
+import br.finax.dto.credit_card.InvoiceValues;
 import br.finax.dto.cash_flow.MonthlyRelease;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.CreditCard;

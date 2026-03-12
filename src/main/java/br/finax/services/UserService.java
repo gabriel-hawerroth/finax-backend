@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.EditUserDTO;
+import br.finax.dto.user.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.exceptions.CannotChangePasswordException;

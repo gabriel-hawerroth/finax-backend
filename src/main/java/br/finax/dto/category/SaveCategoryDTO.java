@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.category;
 
 import br.finax.models.Category;
 

@@ -1,6 +1,6 @@
 package br.finax.external;
 
-import br.finax.dto.HunterResponse;
+import br.finax.dto.app.emails.HunterResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

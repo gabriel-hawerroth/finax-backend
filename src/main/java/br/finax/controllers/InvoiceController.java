@@ -1,7 +1,7 @@
 package br.finax.controllers;
 
-import br.finax.dto.InvoiceMonthValues;
-import br.finax.dto.InvoiceValues;
+import br.finax.dto.credit_card.InvoiceMonthValues;
+import br.finax.dto.credit_card.InvoiceValues;
 import br.finax.models.InvoicePayment;
 import br.finax.services.InvoicePaymentService;
 import br.finax.services.InvoiceService;

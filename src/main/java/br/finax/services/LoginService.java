@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
-import br.finax.dto.EmailDTO;
+import br.finax.dto.app.emails.EmailDTO;
 import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ExpiredLinkException;

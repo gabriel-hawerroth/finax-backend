@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.FirstAndLastDate;
+import br.finax.dto.cash_flow.FirstAndLastDate;
 import br.finax.dto.reports.CategoryRec;
 import br.finax.dto.reports.ReleasesByAccount;
 import br.finax.dto.reports.ReleasesByCategory;

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.LoginDTO;
+import br.finax.dto.auth.AuthenticationDTO;
+import br.finax.dto.auth.LoginDTO;
 import br.finax.dto.auth.GoogleAuthDTO;
 import br.finax.dto.auth.ResendActivationEmailDTO;
 import br.finax.models.User;

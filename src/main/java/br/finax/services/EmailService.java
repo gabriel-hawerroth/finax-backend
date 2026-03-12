@@ -1,7 +1,7 @@
 package br.finax.services;
 
-import br.finax.dto.EmailDTO;
-import br.finax.dto.HunterResponse;
+import br.finax.dto.app.emails.EmailDTO;
+import br.finax.dto.app.emails.HunterResponse;
 import br.finax.email.EmailProvider;
 import br.finax.enums.EmailType;
 import br.finax.external.HunterIoService;
