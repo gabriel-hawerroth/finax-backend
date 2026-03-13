@@ -1,6 +1,6 @@
 package br.finax.email;
 
-import br.finax.dto.EmailDTO;
+import br.finax.dto.app.emails.EmailDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ServiceException;
 import org.springframework.beans.factory.annotation.Value;

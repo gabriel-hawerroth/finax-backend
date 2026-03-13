@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.FirstAndLastDate;
+import br.finax.dto.cash_flow.FirstAndLastDate;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
 import br.finax.dto.home.HomeAccount;

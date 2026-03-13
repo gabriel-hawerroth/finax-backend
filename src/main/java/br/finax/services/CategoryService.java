@@ -1,6 +1,6 @@
 package br.finax.services;
 
-import br.finax.dto.SaveCategoryDTO;
+import br.finax.dto.category.SaveCategoryDTO;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;

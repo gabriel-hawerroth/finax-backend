@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.auth;
 
 import br.finax.models.User;
 import jakarta.validation.constraints.NotBlank;

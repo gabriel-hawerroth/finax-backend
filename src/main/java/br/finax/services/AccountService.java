@@ -1,6 +1,22 @@
 package br.finax.services;
 
-import static br.finax.utils.UtilsService.getAuthUser;
+import br.finax.dto.InterfacesSQL.BasicAccount;
+import br.finax.dto.account.GetAccountById;
+import br.finax.dto.account.SaveAccountDTO;
+import br.finax.dto.cash_flow.SaveReleaseDTO;
+import br.finax.enums.ErrorCategory;
+import br.finax.enums.release.ReleaseType;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.WithoutPermissionException;
+import br.finax.models.Account;
+import br.finax.repository.AccountRepository;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,24 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 
-import br.finax.dto.account.SaveAccountDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import br.finax.dto.InterfacesSQL.BasicAccount;
-import br.finax.dto.account.GetAccountById;
-import br.finax.enums.ErrorCategory;
-import br.finax.enums.release.ReleaseType;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
-import br.finax.models.Account;
-import br.finax.models.Release;
-import br.finax.repository.AccountRepository;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -166,23 +165,29 @@ public class AccountService {
     }
 
     private void createNewCashFlowRelease(Account account, BigDecimal newBalance) {
-        final Release release = new Release();
-        release.setBalanceAdjustment(true);
-        release.setUserId(account.getUserId());
-        release.setDescription("");
-        release.setAccountId(account.getId());
-        release.setAmount(
+        final SaveReleaseDTO releaseDTO = new SaveReleaseDTO(
+                "",
+                account.getId(),
                 newBalance.compareTo(account.getBalance()) > 0
                         ? newBalance.subtract(account.getBalance())
-                        : account.getBalance().subtract(newBalance)
+                        : account.getBalance().subtract(newBalance),
+                newBalance.compareTo(account.getBalance()) > 0 ? ReleaseType.R : ReleaseType.E,
+                true,
+                null,
+                null,
+                LocalDate.now(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                null
         );
-        release.setType(newBalance.compareTo(account.getBalance()) > 0 ? ReleaseType.R : ReleaseType.E);
-        release.setDone(true);
-        release.setCategoryId(null);
-        release.setDate(LocalDate.now());
-        release.setRepeat(null);
-        release.setTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
 
-        releaseService.addRelease(release, 0);
+        releaseService.addRelease(releaseDTO, 0);
     }
 }

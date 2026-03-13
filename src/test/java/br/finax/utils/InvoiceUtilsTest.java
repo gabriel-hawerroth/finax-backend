@@ -1,6 +1,6 @@
 package br.finax.utils;
 
-import br.finax.dto.FirstAndLastDate;
+import br.finax.dto.cash_flow.FirstAndLastDate;
 import br.finax.exceptions.ServiceException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

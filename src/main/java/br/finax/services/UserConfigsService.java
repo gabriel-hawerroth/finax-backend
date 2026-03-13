@@ -1,5 +1,6 @@
 package br.finax.services;
 
+import br.finax.dto.user.UserConfigsDTO;
 import br.finax.enums.user_configs.UserConfigsReleasesViewMode;
 import br.finax.enums.user_configs.UserConfigsTheme;
 import br.finax.exceptions.WithoutPermissionException;
@@ -20,21 +21,24 @@ public class UserConfigsService {
     private final UserConfigsRepository userConfigsRepository;
 
     @Transactional
-    public UserConfigs getByUser() {
+    public UserConfigsDTO getByUser() {
         final long userId = getAuthUser().getId();
 
-        return userConfigsRepository.findByUserId(userId)
+        var userConfigs = userConfigsRepository.findByUserId(userId)
                 .orElseGet(() -> userConfigsRepository.save(getDefaultUserConfigs(userId)));
+
+        return UserConfigsDTO.fromEntity(userConfigs);
     }
 
     @Transactional
-    public UserConfigs save(UserConfigs userConfigs) {
-        if (userConfigs.getId() == null)
-            userConfigs.setUserId(getAuthUser().getId());
-        else
-            checkPermission(userConfigs);
+    public UserConfigsDTO save(UserConfigsDTO userConfigsDto) {
+        userConfigsRepository.findById(userConfigsDto.id())
+                .ifPresent(this::checkPermission);
 
-        return userConfigsRepository.save(userConfigs);
+        var newUserConfigs = userConfigsDto.toEntity();
+        newUserConfigs.setUserId(getAuthUser().getId());
+
+        return UserConfigsDTO.fromEntity(userConfigsRepository.save(newUserConfigs));
     }
 
     @Transactional

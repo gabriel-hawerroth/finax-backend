@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.app.emails;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

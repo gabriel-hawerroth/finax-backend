@@ -1,8 +1,8 @@
 package br.finax.services;
 
-import br.finax.dto.AuthenticationDTO;
-import br.finax.dto.EmailDTO;
-import br.finax.dto.LoginDTO;
+import br.finax.dto.auth.AuthenticationDTO;
+import br.finax.dto.app.emails.EmailDTO;
+import br.finax.dto.auth.LoginDTO;
 import br.finax.dto.auth.GoogleAuthDTO;
 import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;

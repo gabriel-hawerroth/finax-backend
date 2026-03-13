@@ -1,4 +1,4 @@
-package br.finax.dto;
+package br.finax.dto.credit_card;
 
 import br.finax.dto.InterfacesSQL.InvoicePaymentPerson;
 import br.finax.dto.cash_flow.MonthlyRelease;

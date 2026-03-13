@@ -1,6 +1,6 @@
 package br.finax.config;
 
-import br.finax.dto.ResponseError;
+import br.finax.dto.app.ResponseError;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.*;
 import br.finax.utils.ServiceUrls;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.net.URI;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static br.finax.utils.UtilsService.extractRelevantErrorMessage;

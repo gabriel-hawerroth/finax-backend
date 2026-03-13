@@ -1,11 +1,27 @@
 package br.finax.services;
 
-import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
-import static br.finax.utils.UtilsService.getAuthUser;
+import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.cash_flow.*;
+import br.finax.enums.ErrorCategory;
+import br.finax.enums.S3FolderPath;
+import br.finax.enums.release.DuplicatedReleaseAction;
+import br.finax.enums.release.ReleaseFixedby;
+import br.finax.enums.release.ReleaseRepeat;
+import br.finax.enums.release.ReleaseType;
+import br.finax.exceptions.*;
+import br.finax.external.AwsS3Service;
+import br.finax.models.Account;
+import br.finax.models.Category;
+import br.finax.models.CreditCard;
+import br.finax.models.Release;
+import br.finax.repository.ReleaseRepository;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -16,39 +32,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import br.finax.dto.FirstAndLastDate;
-import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
-import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.cash_flow.CashFlowValues;
-import br.finax.dto.cash_flow.DuplicatedReleaseBuilder;
-import br.finax.dto.cash_flow.MonthlyRelease;
-import br.finax.dto.cash_flow.MonthlyReleaseAccount;
-import br.finax.dto.cash_flow.MonthlyReleaseCard;
-import br.finax.dto.cash_flow.MonthlyReleaseCategory;
-import br.finax.enums.ErrorCategory;
-import br.finax.enums.S3FolderPath;
-import br.finax.enums.release.DuplicatedReleaseAction;
-import br.finax.enums.release.ReleaseFixedby;
-import br.finax.enums.release.ReleaseRepeat;
-import br.finax.enums.release.ReleaseType;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
-import br.finax.external.AwsS3Service;
-import br.finax.models.Account;
-import br.finax.models.Category;
-import br.finax.models.CreditCard;
-import br.finax.models.Release;
-import br.finax.repository.ReleaseRepository;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static br.finax.external.AwsS3Service.getS3FileName;
+import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
+import static br.finax.utils.FileUtils.*;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -105,8 +92,9 @@ public class ReleaseService {
     }
 
     @Transactional
-    public Release addRelease(final @NonNull Release release, final int repeatFor) {
-        release.setId(null);
+    public Release addRelease(final @NonNull SaveReleaseDTO releaseDto, final int repeatFor) {
+        Release release = releaseDto.toEntity();
+
         release.setUserId(getAuthUser().getId());
 
         if (release.getRepeat() == null)
@@ -150,8 +138,13 @@ public class ReleaseService {
 
     @Transactional
     public Release editRelease(
-            @NonNull Release release, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
+            long id, @NonNull SaveReleaseDTO releaseDto, @NonNull DuplicatedReleaseAction duplicatedReleaseAction
     ) {
+        var release = releaseDto.toEntity();
+        final var oldRelease = findById(id);
+        release.setId(id);
+        release.setUserId(oldRelease.getUserId());
+
         checkPermission(release);
 
         final boolean updatingAll = duplicatedReleaseAction == DuplicatedReleaseAction.ALL;

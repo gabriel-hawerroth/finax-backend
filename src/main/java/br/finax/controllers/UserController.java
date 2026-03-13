@@ -1,6 +1,6 @@
 package br.finax.controllers;
 
-import br.finax.dto.EditUserDTO;
+import br.finax.dto.user.EditUserDTO;
 import br.finax.models.User;
 import br.finax.services.UserService;
 import jakarta.validation.Valid;

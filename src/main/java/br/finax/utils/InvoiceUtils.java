@@ -1,6 +1,6 @@
 package br.finax.utils;
 
-import br.finax.dto.FirstAndLastDate;
+import br.finax.dto.cash_flow.FirstAndLastDate;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ServiceException;
 import lombok.experimental.UtilityClass;

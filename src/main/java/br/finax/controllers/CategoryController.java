@@ -1,6 +1,6 @@
 package br.finax.controllers;
 
-import br.finax.dto.SaveCategoryDTO;
+import br.finax.dto.category.SaveCategoryDTO;
 import br.finax.models.Category;
 import br.finax.services.CategoryService;
 import jakarta.validation.Valid;
