@@ -11,9 +11,7 @@ import br.finax.security.SecurityFilter;
 import br.finax.utils.FileUtils;
 import br.finax.utils.UtilsService;
 import jakarta.validation.constraints.NotNull;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +25,6 @@ import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.isNotEmpty;
 
-@Lazy
 @Service
 @RequiredArgsConstructor
 public class UserService {

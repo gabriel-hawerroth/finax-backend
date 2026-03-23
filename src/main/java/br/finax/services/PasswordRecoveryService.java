@@ -19,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.net.URLDecoder;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -88,7 +88,7 @@ public class PasswordRecoveryService {
 
     @Transactional
     public void confirmRecovery(String token, String newPassword) {
-        token = normalizeToken(token);
+        token = token != null ? token.trim() : null;
         validateTokenFormat(token);
         validatePasswordPolicy(newPassword);
 
@@ -121,7 +121,7 @@ public class PasswordRecoveryService {
 
     @Transactional(readOnly = true)
     public void validateToken(String token) {
-        token = normalizeToken(token);
+        token = token != null ? token.trim() : null;
         validateTokenFormat(token);
 
         final String tokenHash = sha256(token);
@@ -147,15 +147,9 @@ public class PasswordRecoveryService {
 
     private static String sha256(String value) {
         try {
-            final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            final byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
-
-            final StringBuilder hex = new StringBuilder();
-            for (byte b : hash) {
-                hex.append(String.format("%02x", b));
-            }
-
-            return hex.toString();
+            final byte[] hash = MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
         } catch (Exception ex) {
             throw new ServiceException(ErrorCategory.INTERNAL_ERROR, "Could not hash recovery token", ex);
         }
@@ -165,36 +159,6 @@ public class PasswordRecoveryService {
         if (token == null || token.isBlank() || !token.matches("^[A-Za-z0-9_-]{30,200}$")) {
             throw new ServiceException(ErrorCategory.GONE, INVALID_OR_EXPIRED);
         }
-    }
-
-    private static String normalizeToken(String token) {
-        if (token == null) {
-            return null;
-        }
-
-        String normalized = token.trim();
-
-        if ((normalized.startsWith("\"") && normalized.endsWith("\""))
-                || (normalized.startsWith("'") && normalized.endsWith("'"))) {
-            normalized = normalized.substring(1, normalized.length() - 1).trim();
-        }
-
-        try {
-            normalized = URLDecoder.decode(normalized, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException ignored) {
-            // Keep original token if decode fails due malformed encoding.
-        }
-
-        normalized = normalized.replaceAll("^[^A-Za-z0-9_-]+|[^A-Za-z0-9_-]+$", "");
-
-        final java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("[A-Za-z0-9_-]{30,200}")
-                .matcher(normalized);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-
-        return normalized;
     }
 
     private static void validatePasswordPolicy(String password) {

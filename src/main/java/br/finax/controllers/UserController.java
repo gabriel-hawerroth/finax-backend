@@ -19,13 +19,6 @@ public class UserController {
 
     public final UserService userService;
 
-    @GetMapping("/get-auth-user")
-    public ResponseEntity<User> getAuthUser() {
-        return ResponseEntity.ok(
-                userService.getAuthUser()
-        );
-    }
-
     @PutMapping
     public ResponseEntity<User> editUser(@RequestBody @Valid EditUserDTO user) {
         return ResponseEntity.ok(

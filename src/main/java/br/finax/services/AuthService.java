@@ -97,7 +97,6 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActive(false);
         user.setAccess(UserAccess.PREMIUM);
-        user.setCanChangePassword(false);
         user.setSignature(UserSignature.MONTH);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -171,7 +170,6 @@ public class AuthService {
             user.setProviderId(googleId);
             user.setActive(true);
             user.setAccess(UserAccess.PREMIUM);
-            user.setCanChangePassword(false);
             user.setSignature(UserSignature.MONTH);
             user.setCreatedAt(LocalDateTime.now());
 

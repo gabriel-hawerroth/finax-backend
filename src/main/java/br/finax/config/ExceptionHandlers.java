@@ -136,11 +136,6 @@ public class ExceptionHandlers {
         return internalError();
     }
 
-    @ExceptionHandler(CannotChangePasswordException.class)
-    public ResponseEntity<ResponseError> cannotChangePasswordException(CannotChangePasswordException ex) {
-        return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));
-    }
-
     @ExceptionHandler(InvalidParametersException.class)
     public ResponseEntity<ResponseError> invalidParametersException(InvalidParametersException ex) {
         return ResponseEntity.badRequest().body(new ResponseError(ex.getMessage()));

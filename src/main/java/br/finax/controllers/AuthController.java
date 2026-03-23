@@ -2,7 +2,9 @@ package br.finax.controllers;
 
 import java.util.TimeZone;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,6 +67,14 @@ public class AuthController {
     public ResponseEntity<Void> resendActivationEmail(@RequestBody @Valid ResendActivationEmailDTO email) {
         authService.resendActivationEmail(email.email());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/csrf")
+    public ResponseEntity<Void> csrf(CsrfToken csrfToken) {
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
+                .header("Pragma", "no-cache")
+                .build();
     }
 
     @GetMapping("/timezone")
