@@ -3,6 +3,7 @@ package br.finax.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,29 +11,32 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Lazy
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfigurations {
 
     private final SecurityFilter securityFilter;
+    private final CsrfValidationFilter csrfValidationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/login/**").permitAll()
-                        .requestMatchers("/user/{id}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(csrfValidationFilter, SecurityFilter.class)
                 .build();
     }
 
@@ -43,6 +47,52 @@ public class SecurityConfigurations {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        final PasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        final PasswordEncoder delegating = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return bcrypt.encode(rawPassword);
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                if (encodedPassword == null) {
+                    return false;
+                }
+
+                final String normalized = encodedPassword.trim();
+
+                if (normalized.startsWith("{")) {
+                    try {
+                        return delegating.matches(rawPassword, normalized);
+                    } catch (IllegalArgumentException ignored) {
+                        // Fallback to bcrypt for legacy values missing a valid prefix mapping.
+                    }
+                }
+
+                return bcrypt.matches(rawPassword, normalized);
+            }
+
+            @Override
+            public boolean upgradeEncoding(String encodedPassword) {
+                if (encodedPassword == null) {
+                    return false;
+                }
+
+                final String normalized = encodedPassword.trim();
+
+                if (normalized.startsWith("{")) {
+                    try {
+                        return delegating.upgradeEncoding(normalized);
+                    } catch (IllegalArgumentException ignored) {
+                        return false;
+                    }
+                }
+
+                return bcrypt.upgradeEncoding(normalized);
+            }
+        };
     }
 }

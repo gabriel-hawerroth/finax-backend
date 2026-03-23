@@ -19,13 +19,6 @@ public class UserController {
 
     public final UserService userService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable long id) {
-        return ResponseEntity.ok(
-                userService.findById(id)
-        );
-    }
-
     @GetMapping("/get-auth-user")
     public ResponseEntity<User> getAuthUser() {
         return ResponseEntity.ok(
@@ -37,13 +30,6 @@ public class UserController {
     public ResponseEntity<User> editUser(@RequestBody @Valid EditUserDTO user) {
         return ResponseEntity.ok(
                 userService.editUser(user)
-        );
-    }
-
-    @PatchMapping("/change-forgeted-password")
-    public ResponseEntity<User> changeForgetedPassword(@RequestParam long userId, @RequestParam @NotNull String newPassword) {
-        return ResponseEntity.ok(
-                userService.changeForgetedPassword(userId, newPassword)
         );
     }
 

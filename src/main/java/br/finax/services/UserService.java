@@ -3,12 +3,7 @@ package br.finax.services;
 import br.finax.dto.user.EditUserDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
-import br.finax.exceptions.CannotChangePasswordException;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.InvalidPasswordException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.*;
 import br.finax.external.AwsS3Service;
 import br.finax.models.User;
 import br.finax.repository.UserRepository;
@@ -18,6 +13,7 @@ import br.finax.utils.UtilsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +27,7 @@ import static br.finax.utils.FileUtils.convertByteArrayToFile;
 import static br.finax.utils.FileUtils.getFileExtension;
 import static br.finax.utils.UtilsService.isNotEmpty;
 
+@Lazy
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -42,13 +39,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User findByEmail(@NotNull String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findFirstByEmailIgnoreCase(email)
                 .orElseThrow(NotFoundException::new);
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmailOptional(@NotNull String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findFirstByEmailIgnoreCase(email);
     }
 
     @Transactional(readOnly = true)
@@ -59,21 +56,6 @@ public class UserService {
 
     public User getAuthUser() {
         return UtilsService.getAuthUser();
-    }
-
-    @Transactional
-    public User changeForgetedPassword(long userId, @NonNull String newPassword) {
-        final User user = findById(userId);
-
-        if (!user.isCanChangePassword())
-            throw new CannotChangePasswordException();
-
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setCanChangePassword(false);
-
-        securityFilter.updateCachedUser(user);
-
-        return userRepository.save(user);
     }
 
     @Transactional
@@ -152,7 +134,7 @@ public class UserService {
 
     @Transactional
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return userRepository.existsByEmailIgnoreCase(email);
     }
 
     @Transactional

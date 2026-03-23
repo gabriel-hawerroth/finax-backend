@@ -84,11 +84,20 @@ public class EmailService {
 
         final String action = switch (emailType) {
             case ACTIVATE_ACCOUNT -> " ativar sua conta.";
-            case CHANGE_PASSWORD -> " redefinir sua senha.";
             default -> "";
         };
 
         return String.format("Clique <a id=\"link\" href='%s' target=\"_blank\">aqui</a> para %s", url, action);
+    }
+
+    public String buildPasswordRecoveryContent(User user, String rawToken) {
+        final String url = serviceUrls.getSiteUrl() + "/recuperacao-da-senha?rt=" + rawToken;
+
+        return String.format(
+                "Ola, %s!<br><br>Clique <a id=\"link\" href='%s' target=\"_blank\">aqui</a> para redefinir sua senha.",
+                user.getFirstName(),
+                url
+        );
     }
 
     public String buildEmailTemplate(@NonNull String mailContent) {
@@ -154,7 +163,7 @@ public class EmailService {
                 + mailContent +
                 """
                                         <br>
-                                        Este link é válido por apenas 2 horas.
+                                        Este link é válido por apenas 20 minutos.
                                         </p>
                         
                                         <p class="line">
