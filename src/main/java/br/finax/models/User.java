@@ -57,9 +57,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean active;
 
-    @Column(name = "can_change_password", nullable = false)
-    private boolean canChangePassword;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserSignature signature;
