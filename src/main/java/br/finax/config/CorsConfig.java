@@ -25,7 +25,10 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of(websiteUrl));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        // allowedHeaders: headers que o cliente pode enviar (requisição)
         config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
+        // exposedHeaders: headers que o cliente pode ler da resposta
+        config.setExposedHeaders(List.of("Set-Cookie"));
         config.setMaxAge(3600L);
 
         source.registerCorsConfiguration("/**", config);

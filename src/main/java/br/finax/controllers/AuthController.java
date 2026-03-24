@@ -21,10 +21,12 @@ import br.finax.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -71,9 +73,27 @@ public class AuthController {
 
     @GetMapping("/csrf")
     public ResponseEntity<Void> csrf(CsrfToken csrfToken) {
-        return ResponseEntity.noContent()
-                .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate")
+        log.info("[CSRF] Endpoint called - forcing token materialization");
+        
+        if (csrfToken != null) {
+            // Acessar o token força a sua materialização e Spring Security
+            // automaticamente seta o cookie XSRF-TOKEN na resposta via CookieCsrfTokenRepository
+            final String tokenValue = csrfToken.getToken();
+            log.info("[CSRF] Token materialized: {} (length: {})", 
+                tokenValue.substring(0, Math.min(20, tokenValue.length())) + "...",
+                tokenValue.length());
+            log.info("[CSRF] Header name: {}, Parameter name: {}", 
+                csrfToken.getHeaderName(), csrfToken.getParameterName());
+        } else {
+            log.warn("[CSRF] WARNING: CsrfToken is NULL - check SecurityFilterChain configuration");
+        }
+        
+        // Spring Security + CookieCsrfTokenRepository gerencia o Set-Cookie automaticamente
+        // Apenas adicione cache headers para não cachear este endpoint
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
                 .header("Pragma", "no-cache")
+                .header("Expires", "0")
                 .build();
     }
 

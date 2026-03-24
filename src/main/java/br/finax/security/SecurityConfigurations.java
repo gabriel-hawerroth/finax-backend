@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -31,15 +30,29 @@ public class SecurityConfigurations {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         final var csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfTokenRepository.setCookieCustomizer(cookie -> cookie
+            .path("/")
                 .sameSite("Lax")
                 .secure(secureCookie)
+                .maxAge(600)  // Token CSRF válido por 10 minutos, depois força refresh
         );
 
+        // SpaCsrfTokenRequestHandler resolve o conflito entre:
+        // 1. BREACH protection (XOR na resposta via handle())
+        // 2. Angular enviando valor bruto do cookie no header X-XSRF-TOKEN (sem XOR em resolveCsrfTokenValue)
+        //
+        // Fluxo:
+        // - Token via header X-XSRF-TOKEN → resolveCsrfTokenValue() retorna valor bruto (sem XOR)
+        // - Token via parâmetro _csrf → resolveCsrfTokenValue() retorna valor XOR/Base64
+        // - handle() sempre aplica XOR para BREACH protection na geração do token
         return httpSecurity
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/auth/**", "/login/**")
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                        .ignoringRequestMatchers(
+                            "/auth/csrf",
+                            "/login/password-recovery/validate",
+                            "/login/password-recovery/confirm"
+                        )
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
@@ -48,11 +61,12 @@ public class SecurityConfigurations {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
