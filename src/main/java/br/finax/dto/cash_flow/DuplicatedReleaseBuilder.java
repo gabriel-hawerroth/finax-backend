@@ -29,6 +29,8 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setFixedBy(original.getFixedBy());
         duplicatedRelease.setCreditCardId(original.getCreditCardId());
         duplicatedRelease.setBalanceAdjustment(original.isBalanceAdjustment());
+        duplicatedRelease.setCreatedAt(original.getCreatedAt());
+        duplicatedRelease.setUpdatedAt(original.getUpdatedAt());
         duplicatedRelease.setInstallmentNumber(null); // Will be set explicitly
     }
 
