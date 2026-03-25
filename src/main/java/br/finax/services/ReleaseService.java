@@ -1,15 +1,48 @@
 package br.finax.services;
 
+import static br.finax.external.AwsS3Service.getS3FileName;
+import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
+import static br.finax.utils.FileUtils.compressFile;
+import static br.finax.utils.FileUtils.convertByteArrayToFile;
+import static br.finax.utils.FileUtils.getFileExtension;
+import static br.finax.utils.UtilsService.getAuthUser;
+
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.cash_flow.*;
+import br.finax.dto.cash_flow.CashFlowValues;
+import br.finax.dto.cash_flow.DuplicatedReleaseBuilder;
+import br.finax.dto.cash_flow.FirstAndLastDate;
+import br.finax.dto.cash_flow.MonthlyRelease;
+import br.finax.dto.cash_flow.MonthlyReleaseAccount;
+import br.finax.dto.cash_flow.MonthlyReleaseCard;
+import br.finax.dto.cash_flow.MonthlyReleaseCategory;
+import br.finax.dto.cash_flow.SaveReleaseDTO;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
 import br.finax.enums.release.ReleaseType;
-import br.finax.exceptions.*;
+import br.finax.exceptions.FileCompressionErrorException;
+import br.finax.exceptions.FileIOException;
+import br.finax.exceptions.NotFoundException;
+import br.finax.exceptions.ServiceException;
+import br.finax.exceptions.WithoutPermissionException;
 import br.finax.external.AwsS3Service;
 import br.finax.models.Account;
 import br.finax.models.Category;
@@ -18,24 +51,6 @@ import br.finax.models.Release;
 import br.finax.repository.ReleaseRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.*;
-import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -96,6 +111,8 @@ public class ReleaseService {
         Release release = releaseDto.toEntity();
 
         release.setUserId(getAuthUser().getId());
+        release.setCreatedAt(LocalDateTime.now());
+        release.setUpdatedAt(LocalDateTime.now());
 
         if (release.getRepeat() == null)
             return releaseRepository.save(release);
@@ -153,6 +170,8 @@ public class ReleaseService {
         final Release existingRelease = findByIdInternal(release.getId());
         final boolean dateChanged = !release.getDate().equals(existingRelease.getDate());
 
+        release.setUpdatedAt(LocalDateTime.now());
+
         // things that can't change
         release.setUserId(existingRelease.getUserId());
         release.setType(existingRelease.getType());
@@ -162,6 +181,7 @@ public class ReleaseService {
         release.setRepeat(existingRelease.getRepeat());
         release.setFixedBy(existingRelease.getFixedBy());
         release.setInstallmentNumber(existingRelease.getInstallmentNumber());
+        release.setCreatedAt(existingRelease.getCreatedAt());
 
         if (!updatingAll)
             release = releaseRepository.save(release);
@@ -190,6 +210,7 @@ public class ReleaseService {
                 item.setTime(release.getTime());
                 item.setObservation(release.getObservation());
                 item.setDone(release.isDone());
+                item.setUpdatedAt(release.getUpdatedAt());
             }
 
             releaseRepository.saveAll(duplicatedReleases);
@@ -357,6 +378,7 @@ public class ReleaseService {
         checkPermission(release);
 
         release.setDone(done);
+        release.setUpdatedAt(LocalDateTime.now());
 
         releaseRepository.save(release);
     }
