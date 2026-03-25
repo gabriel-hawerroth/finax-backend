@@ -1,5 +1,9 @@
 package br.finax.models;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import br.finax.enums.release.ReleaseFixedby;
 import br.finax.enums.release.ReleaseRepeat;
 import br.finax.enums.release.ReleaseType;
@@ -12,9 +16,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 @Entity
@@ -84,4 +85,10 @@ public class Release {
 
     @Column(name = "installment_number")
     private Integer installmentNumber;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
