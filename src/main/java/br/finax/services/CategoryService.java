@@ -63,6 +63,7 @@ public class CategoryService {
         category.setId(categoryId);
         category.setUserId(oldCategory.getUserId());
         category.setActive(oldCategory.isActive());
+        category.setCreatedAt(oldCategory.getCreatedAt());
 
         checkPermission(category);
 

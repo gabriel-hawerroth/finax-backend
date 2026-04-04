@@ -100,6 +100,7 @@ public class AccountService {
         account.setId(accountId);
         account.setActive(oldAccount.isActive());
         account.setUserId(oldAccount.getUserId());
+        account.setCreatedAt(oldAccount.getCreatedAt());
 
         checkPermission(account);
 

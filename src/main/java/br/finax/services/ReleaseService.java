@@ -162,6 +162,7 @@ public class ReleaseService {
         release.setRepeat(existingRelease.getRepeat());
         release.setFixedBy(existingRelease.getFixedBy());
         release.setInstallmentNumber(existingRelease.getInstallmentNumber());
+        release.setCreatedAt(existingRelease.getCreatedAt());
 
         if (!updatingAll)
             release = releaseRepository.save(release);
