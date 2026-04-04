@@ -70,7 +70,6 @@ public class CreditCardService {
         card.setId(cardId);
         card.setActive(oldCard.isActive());
         card.setUserId(oldCard.getUserId());
-        card.setCreatedAt(oldCard.getCreatedAt());
 
         checkPermission(card);
 

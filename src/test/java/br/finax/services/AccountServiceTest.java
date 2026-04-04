@@ -9,24 +9,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Optional;
 
 import static br.finax.MockUtils.mockAuthentication;
 import static br.finax.MockUtils.mockAuthenticationUserId;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -76,14 +75,13 @@ class AccountServiceTest {
     }
 
     @Test
-    @DisplayName("edit - should preserve creation date")
-    void testEditPreservesCreationDate() {
+    @DisplayName("edit - should not copy creation date manually")
+    void testEditDoesNotCopyCreationDate() {
         final long authUserId = 1L;
         mockAuthenticationUserId(authentication, authUserId);
 
         final long accountId = 1L;
-        final Instant createdAt = Instant.parse("2026-01-01T00:00:00Z");
-        account.setCreatedAt(createdAt);
+        account.setCreatedAt(null);
 
         when(service.findById(accountId)).thenReturn(account);
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -108,6 +106,6 @@ class AccountServiceTest {
         final ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
         verify(accountRepository).save(accountCaptor.capture());
 
-        assertEquals(createdAt, accountCaptor.getValue().getCreatedAt());
+        assertNull(accountCaptor.getValue().getCreatedAt());
     }
 }
