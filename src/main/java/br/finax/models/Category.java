@@ -9,6 +9,10 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -44,6 +48,14 @@ public class Category {
 
     @Column(nullable = false)
     private boolean essential;
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    private Instant updatedAt;
 
     public Category(String name, String color, String icon, String type, boolean essential) {
         this.id = null;
