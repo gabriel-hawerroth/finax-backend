@@ -1,13 +1,6 @@
 package br.finax.services;
 
-import java.util.logging.Logger;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.HtmlUtils;
-
 import br.finax.dto.app.emails.EmailDTO;
-import br.finax.enums.EmailType;
 import br.finax.enums.ErrorCategory;
 import br.finax.exceptions.ExpiredLinkException;
 import br.finax.exceptions.ServiceException;
@@ -17,6 +10,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +22,7 @@ public class LoginService {
     private static final String DELETE_ALL_FROM_USER = """
                 DELETE FROM user_configs WHERE user_id = :userId;
                 DELETE FROM access_log WHERE user_id = :userId;
+                DELETE FROM password_recovery_token WHERE user_id = :userId;
             
                 DELETE FROM invoice_payment ip
                     WHERE credit_card_id in (
@@ -70,45 +68,6 @@ public class LoginService {
 
         categoryService.insertNewUserCategories(userId);
         userConfigsService.insertUserConfigsIfNotExists(userId);
-    }
-
-    @Transactional
-    public void sendChangePasswordEmail(String email) {
-        email = HtmlUtils.htmlEscape(email);
-
-        final boolean isValidEmail = emailService.verifyEmail(email);
-        if (!isValidEmail)
-            throw new ServiceException(ErrorCategory.BAD_REQUEST, "Invalid email");
-
-        final User user = userService.findByEmail(email);
-
-        final String token = tokenService.generateToken(user);
-
-        try {
-            final String mailContent = emailService.buildEmailContent(EmailType.CHANGE_PASSWORD, user, token);
-
-            emailService.sendMail(
-                    new EmailDTO(
-                            email,
-                            "Alteração de senha",
-                            emailService.buildEmailTemplate(mailContent)
-                    )
-            );
-        } catch (Exception _) {
-            throw new ServiceException(ErrorCategory.BAD_GATEWAY, "Error sending email");
-        }
-    }
-
-    @Transactional
-    public void permitChangePassword(long userId, String token) {
-        final User user = userService.findById(userId);
-        final String userMail = tokenService.validateToken(token);
-
-        if (!user.getEmail().equals(userMail))
-            throw new ExpiredLinkException();
-
-        user.setCanChangePassword(true);
-        userService.save(user);
     }
 
     @Transactional

@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -54,12 +55,14 @@ public class AuthService {
 
     @Transactional
     public LoginDTO doLogin(AuthenticationDTO authDTO) {
-        final var existingUser = userService.findByEmailOptional(authDTO.login()).orElse(null);
+        final String normalizedEmail = normalizeEmail(authDTO.login());
+
+        final var existingUser = userService.findByEmailOptional(normalizedEmail).orElse(null);
         if (existingUser != null && existingUser.getPassword() == null) {
             throw new BadCredentialsException("Use Google to sign in");
         }
 
-        final var usernamePassword = new UsernamePasswordAuthenticationToken(authDTO.login(), authDTO.password());
+        final var usernamePassword = new UsernamePasswordAuthenticationToken(normalizedEmail, authDTO.password());
 
         final Authentication auth;
         try {
@@ -82,7 +85,7 @@ public class AuthService {
 
     @Transactional
     public User registerNewUser(User user) {
-        user.setEmail(HtmlUtils.htmlEscape(user.getEmail()));
+        user.setEmail(normalizeEmail(user.getEmail()));
 
         final boolean isValidEmail = emailService.verifyEmail(user.getEmail());
         if (!isValidEmail)
@@ -94,7 +97,6 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setActive(false);
         user.setAccess(UserAccess.PREMIUM);
-        user.setCanChangePassword(false);
         user.setSignature(UserSignature.MONTH);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -113,7 +115,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public void resendActivationEmail(String userMail) {
         final User user = userService.findByEmail(
-                HtmlUtils.htmlEscape(userMail)
+            normalizeEmail(userMail)
         );
 
         if (user.isActive())
@@ -132,7 +134,7 @@ public class AuthService {
             throw new BadCredentialsException("Invalid Google token");
         }
 
-        final String email = payload.getEmail();
+        final String email = normalizeEmail(payload.getEmail());
         final String googleId = payload.getSubject();
         final String firstName = (String) payload.get("given_name");
         final String lastName = (String) payload.get("family_name");
@@ -168,7 +170,6 @@ public class AuthService {
             user.setProviderId(googleId);
             user.setActive(true);
             user.setAccess(UserAccess.PREMIUM);
-            user.setCanChangePassword(false);
             user.setSignature(UserSignature.MONTH);
             user.setCreatedAt(LocalDateTime.now());
 
@@ -198,6 +199,14 @@ public class AuthService {
             }
         }
         return resolvedFirstName;
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+
+        return HtmlUtils.htmlEscape(email).trim().toLowerCase(Locale.ROOT);
     }
 
     private void saveAccessLog(User user) {
