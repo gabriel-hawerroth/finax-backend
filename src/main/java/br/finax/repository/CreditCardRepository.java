@@ -25,6 +25,8 @@ public interface CreditCardRepository extends JpaRepository<CreditCard, Long> {
                 cc.image AS image,
                 cc.standardPaymentAccountId AS standardPaymentAccountId,
                 cc.active AS active,
+                cc.createdAt AS createdAt,
+                cc.updatedAt AS updatedAt,
                 ac.name AS accountName,
                 ac.image AS accountImage
             FROM
