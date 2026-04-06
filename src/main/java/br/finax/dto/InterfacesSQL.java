@@ -1,11 +1,12 @@
 package br.finax.dto;
 
-import br.finax.enums.AccountType;
-import br.finax.enums.release.ReleaseType;
-
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
+
+import br.finax.enums.AccountType;
+import br.finax.enums.release.ReleaseType;
 
 @SuppressWarnings("unused")
 public class InterfacesSQL {
@@ -96,6 +97,10 @@ public class InterfacesSQL {
         String getAccountName();
 
         String getAccountImage();
+
+        Instant getCreatedAt();
+
+        Instant getUpdatedAt();
     }
 
     public interface BasicAccount {

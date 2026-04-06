@@ -1,9 +1,10 @@
 package br.finax.dto.cash_flow;
 
-import br.finax.enums.release.ReleaseType;
-
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+
+import br.finax.enums.release.ReleaseType;
 
 public record MonthlyRelease(
         long id,
@@ -25,6 +26,8 @@ public record MonthlyRelease(
         boolean isDuplicatedRelease,
         boolean isBalanceAdjustment,
         Integer installmentNumber,
-        Integer totalInstallments
+        Integer totalInstallments,
+        Instant createdAt,
+        Instant updatedAt
 ) {
 }
