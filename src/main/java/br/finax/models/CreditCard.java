@@ -10,8 +10,11 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Data
 @Entity
@@ -50,4 +53,12 @@ public class CreditCard {
 
     @Column(nullable = false)
     private boolean active;
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    private Instant updatedAt;
 }

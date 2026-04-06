@@ -5,9 +5,11 @@ import br.finax.models.Account;
 import br.finax.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +21,10 @@ import java.util.Optional;
 import static br.finax.MockUtils.mockAuthentication;
 import static br.finax.MockUtils.mockAuthenticationUserId;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,5 +72,40 @@ class AccountServiceTest {
 
     private void setAccountUserId(long userId) {
         account.setUserId(userId);
+    }
+
+    @Test
+    @DisplayName("edit - should not copy creation date manually")
+    void testEditDoesNotCopyCreationDate() {
+        final long authUserId = 1L;
+        mockAuthenticationUserId(authentication, authUserId);
+
+        final long accountId = 1L;
+        account.setCreatedAt(null);
+
+        when(service.findById(accountId)).thenReturn(account);
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final var dto = new br.finax.dto.account.SaveAccountDTO(
+                "Conta Atualizada",
+                BigDecimal.TEN,
+                false,
+                true,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                false
+        );
+
+        accountService.edit(accountId, dto);
+
+        final ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).save(accountCaptor.capture());
+
+        assertNull(accountCaptor.getValue().getCreatedAt());
     }
 }
