@@ -1,8 +1,10 @@
 package br.finax.services;
 
-import br.finax.dto.cash_flow.FirstAndLastDate;
+import br.finax.dto.InterfacesSQL.EssentialExpensesTotals;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.cash_flow.FirstAndLastDate;
+import br.finax.dto.home.EssentialExpensesOutput;
 import br.finax.dto.home.HomeAccount;
 import br.finax.dto.home.HomeCreditCard;
 import br.finax.dto.home.SpendByCategoryOutput;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -128,5 +131,62 @@ public class HomeService {
                     currentInvoiceAmount,
                     availableLimit);
         }).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public EssentialExpensesOutput getEssentialExpenses(SpendByCategoryInterval interval) {
+        final FirstAndLastDate firstAndLastDate;
+
+        switch (interval) {
+            case CURRENT_MONTH -> {
+                String monthYear = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+                firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
+            }
+            case LAST_30_DAYS -> {
+                final LocalDate today = LocalDate.now();
+                firstAndLastDate = new FirstAndLastDate(
+                        today.minusDays(30),
+                        today
+                );
+            }
+            default -> throw new IllegalArgumentException("Unsupported interval: " + interval);
+        }
+
+        final EssentialExpensesTotals totals = releaseService.getEssentialExpensesTotals(
+                getAuthUser().getId(),
+                firstAndLastDate.firstDay(),
+                firstAndLastDate.lastDay()
+        );
+
+        final BigDecimal essentialsAmount = totals.getEssentialsAmount();
+        final BigDecimal notEssentialsAmount = totals.getNotEssentialsAmount();
+
+        final BigDecimal totalAmount = essentialsAmount.add(notEssentialsAmount);
+
+        final Long essentialsAmountRounded = essentialsAmount.setScale(0, RoundingMode.HALF_EVEN).longValue();
+        final Long notEssentialsAmountRounded = notEssentialsAmount.setScale(0, RoundingMode.HALF_EVEN).longValue();
+
+        long essentialsPercent = 0;
+        long notEssentialsPercent = 0;
+
+        if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
+            essentialsPercent = essentialsAmount
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(totalAmount, 0, RoundingMode.HALF_EVEN)
+                    .longValue();
+            notEssentialsPercent = notEssentialsAmount
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(totalAmount, 0, RoundingMode.HALF_EVEN)
+                    .longValue();
+        }
+
+        return new EssentialExpensesOutput(
+                essentialsAmountRounded,
+                essentialsPercent,
+                notEssentialsAmountRounded,
+                notEssentialsPercent,
+                firstAndLastDate.firstDay(),
+                firstAndLastDate.lastDay()
+        );
     }
 }

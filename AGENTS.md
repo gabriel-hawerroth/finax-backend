@@ -159,6 +159,7 @@ if (entity.getUserId() != user.getId()) {
 ### Database Queries
 - Avoid N+1 queries: use projection interfaces
 - Prefer `@Query` with explicit JPQL over derived method names
+- Whenever adding a custom `@Query` in any repository, always create/update a projection interface in `dto/InterfacesSQL.java` to map the query return
 - Order results consistently (e.g., `ORDER BY date, time, id`)
 
 ### Lombok & Annotation Usage
@@ -216,6 +217,7 @@ spring.jackson.time-zone=America/Sao_Paulo # Brazil timezone
 6. **Lazy service injection**: Use `@Lazy` when services have circular dependencies
 7. **Timezone consistency**: All timestamps use "America/Sao_Paulo" (set in `MainApplication.main()`)
 8. **BigDecimal for money**: All amounts use `BigDecimal` with 2 decimal precision
+9. **Release amount persistence rule**: All `Release` entities are saved with a positive `amount` in the database, regardless of being expense, revenue, or transfer
 
 ## Quick Reference: Key Files
 
