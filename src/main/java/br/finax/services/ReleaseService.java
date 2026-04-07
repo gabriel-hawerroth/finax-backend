@@ -31,6 +31,7 @@ import br.finax.dto.cash_flow.MonthlyReleaseAccount;
 import br.finax.dto.cash_flow.MonthlyReleaseCard;
 import br.finax.dto.cash_flow.MonthlyReleaseCategory;
 import br.finax.dto.cash_flow.SaveReleaseDTO;
+import br.finax.dto.home.EssentialExpensesOutput;
 import br.finax.enums.ErrorCategory;
 import br.finax.enums.S3FolderPath;
 import br.finax.enums.release.DuplicatedReleaseAction;
@@ -373,6 +374,11 @@ public class ReleaseService {
         release.setDone(done);
 
         releaseRepository.save(release);
+    }
+
+    @Transactional(readOnly = true)
+    public Object[] getEssentialExpensesTotals(long userId, LocalDate startDate, LocalDate endDate) {
+        return releaseRepository.getEssentialExpensesTotals(userId, startDate, endDate);
     }
 
     private void checkPermission(final Release release) {

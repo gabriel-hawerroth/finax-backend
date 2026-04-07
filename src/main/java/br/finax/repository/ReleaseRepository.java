@@ -2,6 +2,7 @@ package br.finax.repository;
 
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.home.EssentialExpensesOutput;
 import br.finax.enums.release.ReleaseType;
 import br.finax.models.Release;
 import lombok.NonNull;
@@ -177,4 +178,23 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 OR rls.id = :duplicatedReleaseId
             """)
     long countAllDuplicatedReleases(long duplicatedReleaseId);
+
+    @Query(value = """
+            SELECT
+                SUM(CASE WHEN c.essential = true THEN rls.amount ELSE 0 END) AS essentialsAmount,
+                SUM(CASE WHEN c.essential = false THEN rls.amount ELSE 0 END) AS notEssentialsAmount
+            FROM
+                Release rls
+                LEFT JOIN Account ac ON rls.accountId = ac.id
+                LEFT JOIN Category c ON rls.categoryId = c.id
+            WHERE
+                rls.userId = :userId
+                AND rls.date BETWEEN :firstDt AND :lastDt
+                AND rls.type = 'E'
+                AND rls.done = true
+                AND rls.isBalanceAdjustment = false
+                AND c.id IS NOT NULL
+                AND CASE WHEN rls.accountId IS NOT NULL THEN ac.addToCashFlow ELSE true END
+            """)
+    Object[] getEssentialExpensesTotals(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 }
