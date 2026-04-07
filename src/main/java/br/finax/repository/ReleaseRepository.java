@@ -1,8 +1,8 @@
 package br.finax.repository;
 
+import br.finax.dto.InterfacesSQL.EssentialExpensesTotals;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.home.EssentialExpensesOutput;
 import br.finax.enums.release.ReleaseType;
 import br.finax.models.Release;
 import lombok.NonNull;
@@ -196,5 +196,5 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
                 AND c.id IS NOT NULL
                 AND CASE WHEN rls.accountId IS NOT NULL THEN ac.addToCashFlow ELSE true END
             """)
-    Object[] getEssentialExpensesTotals(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
+    EssentialExpensesTotals getEssentialExpensesTotals(long userId, @NonNull LocalDate firstDt, @NonNull LocalDate lastDt);
 }

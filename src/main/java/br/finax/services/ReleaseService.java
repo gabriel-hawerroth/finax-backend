@@ -1,11 +1,28 @@
 package br.finax.services;
 
-import static br.finax.external.AwsS3Service.getS3FileName;
-import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
-import static br.finax.utils.FileUtils.compressFile;
-import static br.finax.utils.FileUtils.convertByteArrayToFile;
-import static br.finax.utils.FileUtils.getFileExtension;
-import static br.finax.utils.UtilsService.getAuthUser;
+import br.finax.dto.InterfacesSQL.EssentialExpensesTotals;
+import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
+import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.cash_flow.*;
+import br.finax.enums.ErrorCategory;
+import br.finax.enums.S3FolderPath;
+import br.finax.enums.release.DuplicatedReleaseAction;
+import br.finax.enums.release.ReleaseFixedby;
+import br.finax.enums.release.ReleaseRepeat;
+import br.finax.enums.release.ReleaseType;
+import br.finax.exceptions.*;
+import br.finax.external.AwsS3Service;
+import br.finax.models.Account;
+import br.finax.models.Category;
+import br.finax.models.CreditCard;
+import br.finax.models.Release;
+import br.finax.repository.ReleaseRepository;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -16,41 +33,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
-import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
-import br.finax.dto.cash_flow.CashFlowValues;
-import br.finax.dto.cash_flow.DuplicatedReleaseBuilder;
-import br.finax.dto.cash_flow.FirstAndLastDate;
-import br.finax.dto.cash_flow.MonthlyRelease;
-import br.finax.dto.cash_flow.MonthlyReleaseAccount;
-import br.finax.dto.cash_flow.MonthlyReleaseCard;
-import br.finax.dto.cash_flow.MonthlyReleaseCategory;
-import br.finax.dto.cash_flow.SaveReleaseDTO;
-import br.finax.dto.home.EssentialExpensesOutput;
-import br.finax.enums.ErrorCategory;
-import br.finax.enums.S3FolderPath;
-import br.finax.enums.release.DuplicatedReleaseAction;
-import br.finax.enums.release.ReleaseFixedby;
-import br.finax.enums.release.ReleaseRepeat;
-import br.finax.enums.release.ReleaseType;
-import br.finax.exceptions.FileCompressionErrorException;
-import br.finax.exceptions.FileIOException;
-import br.finax.exceptions.NotFoundException;
-import br.finax.exceptions.ServiceException;
-import br.finax.exceptions.WithoutPermissionException;
-import br.finax.external.AwsS3Service;
-import br.finax.models.Account;
-import br.finax.models.Category;
-import br.finax.models.CreditCard;
-import br.finax.models.Release;
-import br.finax.repository.ReleaseRepository;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static br.finax.external.AwsS3Service.getS3FileName;
+import static br.finax.utils.DateUtils.getFirstAndLastDayOfMonth;
+import static br.finax.utils.FileUtils.*;
+import static br.finax.utils.UtilsService.getAuthUser;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -377,7 +363,7 @@ public class ReleaseService {
     }
 
     @Transactional(readOnly = true)
-    public Object[] getEssentialExpensesTotals(long userId, LocalDate startDate, LocalDate endDate) {
+    public EssentialExpensesTotals getEssentialExpensesTotals(long userId, LocalDate startDate, LocalDate endDate) {
         return releaseRepository.getEssentialExpensesTotals(userId, startDate, endDate);
     }
 

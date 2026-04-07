@@ -1,8 +1,9 @@
 package br.finax.services;
 
-import br.finax.dto.cash_flow.FirstAndLastDate;
+import br.finax.dto.InterfacesSQL.EssentialExpensesTotals;
 import br.finax.dto.InterfacesSQL.HomeRevenueExpense;
 import br.finax.dto.InterfacesSQL.HomeUpcomingRelease;
+import br.finax.dto.cash_flow.FirstAndLastDate;
 import br.finax.dto.home.EssentialExpensesOutput;
 import br.finax.dto.home.HomeAccount;
 import br.finax.dto.home.HomeCreditCard;
@@ -142,21 +143,23 @@ public class HomeService {
                 firstAndLastDate = getFirstAndLastDayOfMonth(monthYear);
             }
             case LAST_30_DAYS -> {
+                final LocalDate today = LocalDate.now();
                 firstAndLastDate = new FirstAndLastDate(
-                        LocalDate.now().minusDays(30),
-                        LocalDate.now());
+                        today.minusDays(30),
+                        today
+                );
             }
             default -> throw new IllegalArgumentException("Unsupported interval: " + interval);
         }
 
-        final Object[] totals = releaseService.getEssentialExpensesTotals(
+        final EssentialExpensesTotals totals = releaseService.getEssentialExpensesTotals(
                 getAuthUser().getId(),
                 firstAndLastDate.firstDay(),
                 firstAndLastDate.lastDay()
         );
 
-        final BigDecimal essentialsAmount = totals[0] != null ? new BigDecimal(totals[0].toString()) : BigDecimal.ZERO;
-        final BigDecimal notEssentialsAmount = totals[1] != null ? new BigDecimal(totals[1].toString()) : BigDecimal.ZERO;
+        final BigDecimal essentialsAmount = totals.getEssentialsAmount();
+        final BigDecimal notEssentialsAmount = totals.getNotEssentialsAmount();
 
         final BigDecimal totalAmount = essentialsAmount.add(notEssentialsAmount);
 
@@ -168,14 +171,12 @@ public class HomeService {
 
         if (totalAmount.compareTo(BigDecimal.ZERO) > 0) {
             essentialsPercent = essentialsAmount
-                    .divide(totalAmount, RoundingMode.HALF_EVEN)
                     .multiply(BigDecimal.valueOf(100))
-                    .setScale(0, RoundingMode.HALF_EVEN)
+                    .divide(totalAmount, 0, RoundingMode.HALF_EVEN)
                     .longValue();
             notEssentialsPercent = notEssentialsAmount
-                    .divide(totalAmount, RoundingMode.HALF_EVEN)
                     .multiply(BigDecimal.valueOf(100))
-                    .setScale(0, RoundingMode.HALF_EVEN)
+                    .divide(totalAmount, 0, RoundingMode.HALF_EVEN)
                     .longValue();
         }
 
