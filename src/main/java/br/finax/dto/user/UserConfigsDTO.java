@@ -11,7 +11,8 @@ public record UserConfigsDTO(
         String language,
         String currency,
         UserConfigsReleasesViewMode releasesViewMode,
-        boolean emailNotifications
+        boolean emailNotifications,
+        boolean showAuditFields
 ) {
     public static UserConfigsDTO fromEntity(UserConfigs userConfigs) {
         return new UserConfigsDTO(
@@ -21,7 +22,8 @@ public record UserConfigsDTO(
                 userConfigs.getLanguage(),
                 userConfigs.getCurrency(),
                 userConfigs.getReleasesViewMode(),
-                userConfigs.isEmailNotifications()
+                userConfigs.isEmailNotifications(),
+                userConfigs.isShowAuditFields()
         );
     }
 
@@ -34,6 +36,7 @@ public record UserConfigsDTO(
         entity.setCurrency(this.currency);
         entity.setReleasesViewMode(this.releasesViewMode);
         entity.setEmailNotifications(this.emailNotifications);
+        entity.setShowAuditFields(this.showAuditFields);
         return entity;
     }
 }

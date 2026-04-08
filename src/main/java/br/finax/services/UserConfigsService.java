@@ -64,6 +64,7 @@ public class UserConfigsService {
         configs.setCurrency("R$");
         configs.setReleasesViewMode(UserConfigsReleasesViewMode.RELEASES);
         configs.setEmailNotifications(true);
+        configs.setShowAuditFields(true);
 
         return configs;
     }
