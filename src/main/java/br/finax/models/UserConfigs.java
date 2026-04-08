@@ -39,4 +39,7 @@ public class UserConfigs {
 
     @Column(name = "email_notifications", nullable = false, columnDefinition = "bool default true")
     private boolean emailNotifications;
+
+    @Column(name = "show_audit_fields", nullable = false, columnDefinition = "bool default true")
+    private boolean showAuditFields;
 }
