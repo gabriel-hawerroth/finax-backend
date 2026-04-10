@@ -9,6 +9,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.List;
+
 @Configuration
 public class CorsConfig {
 
@@ -19,13 +21,19 @@ public class CorsConfig {
     public FilterRegistrationBean<CorsFilter> customCorsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin(websiteUrl);
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
 
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of(websiteUrl));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        // allowedHeaders: headers que o cliente pode enviar (requisição)
+        config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
+        // exposedHeaders: headers que o cliente pode ler da resposta
+        config.setExposedHeaders(List.of("Set-Cookie"));
+        config.setMaxAge(3600L);
+
+        source.registerCorsConfiguration("/**", config);
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }

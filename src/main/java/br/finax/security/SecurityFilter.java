@@ -39,10 +39,10 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
             final String userMail = tokenService.validateToken(token);
             if (userMail == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token expired or invalid");
-                response.getWriter().flush();
-                return; // Interrompe a cadeia de filtros
+                expireAuthCookie(response);
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
             }
 
             final User user = findUserByMail(userMail);
@@ -88,5 +88,12 @@ public class SecurityFilter extends OncePerRequestFilter {
     public void updateCachedUser(@NonNull User user) {
         if (usersCache.containsKey(user.getEmail()))
             usersCache.replace(user.getEmail(), user);
+    }
+
+    private void expireAuthCookie(HttpServletResponse response) {
+        final Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 }

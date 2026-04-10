@@ -1,10 +1,14 @@
 package br.finax.controllers;
 
-import br.finax.enums.ErrorCategory;
+import br.finax.dto.auth.PasswordRecoveryConfirmDTO;
+import br.finax.dto.auth.PasswordRecoveryRequestDTO;
+import br.finax.dto.auth.PasswordRecoveryValidateDTO;
 import br.finax.exceptions.ExpiredLinkException;
-import br.finax.exceptions.ServiceException;
 import br.finax.services.LoginService;
+import br.finax.services.PasswordRecoveryService;
 import br.finax.utils.ServiceUrls;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,7 @@ import java.net.URI;
 public class LoginController {
 
     private final LoginService loginService;
+    private final PasswordRecoveryService passwordRecoveryService;
     private final ServiceUrls serviceUrls;
 
     @GetMapping("/activate-account/{userId}/{token}")
@@ -42,27 +47,31 @@ public class LoginController {
                 .build();
     }
 
-    @PostMapping("/send-change-password-email")
-    public ResponseEntity<Void> sendChangePasswordEmail(@RequestParam @NotNull String email) {
-        loginService.sendChangePasswordEmail(email);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/permit-change-password/{userId}/{token}")
-    public ResponseEntity<Void> permitChangePassword(@PathVariable long userId, @PathVariable @NotNull String token) {
-        loginService.permitChangePassword(userId, token);
-
-        final URI uri = URI.create(serviceUrls.getSiteUrl() + "/recuperacao-da-senha/" + userId);
-
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(uri)
-                .build();
-    }
-
     @PostMapping("/send-cancel-account-email/{userId}")
     public ResponseEntity<Void> sendCancelUserAccountEmail(@PathVariable long userId) {
         loginService.sendCancelUserAccountEmail(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password-recovery/request")
+    public ResponseEntity<Void> requestPasswordRecovery(
+            @RequestBody @Valid PasswordRecoveryRequestDTO body,
+            HttpServletRequest request
+    ) {
+        passwordRecoveryService.requestRecovery(body.email(), request);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/password-recovery/confirm")
+    public ResponseEntity<Void> confirmPasswordRecovery(@RequestBody @Valid PasswordRecoveryConfirmDTO body) {
+        passwordRecoveryService.confirmRecovery(body.token(), body.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password-recovery/validate")
+    public ResponseEntity<Void> validatePasswordRecoveryToken(@RequestBody @Valid PasswordRecoveryValidateDTO body) {
+        passwordRecoveryService.validateToken(body.token());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/cancel-user/{userId}/{token}")
