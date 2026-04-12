@@ -13,9 +13,11 @@ Finax é um sistema de controle financeiro que auxilia no gerenciamento de recei
 - Java 25
 - Spring Boot 4
 - JPA/Hibernate
-- PostgreSQL
-- Flyway (migração de banco)
-- Maven
+- Flyway (migração de schema do banco)
+- [PostgreSQL](https://www.postgresql.org/) (banco de dados)
+- [Oracle cloud](https://www.oracle.com/br/cloud/compute/virtual-machines/) (servidores)
+- [Aws S3](https://aws.amazon.com/pt/s3/) (armazenamento de arquivos)
+- [Aws SES](https://aws.amazon.com/pt/ses/) (envio de emails)
 
 ## 📦 Como rodar o projeto localmente
 
