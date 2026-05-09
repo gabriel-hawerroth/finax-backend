@@ -181,8 +181,8 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
 
     @Query(value = """
             SELECT
-                SUM(CASE WHEN c.essential = true THEN rls.amount ELSE 0 END) AS essentialsAmount,
-                SUM(CASE WHEN c.essential = false THEN rls.amount ELSE 0 END) AS notEssentialsAmount
+                COALESCE(SUM(CASE WHEN c.essential = true THEN rls.amount ELSE 0 END), 0) AS essentialsAmount,
+                COALESCE(SUM(CASE WHEN c.essential = false THEN rls.amount ELSE 0 END), 0) AS notEssentialsAmount
             FROM
                 Release rls
                 LEFT JOIN Account ac ON rls.accountId = ac.id
