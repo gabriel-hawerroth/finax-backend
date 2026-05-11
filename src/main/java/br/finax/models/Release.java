@@ -53,6 +53,9 @@ public class Release {
     @Column(name = "category_id")
     private Long categoryId;
 
+    @Column(name = "subcategory_id")
+    private Long subcategoryId;
+
     @Column(nullable = false)
     private LocalDate date;
 

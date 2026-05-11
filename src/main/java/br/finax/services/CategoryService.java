@@ -5,6 +5,7 @@ import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;
 import br.finax.repository.CategoryRepository;
+import br.finax.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import static br.finax.utils.UtilsService.getAuthUser;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final SubcategoryRepository subcategoryRepository;
 
     @Transactional(readOnly = true)
     public Category findById(long id) {
@@ -80,6 +82,7 @@ public class CategoryService {
         } catch (DataIntegrityViolationException e) {
             category.setActive(false);
             categoryRepository.save(category);
+            subcategoryRepository.deactivateAllByCategoryId(id);
         }
     }
 

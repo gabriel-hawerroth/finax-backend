@@ -19,6 +19,7 @@ public class DuplicatedReleaseBuilder {
         duplicatedRelease.setDone(original.isDone());
         duplicatedRelease.setTargetAccountId(original.getTargetAccountId());
         duplicatedRelease.setCategoryId(original.getCategoryId());
+        duplicatedRelease.setSubcategoryId(original.getSubcategoryId());
         duplicatedRelease.setDate(null);
         duplicatedRelease.setTime(original.getTime());
         duplicatedRelease.setObservation(original.getObservation());
