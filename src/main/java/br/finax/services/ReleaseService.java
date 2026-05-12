@@ -87,9 +87,34 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public CashFlowValues getValues() {
+        final List<Category> activeCategories = categoryService.findAllActiveByUser();
+
+        final List<Long> categoryIds = activeCategories.stream()
+                .map(Category::getId)
+                .toList();
+
+        final var subcategoriesByCategoryId = subcategoryService.findAllActiveByCategoryIdIn(categoryIds)
+                .stream()
+                .collect(Collectors.groupingBy(Subcategory::getCategoryId));
+
+        final List<CashFlowCategory> categories = activeCategories.stream()
+                .map(ctg -> new CashFlowCategory(
+                        ctg.getId(),
+                        ctg.getName(),
+                        ctg.getColor(),
+                        ctg.getIcon(),
+                        ctg.getType(),
+                        subcategoriesByCategoryId
+                                .getOrDefault(ctg.getId(), List.of())
+                                .stream()
+                                .map(sub -> new CashFlowSubcategory(sub.getId(), sub.getName()))
+                                .toList()
+                ))
+                .toList();
+
         return new CashFlowValues(
                 accountService.getBasicList(true),
-                categoryService.findAllActiveByUser(),
+                categories,
                 creditCardService.getBasicList()
         );
     }

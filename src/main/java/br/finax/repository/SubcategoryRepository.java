@@ -13,6 +13,8 @@ public interface SubcategoryRepository extends JpaRepository<Subcategory, Long> 
 
     List<Subcategory> findAllByCategoryIdIn(List<Long> categoryIds);
 
+    List<Subcategory> findAllByCategoryIdInAndActiveTrue(List<Long> categoryIds);
+
     @Modifying
     @Query("UPDATE Subcategory s SET s.active = false WHERE s.categoryId = :categoryId")
     void deactivateAllByCategoryId(long categoryId);

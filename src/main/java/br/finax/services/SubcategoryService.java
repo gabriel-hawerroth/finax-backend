@@ -89,6 +89,11 @@ public class SubcategoryService {
         return subcategoryRepository.findAllByCategoryIdIn(categoryIds);
     }
 
+    @Transactional(readOnly = true)
+    public List<Subcategory> findAllActiveByCategoryIdIn(List<Long> categoryIds) {
+        return subcategoryRepository.findAllByCategoryIdInAndActiveTrue(categoryIds);
+    }
+
     private void validateEssential(boolean essential, Category category) {
         if (essential && !ReleaseType.E.name().equals(category.getType())) {
             throw new IllegalArgumentException("Only expense categories can have essential subcategories");
