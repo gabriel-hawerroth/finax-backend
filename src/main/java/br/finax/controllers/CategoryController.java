@@ -1,5 +1,6 @@
 package br.finax.controllers;
 
+import br.finax.dto.cash_flow.CashFlowCategory;
 import br.finax.dto.category.SaveCategoryDTO;
 import br.finax.models.Category;
 import br.finax.services.CategoryService;
@@ -36,6 +37,13 @@ public class CategoryController {
     public ResponseEntity<List<Category>> getByUser() {
         return ResponseEntity.ok(
                 categoryService.findAllActiveByUser()
+        );
+    }
+
+    @GetMapping("/get-by-user-with-subcategories")
+    public ResponseEntity<List<CashFlowCategory>> getByUserWithSubcategories() {
+        return ResponseEntity.ok(
+                categoryService.getByUserWithSubcategories()
         );
     }
 

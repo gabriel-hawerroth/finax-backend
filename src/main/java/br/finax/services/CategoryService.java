@@ -1,9 +1,12 @@
 package br.finax.services;
 
+import br.finax.dto.cash_flow.CashFlowCategory;
+import br.finax.dto.cash_flow.CashFlowSubcategory;
 import br.finax.dto.category.SaveCategoryDTO;
 import br.finax.exceptions.NotFoundException;
 import br.finax.exceptions.WithoutPermissionException;
 import br.finax.models.Category;
+import br.finax.models.Subcategory;
 import br.finax.repository.CategoryRepository;
 import br.finax.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static br.finax.utils.DefaultCategories.DEFAULT_EXPENSE_CATEGORIES;
 import static br.finax.utils.DefaultCategories.DEFAULT_REVENUE_CATEGORIES;
@@ -46,6 +50,34 @@ public class CategoryService {
         return categoryRepository.findAllActiveByUser(
                 getAuthUser().getId()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<CashFlowCategory> getByUserWithSubcategories() {
+        final List<Category> activeCategories = findAllActiveByUser();
+
+        final List<Long> categoryIds = activeCategories.stream()
+                .map(Category::getId)
+                .toList();
+
+        final var subcategoriesByCategoryId = subcategoryRepository.findAllByCategoryIdInAndActiveTrue(categoryIds)
+                .stream()
+                .collect(Collectors.groupingBy(Subcategory::getCategoryId));
+
+        return activeCategories.stream()
+                .map(ctg -> new CashFlowCategory(
+                        ctg.getId(),
+                        ctg.getName(),
+                        ctg.getColor(),
+                        ctg.getIcon(),
+                        ctg.getType(),
+                        subcategoriesByCategoryId
+                                .getOrDefault(ctg.getId(), List.of())
+                                .stream()
+                                .map(sub -> new CashFlowSubcategory(sub.getId(), sub.getName()))
+                                .toList()
+                ))
+                .toList();
     }
 
     @Transactional
