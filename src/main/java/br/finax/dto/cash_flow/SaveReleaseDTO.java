@@ -16,6 +16,7 @@ public record SaveReleaseDTO(
         boolean done,
         Long targetAccountId,
         Long categoryId,
+        Long subcategoryId,
         LocalDate date,
         String time,
         String observation,
@@ -38,6 +39,7 @@ public record SaveReleaseDTO(
         release.setDone(this.done);
         release.setTargetAccountId(this.targetAccountId);
         release.setCategoryId(this.categoryId);
+        release.setSubcategoryId(this.subcategoryId);
         release.setDate(this.date);
         release.setTime(this.time);
         release.setObservation(this.observation);

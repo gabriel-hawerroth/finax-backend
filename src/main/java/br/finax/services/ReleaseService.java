@@ -16,6 +16,7 @@ import br.finax.models.Account;
 import br.finax.models.Category;
 import br.finax.models.CreditCard;
 import br.finax.models.Release;
+import br.finax.models.Subcategory;
 import br.finax.repository.ReleaseRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class ReleaseService {
     private final ReleaseRepository releaseRepository;
     private final CreditCardService creditCardService;
     private final CategoryService categoryService;
+    private final SubcategoryService subcategoryService;
     private final AccountService accountService;
     private final AwsS3Service awsS3Service;
 
@@ -85,9 +87,34 @@ public class ReleaseService {
 
     @Transactional(readOnly = true)
     public CashFlowValues getValues() {
+        final List<Category> activeCategories = categoryService.findAllActiveByUser();
+
+        final List<Long> categoryIds = activeCategories.stream()
+                .map(Category::getId)
+                .toList();
+
+        final var subcategoriesByCategoryId = subcategoryService.findAllActiveByCategoryIdIn(categoryIds)
+                .stream()
+                .collect(Collectors.groupingBy(Subcategory::getCategoryId));
+
+        final List<CashFlowCategory> categories = activeCategories.stream()
+                .map(ctg -> new CashFlowCategory(
+                        ctg.getId(),
+                        ctg.getName(),
+                        ctg.getColor(),
+                        ctg.getIcon(),
+                        ctg.getType(),
+                        subcategoriesByCategoryId
+                                .getOrDefault(ctg.getId(), List.of())
+                                .stream()
+                                .map(sub -> new CashFlowSubcategory(sub.getId(), sub.getName()))
+                                .toList()
+                ))
+                .toList();
+
         return new CashFlowValues(
                 accountService.getBasicList(true),
-                categoryService.findAllActiveByUser(),
+                categories,
                 creditCardService.getBasicList()
         );
     }
@@ -187,6 +214,7 @@ public class ReleaseService {
                 item.setAmount(release.getAmount());
                 item.setTargetAccountId(release.getTargetAccountId());
                 item.setCategoryId(release.getCategoryId());
+                item.setSubcategoryId(release.getSubcategoryId());
                 item.setDate(item.getDate());
                 item.setTime(release.getTime());
                 item.setObservation(release.getObservation());
@@ -417,11 +445,27 @@ public class ReleaseService {
                         cd -> new MonthlyReleaseCard(cd.getId(), cd.getName(), cd.getImage()))
                 );
 
-        var categories = categoryService.getByUser()
+        var categoryList = categoryService.getByUser();
+
+        var categories = categoryList
                 .stream().collect(Collectors.toUnmodifiableMap(
                         Category::getId,
                         ctg -> new MonthlyReleaseCategory(ctg.getId(), ctg.getName(), ctg.getColor(), ctg.getIcon()))
                 );
+
+        var categoryEntities = categoryList
+                .stream().collect(Collectors.toUnmodifiableMap(Category::getId, ctg -> ctg));
+
+        var subcategories = subcategoryService.findAllByCategoryIdIn(
+                categoryEntities.keySet().stream().toList()
+        ).stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        Subcategory::getId,
+                        sub -> {
+                            var parent = categoryEntities.get(sub.getCategoryId());
+                            return new MonthlyReleaseCategory(sub.getId(), sub.getName(), parent.getColor(), parent.getIcon());
+                        }
+                ));
 
         // Build a map of duplicatedReleaseId to total count for installment plans
         var installmentCounts = new java.util.HashMap<Long, Integer>();
@@ -443,6 +487,7 @@ public class ReleaseService {
             var card = release.getCreditCardId() != null ? cards.get(release.getCreditCardId()) : null;
             var targetAccount = release.getTargetAccountId() != null ? accounts.get(release.getTargetAccountId()) : null;
             var category = release.getCategoryId() != null ? categories.get(release.getCategoryId()) : null;
+            var subcategory = release.getSubcategoryId() != null ? subcategories.get(release.getSubcategoryId()) : null;
 
             // Get total installments if this is part of an installment plan
             Integer totalInstallments = null;
@@ -466,6 +511,7 @@ public class ReleaseService {
                     card,
                     targetAccount,
                     category,
+                    subcategory,
                     release.getObservation(),
                     release.getS3FileName(),
                     release.getAttachmentName(),

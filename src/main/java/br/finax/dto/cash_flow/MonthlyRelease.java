@@ -19,6 +19,7 @@ public record MonthlyRelease(
         MonthlyReleaseCard card,
         MonthlyReleaseAccount targetAccount,
         MonthlyReleaseCategory category,
+        MonthlyReleaseCategory subcategory,
         String observation,
         String attachmentS3FileName,
         String attachmentName,
